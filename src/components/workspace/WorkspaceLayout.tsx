@@ -107,92 +107,15 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
             </button>
           </div>
         </header>
-
         <main className="flex-1 relative">
           <CanvasArea />
           {children}
-        </main>
-
-        {/* Bottom Timeline / Layer Panel */}
-        <footer className="h-48 border-t border-panel-border bg-background p-4 flex flex-col z-20 relative shadow-2xl">
-          <div className="text-xs text-muted-foreground uppercase tracking-widest font-bold mb-3 flex items-center justify-between">
-            <span>Layers</span>
-            <span className="bg-muted text-foreground px-2 py-0.5 rounded-full text-[10px]">
-              {useWorkspaceStore.getState().layers?.length || 0}
-            </span>
-          </div>
-
-          <div className="flex-1 overflow-y-auto space-y-1">
-            <LayerList />
-          </div>
-        </footer>
+        </main>{" "}
       </div>
 
       {/* Right Properties Panel */}
       <PropertiesPanel />
       <ExportModal />
     </div>
-  );
-}
-
-function LayerList() {
-  const layers = useWorkspaceStore((state) => state.layers);
-  const activeLayerId = useWorkspaceStore((state) => state.activeLayerId);
-  const setActiveLayerId = useWorkspaceStore((state) => state.setActiveLayerId);
-  const removeLayer = useWorkspaceStore((state) => state.removeLayer);
-
-  if (!layers || layers.length === 0) {
-    return (
-      <div className="text-sm text-muted-foreground text-center py-6 font-medium">
-        No layers yet. Drop a file!
-      </div>
-    );
-  }
-
-  return (
-    <>
-      {layers.map((layer) => (
-        <div key={layer.id} className="flex items-center gap-1 group pr-2">
-          <button
-            onClick={() => setActiveLayerId(layer.id)}
-            className={`flex-1 text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-3 ${
-              activeLayerId === layer.id
-                ? "bg-primary/10 text-primary font-medium"
-                : "text-foreground hover:bg-muted"
-            }`}
-          >
-            <div
-              className={`w-8 h-8 rounded flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0 transition-colors ${
-                activeLayerId === layer.id
-                  ? "bg-primary/20 text-primary"
-                  : "bg-panel border border-panel-border text-muted-foreground"
-              }`}
-            >
-              IMG
-            </div>
-            <span className="truncate flex-1">{layer.name}</span>
-          </button>
-          <button
-            onClick={() => removeLayer(layer.id)}
-            title="Delete Layer"
-            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-panel rounded-md transition-colors"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-      ))}
-    </>
   );
 }
