@@ -25,7 +25,7 @@ export function CanvasArea() {
 
   // Export Logic
   useEffect(() => {
-    if (exportTrigger > 0 && appRef.current) {
+    if (exportTrigger > 0 && appRef.current && activeTool !== "pdf-merge") {
       const app = appRef.current;
       const grid = gridRef.current;
       const overlay = transformOverlayRef.current;
