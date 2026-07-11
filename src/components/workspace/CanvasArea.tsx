@@ -106,6 +106,9 @@ export function CanvasArea() {
             if (layer.scaleX !== 1) sprite.scale.x = layer.scaleX;
             if (layer.scaleY !== 1) sprite.scale.y = layer.scaleY;
             sprite.rotation = layer.rotation || 0;
+            sprite.alpha = layer.opacity ?? 1;
+            sprite.blendMode = (layer.blendMode ||
+              "normal") as PIXI.BLEND_MODES;
 
             // Apply non-destructive crop via texture frame
             if (layer.cropRect && layer.originalWidth > 0) {

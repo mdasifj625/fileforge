@@ -7,8 +7,13 @@ import * as Comlink from "comlink";
 import { FilterType, ImageProcessor } from "@/workers/image.worker";
 
 export function PropertiesPanel() {
-  const { activeLayerId, layers, updateLayerTransform, replaceLayer } =
-    useWorkspaceStore();
+  const {
+    activeLayerId,
+    layers,
+    updateLayerTransform,
+    replaceLayer,
+    activeTool,
+  } = useWorkspaceStore();
 
   const [isFiltering, setIsFiltering] = useState(false);
 
@@ -91,84 +96,88 @@ export function PropertiesPanel() {
         {activeLayer ? (
           <div className="space-y-8">
             {/* Transform Settings */}
-            <div>
-              <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
-                Transform
-              </h3>
+            {(activeTool === "select" || !activeTool) && (
+              <>
+                <div>
+                  <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
+                    Transform
+                  </h3>
 
-              <div className="grid grid-cols-2 gap-4">
-                {/* X Position */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                    X
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={Math.round(activeLayer.x)}
-                      onChange={(e) =>
-                        handleTransformChange("x", e.target.value)
-                      }
-                      className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* X Position */}
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                        X
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={Math.round(activeLayer.x)}
+                          onChange={(e) =>
+                            handleTransformChange("x", e.target.value)
+                          }
+                          className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Y Position */}
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                        Y
+                      </label>
+                      <input
+                        type="number"
+                        value={Math.round(activeLayer.y)}
+                        onChange={(e) =>
+                          handleTransformChange("y", e.target.value)
+                        }
+                        className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
+                      />
+                    </div>
+
+                    {/* Scale X */}
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                        Width (%)
+                      </label>
+                      <input
+                        type="number"
+                        value={Math.round(activeLayer.scaleX * 100)}
+                        onChange={(e) =>
+                          handleTransformChange(
+                            "scaleX",
+                            (parseFloat(e.target.value) / 100).toString(),
+                          )
+                        }
+                        className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
+                      />
+                    </div>
+
+                    {/* Scale Y */}
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                        Height (%)
+                      </label>
+                      <input
+                        type="number"
+                        value={Math.round(activeLayer.scaleY * 100)}
+                        onChange={(e) =>
+                          handleTransformChange(
+                            "scaleY",
+                            (parseFloat(e.target.value) / 100).toString(),
+                          )
+                        }
+                        className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
+                      />
+                    </div>
                   </div>
                 </div>
-
-                {/* Y Position */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                    Y
-                  </label>
-                  <input
-                    type="number"
-                    value={Math.round(activeLayer.y)}
-                    onChange={(e) => handleTransformChange("y", e.target.value)}
-                    className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
-                  />
-                </div>
-
-                {/* Scale X */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                    Width (%)
-                  </label>
-                  <input
-                    type="number"
-                    value={Math.round(activeLayer.scaleX * 100)}
-                    onChange={(e) =>
-                      handleTransformChange(
-                        "scaleX",
-                        (parseFloat(e.target.value) / 100).toString(),
-                      )
-                    }
-                    className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
-                  />
-                </div>
-
-                {/* Scale Y */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                    Height (%)
-                  </label>
-                  <input
-                    type="number"
-                    value={Math.round(activeLayer.scaleY * 100)}
-                    onChange={(e) =>
-                      handleTransformChange(
-                        "scaleY",
-                        (parseFloat(e.target.value) / 100).toString(),
-                      )
-                    }
-                    className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <hr className="border-panel-border" />
+              </>
+            )}
 
             {/* Crop Settings */}
-            {activeLayer.originalWidth > 0 && (
+            {activeTool === "crop" && activeLayer.originalWidth > 0 && (
               <>
                 <div>
                   <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
@@ -365,65 +374,123 @@ export function PropertiesPanel() {
             )}
 
             {/* Image Filters (Web Worker) */}
-            <div>
-              <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">
-                <span>Filters (Worker)</span>
-                {isFiltering && (
-                  <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                )}
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => applyFilter("grayscale")}
-                  disabled={isFiltering}
-                  className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
-                >
-                  Grayscale
-                </button>
-                <button
-                  onClick={() => applyFilter("sepia")}
-                  disabled={isFiltering}
-                  className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
-                >
-                  Sepia
-                </button>
-                <button
-                  onClick={() => applyFilter("vintage")}
-                  disabled={isFiltering}
-                  className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
-                >
-                  Vintage
-                </button>
-                <button
-                  onClick={() => applyFilter("solarize")}
-                  disabled={isFiltering}
-                  className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
-                >
-                  Solarize
-                </button>
-                <button
-                  onClick={() => applyFilter("invert")}
-                  disabled={isFiltering}
-                  className="col-span-2 bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
-                >
-                  Invert Colors
-                </button>
+            {activeTool === "image" && (
+              <div>
+                <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">
+                  <span>Filters (Worker)</span>
+                  {isFiltering && (
+                    <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => applyFilter("grayscale")}
+                    disabled={isFiltering}
+                    className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
+                  >
+                    Grayscale
+                  </button>
+                  <button
+                    onClick={() => applyFilter("sepia")}
+                    disabled={isFiltering}
+                    className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
+                  >
+                    Sepia
+                  </button>
+                  <button
+                    onClick={() => applyFilter("vintage")}
+                    disabled={isFiltering}
+                    className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
+                  >
+                    Vintage
+                  </button>
+                  <button
+                    onClick={() => applyFilter("solarize")}
+                    disabled={isFiltering}
+                    className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
+                  >
+                    Solarize
+                  </button>
+                  <button
+                    onClick={() => applyFilter("invert")}
+                    disabled={isFiltering}
+                    className="col-span-2 bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
+                  >
+                    Invert Colors
+                  </button>
 
-                <hr className="col-span-2 border-panel-border my-2" />
+                  <hr className="col-span-2 border-panel-border my-2" />
 
-                <button
-                  onClick={restoreOriginal}
-                  disabled={
-                    isFiltering ||
-                    !activeLayer?.originalFileId ||
-                    activeLayer.fileId === activeLayer.originalFileId
-                  }
-                  className="col-span-2 bg-background border border-panel-border hover:bg-muted text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-30 disabled:hover:bg-background"
-                >
-                  Restore Original
-                </button>
+                  <button
+                    onClick={restoreOriginal}
+                    disabled={
+                      isFiltering ||
+                      !activeLayer?.originalFileId ||
+                      activeLayer.fileId === activeLayer.originalFileId
+                    }
+                    className="col-span-2 bg-background border border-panel-border hover:bg-muted text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-30 disabled:hover:bg-background"
+                  >
+                    Restore Original
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Appearance Settings */}
+            {activeTool === "layers" && (
+              <div>
+                <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
+                  Appearance
+                </h3>
+
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                        Opacity
+                      </label>
+                      <span className="text-xs font-mono text-foreground">
+                        {Math.round((activeLayer.opacity ?? 1) * 100)}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={activeLayer.opacity ?? 1}
+                      onChange={(e) =>
+                        handleTransformChange("opacity", e.target.value)
+                      }
+                      className="w-full accent-primary"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                      Blend Mode
+                    </label>
+                    <select
+                      value={activeLayer.blendMode || "normal"}
+                      onChange={(e) =>
+                        updateLayerTransform(activeLayer.id, {
+                          blendMode: e.target
+                            .value as import("@/store/useWorkspaceStore").FileLayer["blendMode"],
+                        })
+                      }
+                      className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                    >
+                      <option value="normal">Normal</option>
+                      <option value="multiply">Multiply</option>
+                      <option value="screen">Screen</option>
+                      <option value="overlay">Overlay</option>
+                      <option value="darken">Darken</option>
+                      <option value="lighten">Lighten</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex items-center justify-center h-full text-sm text-muted-foreground text-center px-4 font-medium">

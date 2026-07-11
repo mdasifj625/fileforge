@@ -16,6 +16,24 @@ export interface FileLayer {
   originalHeight: number;
   cropRect?: { x: number; y: number; width: number; height: number };
   cropAspectRatio?: number | "original" | "free" | null;
+  opacity?: number;
+  blendMode?:
+    | "normal"
+    | "multiply"
+    | "screen"
+    | "overlay"
+    | "darken"
+    | "lighten"
+    | "color-dodge"
+    | "color-burn"
+    | "hard-light"
+    | "soft-light"
+    | "difference"
+    | "exclusion"
+    | "hue"
+    | "saturation"
+    | "color"
+    | "luminosity";
 }
 
 export interface WorkspaceState {
