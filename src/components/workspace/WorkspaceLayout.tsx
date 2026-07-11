@@ -52,12 +52,12 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
+    <div className="flex flex-col-reverse md:flex-row h-screen w-screen overflow-hidden bg-background text-foreground">
       {/* Left Toolbar / Navigation */}
       <Toolbar />
 
       {/* Center Canvas Area (PixiJS WebGL preview will go here) */}
-      <div className="flex-1 flex flex-col relative overflow-hidden bg-panel border-x border-panel-border">
+      <div className="flex-1 flex flex-col relative overflow-hidden bg-panel md:border-x border-panel-border">
         {/* Top bar can contain tool title, export button, undo/redo */}
         <header className="h-14 border-b border-panel-border flex items-center justify-between px-4 bg-background/50 backdrop-blur-md z-10">
           <div className="text-sm font-semibold text-muted-foreground tracking-wide">

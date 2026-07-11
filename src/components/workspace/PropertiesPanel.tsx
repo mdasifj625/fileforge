@@ -85,8 +85,8 @@ export function PropertiesPanel() {
   };
 
   return (
-    <aside className="w-80 bg-background flex flex-col z-20 border-l border-panel-border shadow-2xl">
-      <div className="h-14 border-b border-panel-border flex items-center px-5 bg-background/50 backdrop-blur-md">
+    <aside className="w-full h-1/3 md:h-auto md:w-80 shrink-0 bg-background flex flex-col z-20 md:border-l border-t md:border-t-0 border-panel-border shadow-2xl">
+      <div className="h-14 shrink-0 border-b border-panel-border flex items-center px-5 bg-background/50 backdrop-blur-md">
         <h2 className="text-sm font-bold text-foreground uppercase tracking-widest">
           Properties
         </h2>
