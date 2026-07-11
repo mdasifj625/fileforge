@@ -5,7 +5,7 @@ File Forge is a local-first, privacy-focused file processing workspace. It allow
 ## Core Features
 
 - **100% Local Processing:** Powered by WASM and Web Workers.
-- **Non-Destructive Editing:** A Figma-like canvas where operations act as layers.
+- **Non-Destructive Editing:** A Figma-like canvas where operations act as layers. Features a robust image cropping engine with aspect-ratio locking and mask panning.
 - **Privacy First:** No server uploads, no data collection.
 - **Blazing Fast:** Leveraging `Comlink` for worker RPC and `PixiJS` (WebGL) for 60fps real-time previews.
 

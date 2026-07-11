@@ -41,7 +41,14 @@ This document provides a high-level overview of the systems and architecture dri
 - **Data Normalization**: Dropped `File` objects are explicitly processed into an `ArrayBuffer` and stored as a `Blob`. This guarantees safe storage across all browser implementations of IndexedDB, preventing memory pointer corruption often seen with raw `File` instances.
 - **Graceful Error Recovery**: If an image fails to decode (e.g., an unsupported or corrupted file format), the system catches the `InvalidStateError`, safely deletes the corrupted layer from state, and gracefully continues without crashing the WebGL pipeline.
 
-## 5. Upcoming Implementation: Image Processing
+## 5. Crop Engine (Non-Destructive)
 
-- **Destructive/Non-Destructive Workflows**: Future features like the Cropping Tool and complex filters will be offloaded to Web Workers.
+- **Texture Frames**: The cropping system is entirely non-destructive. It leverages PixiJS `PIXI.Texture.frame` to crop the image on the GPU without altering the original underlying WebGL texture.
+- **Ghost Preview**: During crop operations, a low-opacity "ghost" sprite of the full original image is rendered behind the crop bounding box, providing contextual awareness.
+- **Aspect Ratio Locking**: Crop boundaries dynamically calculate safe maximum extents to prevent out-of-bounds dragging, and can rigidly enforce standard aspect ratios (e.g. 1:1, 16:9).
+- **Image Panning**: By calculating relative mouse offsets and updating `sprite.texture.frame` instead of `sprite.x/y`, users can seamlessly drag the image _behind_ the stationary crop mask.
+
+## 6. Upcoming Implementation: Image Processing
+
+- **Destructive Workflows**: Future complex filters (like blur, color grading, format conversion) will be offloaded to Web Workers.
 - **Web Workers**: Connecting `image.worker.ts` to process intense mathematical manipulations off the main UI thread.

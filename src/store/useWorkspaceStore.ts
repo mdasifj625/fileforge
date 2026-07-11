@@ -11,6 +11,11 @@ export interface FileLayer {
   scaleX: number;
   scaleY: number;
   rotation: number;
+  originalWidth: number;
+  originalHeight: number;
+  // cropRect stores the cropped region relative to the original image dimensions
+  cropRect?: { x: number; y: number; width: number; height: number };
+  cropAspectRatio?: number | "original" | "free" | null;
 }
 
 export interface WorkspaceState {

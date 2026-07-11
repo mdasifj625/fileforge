@@ -106,6 +106,40 @@ export function CanvasArea() {
             if (layer.scaleX !== 1) sprite.scale.x = layer.scaleX;
             if (layer.scaleY !== 1) sprite.scale.y = layer.scaleY;
             sprite.rotation = layer.rotation || 0;
+
+            // Apply non-destructive crop via texture frame
+            if (layer.cropRect && layer.originalWidth > 0) {
+              const cx = Math.max(0, layer.cropRect.x);
+              const cy = Math.max(0, layer.cropRect.y);
+              const cw = Math.min(
+                layer.originalWidth - cx,
+                layer.cropRect.width,
+              );
+              const ch = Math.min(
+                layer.originalHeight - cy,
+                layer.cropRect.height,
+              );
+
+              if (cw > 0 && ch > 0) {
+                sprite.texture = new PIXI.Texture({
+                  source: sprite.texture.source,
+                  frame: new PIXI.Rectangle(cx, cy, cw, ch),
+                });
+              }
+            } else if (
+              layer.originalWidth > 0 &&
+              sprite.texture.frame.width !== layer.originalWidth
+            ) {
+              sprite.texture = new PIXI.Texture({
+                source: sprite.texture.source,
+                frame: new PIXI.Rectangle(
+                  0,
+                  0,
+                  layer.originalWidth,
+                  layer.originalHeight,
+                ),
+              });
+            }
           }
 
           continue;
@@ -115,12 +149,51 @@ export function CanvasArea() {
         if (!fileData) continue;
 
         try {
-          // Use natively hardware-accelerated createImageBitmap which handles Blobs perfectly
           const imageBitmap = await window.createImageBitmap(fileData.blob);
-          const texture = PIXI.Texture.from(imageBitmap);
+          let texture = PIXI.Texture.from(imageBitmap);
+
+          if (layer.originalWidth === 0 || layer.originalHeight === 0) {
+            useWorkspaceStore.getState().updateLayerTransform(layer.id, {
+              originalWidth: imageBitmap.width,
+              originalHeight: imageBitmap.height,
+            });
+            // We exit this render cycle since the state update will immediately trigger another one
+            // with the correct originalWidth/Height, avoiding layout jumping
+            continue;
+          }
+
           const sprite = new PIXI.Sprite(texture) as PIXI.Sprite & {
             isBeingManipulated?: boolean;
           };
+
+          if (layer.cropRect) {
+            // Apply non-destructive crop via texture frame
+            // Clamp values to prevent WebGL errors if cropRect exceeds bounds
+            const cx = Math.max(0, layer.cropRect.x);
+            const cy = Math.max(0, layer.cropRect.y);
+            const cw = Math.min(layer.originalWidth - cx, layer.cropRect.width);
+            const ch = Math.min(
+              layer.originalHeight - cy,
+              layer.cropRect.height,
+            );
+
+            if (cw > 0 && ch > 0) {
+              texture = new PIXI.Texture({
+                source: texture.source,
+                frame: new PIXI.Rectangle(cx, cy, cw, ch),
+              });
+            }
+          } else {
+            texture = new PIXI.Texture({
+              source: texture.source,
+              frame: new PIXI.Rectangle(
+                0,
+                0,
+                layer.originalWidth,
+                layer.originalHeight,
+              ),
+            });
+          }
 
           sprite.anchor.set(0.5);
 
@@ -143,19 +216,33 @@ export function CanvasArea() {
           let dragging = false;
           let dragData: PIXI.FederatedPointerEvent | null = null;
           const offset = { x: 0, y: 0 };
+          let dragStartCrop = { x: 0, y: 0, w: 0, h: 0 };
 
           sprite.on("pointerdown", (e) => {
             const store = useWorkspaceStore.getState();
             store.setActiveLayerId(layer.id);
 
-            if (store.activeTool !== "select") return;
+            if (store.activeTool !== "select" && store.activeTool !== "crop")
+              return;
 
             dragging = true;
             sprite.isBeingManipulated = true;
             dragData = e;
             const localPos = dragData.getLocalPosition(app.stage);
-            offset.x = sprite.x - localPos.x;
-            offset.y = sprite.y - localPos.y;
+
+            if (store.activeTool === "crop") {
+              offset.x = localPos.x;
+              offset.y = localPos.y;
+              dragStartCrop = {
+                x: sprite.texture.frame.x,
+                y: sprite.texture.frame.y,
+                w: sprite.texture.frame.width,
+                h: sprite.texture.frame.height,
+              };
+            } else {
+              offset.x = sprite.x - localPos.x;
+              offset.y = sprite.y - localPos.y;
+            }
           });
 
           const onDragEnd = () => {
@@ -164,10 +251,21 @@ export function CanvasArea() {
               dragData = null;
               sprite.isBeingManipulated = false;
 
-              useWorkspaceStore.getState().updateLayerTransform(layer.id, {
-                x: sprite.x,
-                y: sprite.y,
-              });
+              if (useWorkspaceStore.getState().activeTool === "crop") {
+                useWorkspaceStore.getState().updateLayerTransform(layer.id, {
+                  cropRect: {
+                    x: sprite.texture.frame.x,
+                    y: sprite.texture.frame.y,
+                    width: sprite.texture.frame.width,
+                    height: sprite.texture.frame.height,
+                  },
+                });
+              } else {
+                useWorkspaceStore.getState().updateLayerTransform(layer.id, {
+                  x: sprite.x,
+                  y: sprite.y,
+                });
+              }
             }
           };
 
@@ -176,10 +274,50 @@ export function CanvasArea() {
 
           sprite.on("globalpointermove", (e) => {
             if (dragging && dragData) {
+              const store = useWorkspaceStore.getState();
               const globalPos = e.global;
               const localPos = app.stage.toLocal(globalPos);
-              sprite.x = localPos.x + offset.x;
-              sprite.y = localPos.y + offset.y;
+
+              if (store.activeTool === "crop") {
+                const dx = localPos.x - offset.x;
+                const dy = localPos.y - offset.y;
+
+                const cos = Math.cos(-sprite.rotation);
+                const sin = Math.sin(-sprite.rotation);
+                const rotDx = dx * cos - dy * sin;
+                const rotDy = dx * sin + dy * cos;
+
+                const unscaledDx = rotDx / Math.abs(sprite.scale.x);
+                const unscaledDy = rotDy / Math.abs(sprite.scale.y);
+
+                const layerState = store.layers.find((l) => l.id === layer.id);
+                if (!layerState) return;
+
+                let newX = dragStartCrop.x - unscaledDx;
+                let newY = dragStartCrop.y - unscaledDy;
+
+                newX = Math.max(
+                  0,
+                  Math.min(newX, layerState.originalWidth - dragStartCrop.w),
+                );
+                newY = Math.max(
+                  0,
+                  Math.min(newY, layerState.originalHeight - dragStartCrop.h),
+                );
+
+                sprite.texture = new PIXI.Texture({
+                  source: sprite.texture.source,
+                  frame: new PIXI.Rectangle(
+                    newX,
+                    newY,
+                    dragStartCrop.w,
+                    dragStartCrop.h,
+                  ),
+                });
+              } else {
+                sprite.x = localPos.x + offset.x;
+                sprite.y = localPos.y + offset.y;
+              }
             }
           });
 
@@ -224,7 +362,7 @@ export function CanvasArea() {
     overlay.removeChildren();
 
     if (
-      activeTool !== "select" ||
+      (activeTool !== "select" && activeTool !== "crop") ||
       !activeLayerId ||
       !spritesRef.current[activeLayerId]
     )
@@ -238,78 +376,286 @@ export function CanvasArea() {
     const boundsBox = new PIXI.Graphics();
     overlay.addChild(boundsBox);
 
-    // Handle positions
-    const handles = [
-      { id: "tl", x: -1, y: -1 },
-      { id: "tr", x: 1, y: -1 },
-      { id: "bl", x: -1, y: 1 },
-      { id: "br", x: 1, y: 1 },
-    ];
+    const isCropMode = activeTool === "crop";
+    let cropGhostSprite: PIXI.Sprite | null = null;
+
+    if (isCropMode) {
+      const layer = useWorkspaceStore
+        .getState()
+        .layers.find((l) => l.id === activeLayerId);
+      if (layer && layer.originalWidth > 0) {
+        const ghostTexture = new PIXI.Texture({
+          source: activeSprite.texture.source,
+          frame: new PIXI.Rectangle(
+            0,
+            0,
+            layer.originalWidth,
+            layer.originalHeight,
+          ),
+        });
+        cropGhostSprite = new PIXI.Sprite(ghostTexture);
+        cropGhostSprite.anchor.set(0.5);
+        cropGhostSprite.alpha = 0.3; // Dimmed uncropped region
+        overlay.addChildAt(cropGhostSprite, 0);
+      }
+    }
+
+    const handles = isCropMode
+      ? [
+          { id: "tl", x: -1, y: -1 },
+          { id: "t", x: 0, y: -1 },
+          { id: "tr", x: 1, y: -1 },
+          { id: "r", x: 1, y: 0 },
+          { id: "br", x: 1, y: 1 },
+          { id: "b", x: 0, y: 1 },
+          { id: "bl", x: -1, y: 1 },
+          { id: "l", x: -1, y: 0 },
+        ]
+      : [
+          { id: "tl", x: -1, y: -1 },
+          { id: "tr", x: 1, y: -1 },
+          { id: "bl", x: -1, y: 1 },
+          { id: "br", x: 1, y: 1 },
+        ];
 
     const handleGraphics: PIXI.Graphics[] = [];
+    const overlayColor = isCropMode ? 0x10b981 : 0x3b82f6; // Green for crop, Blue for select
 
     handles.forEach((pos) => {
       const handle = new PIXI.Graphics();
       handle.beginFill(0xffffff); // White interior
-      handle.lineStyle(1.5, 0x3b82f6, 1); // Blue border
-      // Draw a crisp square like Figma
-      handle.drawRect(-4.5, -4.5, 9, 9);
+      handle.lineStyle(1.5, overlayColor, 1);
+      // Draw a crisp square like Figma (edges can be slightly thinner rectangles if desired, but squares are fine)
+      if (pos.x === 0 || pos.y === 0) {
+        handle.drawRect(-3.5, -3.5, 7, 7); // slightly smaller for edges
+      } else {
+        handle.drawRect(-4.5, -4.5, 9, 9);
+      }
       handle.endFill();
       handle.eventMode = "static";
-      handle.cursor =
-        pos.id === "tl" || pos.id === "br" ? "nwse-resize" : "nesw-resize";
 
-      let isScaling = false;
+      if (pos.id === "tl" || pos.id === "br") handle.cursor = "nwse-resize";
+      else if (pos.id === "tr" || pos.id === "bl")
+        handle.cursor = "nesw-resize";
+      else if (pos.id === "t" || pos.id === "b") handle.cursor = "ns-resize";
+      else handle.cursor = "ew-resize";
+
+      let isManipulating = false;
       let startScaleX = 1;
       let startScaleY = 1;
       let startPointerPos: PIXI.Point | null = null;
-      let startSpriteWidth = 0;
+
+      // Crop specific state
+      let startCropRect = { x: 0, y: 0, width: 0, height: 0 };
+      let currentCropRect = { x: 0, y: 0, width: 0, height: 0 };
+      let startSpriteX = 0;
+      let startSpriteY = 0;
+      let originalW = 0;
+      let originalH = 0;
 
       handle.on("pointerdown", (e) => {
-        isScaling = true;
+        isManipulating = true;
         activeSprite.isBeingManipulated = true;
         startPointerPos = e.getLocalPosition(app.stage).clone();
         startScaleX = activeSprite.scale.x;
         startScaleY = activeSprite.scale.y;
-        startSpriteWidth = activeSprite.texture.width * startScaleX;
+        startSpriteX = activeSprite.x;
+        startSpriteY = activeSprite.y;
+
+        const layer = useWorkspaceStore
+          .getState()
+          .layers.find((l) => l.id === activeLayerId);
+        if (layer) {
+          originalW = layer.originalWidth;
+          originalH = layer.originalHeight;
+          startCropRect = layer.cropRect
+            ? { ...layer.cropRect }
+            : { x: 0, y: 0, width: originalW, height: originalH };
+          currentCropRect = { ...startCropRect };
+        }
+
         e.stopPropagation(); // Prevent dragging the sprite itself
       });
 
-      const onScaleEnd = () => {
-        if (isScaling) {
-          isScaling = false;
+      const onManipulateEnd = () => {
+        if (isManipulating) {
+          isManipulating = false;
           activeSprite.isBeingManipulated = false;
-          useWorkspaceStore.getState().updateLayerTransform(activeLayerId, {
-            scaleX: activeSprite.scale.x,
-            scaleY: activeSprite.scale.y,
-            x: activeSprite.x,
-            y: activeSprite.y,
-          });
+
+          if (isCropMode) {
+            useWorkspaceStore.getState().updateLayerTransform(activeLayerId, {
+              cropRect: {
+                x: currentCropRect.x,
+                y: currentCropRect.y,
+                width: currentCropRect.width,
+                height: currentCropRect.height,
+              },
+              x: activeSprite.x,
+              y: activeSprite.y,
+            });
+          } else {
+            useWorkspaceStore.getState().updateLayerTransform(activeLayerId, {
+              scaleX: activeSprite.scale.x,
+              scaleY: activeSprite.scale.y,
+              x: activeSprite.x,
+              y: activeSprite.y,
+            });
+          }
         }
       };
 
-      handle.on("pointerup", onScaleEnd);
-      handle.on("pointerupoutside", onScaleEnd);
+      handle.on("pointerup", onManipulateEnd);
+      handle.on("pointerupoutside", onManipulateEnd);
 
       handle.on("globalpointermove", (e) => {
-        if (isScaling && startPointerPos) {
-          const currentPos = e.global; // use e.global for global pointer move
+        if (isManipulating && startPointerPos) {
+          const currentPos = e.global;
           const localPos = app.stage.toLocal(currentPos);
-
           const dx = localPos.x - startPointerPos.x;
+          const dy = localPos.y - startPointerPos.y;
 
-          const signX = pos.x;
+          if (isCropMode) {
+            // Unscaled pixel deltas from absolute start pointer
+            const unscaledDx = dx / startScaleX;
+            const unscaledDy = dy / startScaleY;
 
-          const scaleDelta = (dx * signX * 2) / activeSprite.texture.width;
+            let newCropW = startCropRect.width;
+            let newCropH = startCropRect.height;
 
-          let newScaleX = startScaleX + scaleDelta;
-          let newScaleY =
-            startScaleY + scaleDelta * (startScaleY / startScaleX);
+            const layerState = useWorkspaceStore
+              .getState()
+              .layers.find((l) => l.id === activeLayerId);
+            const rawRatio = layerState?.cropAspectRatio;
+            let ratio: number | null = null;
+            if (rawRatio === "original") ratio = originalW / originalH;
+            else if (typeof rawRatio === "number") ratio = rawRatio;
 
-          if (newScaleX < 0.05) newScaleX = 0.05;
-          if (newScaleY < 0.05) newScaleY = 0.05;
+            // 1. Calculate max bounds for width and height based on handle position
+            let maxAllowedW = originalW;
+            let maxAllowedH = originalH;
 
-          activeSprite.scale.set(newScaleX, newScaleY);
+            if (pos.x === -1) {
+              maxAllowedW = startCropRect.x + startCropRect.width;
+            } else if (pos.x === 1) {
+              maxAllowedW = originalW - startCropRect.x;
+            } else if (pos.x === 0) {
+              const centerX = startCropRect.x + startCropRect.width / 2;
+              maxAllowedW = Math.min(centerX, originalW - centerX) * 2;
+            }
+
+            if (pos.y === -1) {
+              maxAllowedH = startCropRect.y + startCropRect.height;
+            } else if (pos.y === 1) {
+              maxAllowedH = originalH - startCropRect.y;
+            } else if (pos.y === 0) {
+              const centerY = startCropRect.y + startCropRect.height / 2;
+              maxAllowedH = Math.min(centerY, originalH - centerY) * 2;
+            }
+
+            if (ratio) {
+              if (maxAllowedW / maxAllowedH > ratio)
+                maxAllowedW = maxAllowedH * ratio;
+              else maxAllowedH = maxAllowedW / ratio;
+            }
+
+            // 2. Compute proposed W and H from mouse delta
+            if (pos.x === -1) newCropW -= unscaledDx;
+            else if (pos.x === 1) newCropW += unscaledDx;
+
+            if (pos.y === -1) newCropH -= unscaledDy;
+            else if (pos.y === 1) newCropH += unscaledDy;
+
+            // 3. Apply ratio logic to W and H
+            if (ratio) {
+              if (pos.x !== 0 && pos.y !== 0) {
+                if (Math.abs(unscaledDx) > Math.abs(unscaledDy * ratio))
+                  newCropH = newCropW / ratio;
+                else newCropW = newCropH * ratio;
+              } else if (pos.x === 0 && pos.y !== 0) {
+                newCropW = newCropH * ratio;
+              } else if (pos.y === 0 && pos.x !== 0) {
+                newCropH = newCropW / ratio;
+              }
+            }
+
+            // 4. Clamp W and H to their bounds (and min 10)
+            newCropW = Math.max(10, Math.min(newCropW, maxAllowedW));
+            newCropH = Math.max(10, Math.min(newCropH, maxAllowedH));
+
+            // Re-enforce ratio strictly after clamping
+            if (ratio) {
+              if (newCropW / newCropH > ratio + 0.001)
+                newCropW = newCropH * ratio;
+              else if (newCropW / newCropH < ratio - 0.001)
+                newCropH = newCropW / ratio;
+            }
+
+            // 5. Compute X and Y based strictly on the final W and H
+            let newCropX = startCropRect.x;
+            let newCropY = startCropRect.y;
+
+            if (pos.x === -1)
+              newCropX = startCropRect.x + startCropRect.width - newCropW;
+            else if (pos.x === 0)
+              newCropX =
+                startCropRect.x + startCropRect.width / 2 - newCropW / 2;
+
+            if (pos.y === -1)
+              newCropY = startCropRect.y + startCropRect.height - newCropH;
+            else if (pos.y === 0)
+              newCropY =
+                startCropRect.y + startCropRect.height / 2 - newCropH / 2;
+
+            // Update texture frame immediately
+            activeSprite.texture = new PIXI.Texture({
+              source: activeSprite.texture.source,
+              frame: new PIXI.Rectangle(newCropX, newCropY, newCropW, newCropH),
+            });
+
+            // To prevent the image from visually sliding, we must calculate the exact absolute shift
+            // between the start crop center and the new crop center
+            const oldCenterUnscaledX =
+              startCropRect.x + startCropRect.width / 2;
+            const oldCenterUnscaledY =
+              startCropRect.y + startCropRect.height / 2;
+            const newCenterUnscaledX = newCropX + newCropW / 2;
+            const newCenterUnscaledY = newCropY + newCropH / 2;
+
+            const absoluteShiftX =
+              (newCenterUnscaledX - oldCenterUnscaledX) * Math.abs(startScaleX);
+            const absoluteShiftY =
+              (newCenterUnscaledY - oldCenterUnscaledY) * Math.abs(startScaleY);
+
+            const cos = Math.cos(activeSprite.rotation);
+            const sin = Math.sin(activeSprite.rotation);
+
+            // Apply rotation to the shift vector
+            const rotatedShiftX = absoluteShiftX * cos - absoluteShiftY * sin;
+            const rotatedShiftY = absoluteShiftX * sin + absoluteShiftY * cos;
+
+            activeSprite.x = startSpriteX + rotatedShiftX;
+            activeSprite.y = startSpriteY + rotatedShiftY;
+
+            // Save the state for pointerup
+            currentCropRect = {
+              x: newCropX,
+              y: newCropY,
+              width: newCropW,
+              height: newCropH,
+            };
+          } else {
+            const signX = pos.x;
+            const scaleDelta = (dx * signX * 2) / activeSprite.texture.width;
+
+            let newScaleX = startScaleX + scaleDelta;
+            let newScaleY =
+              startScaleY + scaleDelta * (startScaleY / startScaleX);
+
+            if (newScaleX < 0.05) newScaleX = 0.05;
+            if (newScaleY < 0.05) newScaleY = 0.05;
+
+            activeSprite.scale.set(newScaleX, newScaleY);
+          }
         }
       });
 
@@ -330,7 +676,7 @@ export function CanvasArea() {
         activeSprite.texture.height * Math.abs(activeSprite.scale.y);
 
       boundsBox.clear();
-      boundsBox.lineStyle(2, 0x3b82f6, 1); // blue-500
+      boundsBox.lineStyle(2, overlayColor, 1);
       // Draw relative to the sprite's center
       boundsBox.drawRect(-width / 2, -height / 2, width, height);
 
@@ -351,6 +697,37 @@ export function CanvasArea() {
         handle.x = activeSprite.x + (lx * cos - ly * sin);
         handle.y = activeSprite.y + (lx * sin + ly * cos);
       });
+
+      // Update ghost sprite if present
+      if (cropGhostSprite && isCropMode) {
+        const layer = useWorkspaceStore
+          .getState()
+          .layers.find((l) => l.id === activeLayerId);
+        if (layer) {
+          const cw = layer.originalWidth;
+          const ch = layer.originalHeight;
+          const cropX = activeSprite.texture.frame.x;
+          const cropY = activeSprite.texture.frame.y;
+          const cropW = activeSprite.texture.frame.width;
+          const cropH = activeSprite.texture.frame.height;
+
+          // Calculate center offset between the original image and the cropped image (in unscaled pixels)
+          const dx = cropX + cropW / 2 - cw / 2;
+          const dy = cropY + cropH / 2 - ch / 2;
+
+          const cos = Math.cos(activeSprite.rotation);
+          const sin = Math.sin(activeSprite.rotation);
+
+          // Calculate global shift
+          const shiftX = (dx * cos - dy * sin) * Math.abs(activeSprite.scale.x);
+          const shiftY = (dx * sin + dy * cos) * Math.abs(activeSprite.scale.y);
+
+          cropGhostSprite.x = activeSprite.x - shiftX;
+          cropGhostSprite.y = activeSprite.y - shiftY;
+          cropGhostSprite.scale.set(activeSprite.scale.x, activeSprite.scale.y);
+          cropGhostSprite.rotation = activeSprite.rotation;
+        }
+      }
     };
 
     app.ticker.add(updateOverlay);
@@ -394,6 +771,8 @@ export function CanvasArea() {
           scaleX: 1,
           scaleY: 1,
           rotation: 0,
+          originalWidth: 0,
+          originalHeight: 0,
         });
       }
 

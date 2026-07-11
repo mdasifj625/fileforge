@@ -23,6 +23,7 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 - **Blob Loading**: NEVER use `URL.createObjectURL()` to load images into PixiJS. It causes memory leaks and async tearing. ALWAYS use `createImageBitmap(blob)` to decode the image on the GPU before passing it to `PIXI.Texture.from()`.
 - **Canvas Background**: The PixiJS application is initialized with `backgroundAlpha: 0`. This is intentional! It allows the CSS-based Light/Dark themes (`bg-panel`) to visually pass through the WebGL canvas. Do not hardcode black or white backgrounds in PixiJS.
 - **Interactivity**: When dragging or scaling objects, always use `app.stage.on('globalpointermove')` combined with `app.stage.toLocal(event.global)` instead of attaching listeners directly to small sprites. This prevents the mouse from outrunning the bounding box.
+- **Cropping (PixiJS v8)**: `texture.frame` is read-only in v8. To implement non-destructive cropping, you MUST instantiate a new `PIXI.Texture` sharing the same `source` but with the updated `frame` rectangle: `new PIXI.Texture({ source: sprite.texture.source, frame: new PIXI.Rectangle(...) })`.
 
 ### 3. File Persistence (Dexie / IndexedDB)
 
