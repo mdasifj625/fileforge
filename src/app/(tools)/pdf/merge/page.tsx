@@ -5,13 +5,21 @@ import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { db } from "@/db";
 import { FileText, GripVertical, Trash2 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
-import { PDFFileViewer } from "@/components/workspace/PDFFileViewer";
 import {
   DragDropContext,
   Droppable,
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
+import dynamic from "next/dynamic";
+
+const PDFFileViewer = dynamic(
+  () =>
+    import("@/components/workspace/PDFFileViewer").then(
+      (mod) => mod.PDFFileViewer,
+    ),
+  { ssr: false },
+);
 
 interface PdfFileData {
   id: string;
