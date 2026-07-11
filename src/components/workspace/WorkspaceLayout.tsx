@@ -15,6 +15,22 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
   const redo = useWorkspaceStore((s) => s.redo);
   const triggerExport = useWorkspaceStore((s) => s.triggerExport);
 
+  const theme = useWorkspaceStore((s) => s.theme);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+    if (theme === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
+      root.classList.add(systemTheme);
+    } else {
+      root.classList.add(theme);
+    }
+  }, [theme]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -53,11 +69,7 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
               onClick={() =>
                 useWorkspaceStore
                   .getState()
-                  .setTheme(
-                    useWorkspaceStore.getState().theme === "dark"
-                      ? "light"
-                      : "dark",
-                  )
+                  .setTheme(theme === "dark" ? "light" : "dark")
               }
               className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
               title="Toggle Theme"
