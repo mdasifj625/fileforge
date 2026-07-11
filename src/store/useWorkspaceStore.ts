@@ -14,6 +14,7 @@ export interface FileLayer {
   rotation: number;
   originalWidth: number;
   originalHeight: number;
+  pageOrder?: number[]; // For reordering pages within a PDF layer
   cropRect?: { x: number; y: number; width: number; height: number };
   cropAspectRatio?: number | "original" | "free" | null;
   opacity?: number;

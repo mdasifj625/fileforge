@@ -5,16 +5,27 @@ import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { db } from "@/db";
 import { FileText, GripVertical, Trash2 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
+import { PDFFileViewer } from "@/components/workspace/PDFFileViewer";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
+
+interface PdfFileData {
+  id: string;
+  name: string;
+  size: number;
+  blob: Blob;
+}
 
 export default function PDFMergePage() {
   const setActiveTool = useWorkspaceStore((state) => state.setActiveTool);
   const layers = useWorkspaceStore((state) => state.layers);
   const removeLayer = useWorkspaceStore((state) => state.removeLayer);
 
-  // Filter only PDF layers
-  const [pdfFiles, setPdfFiles] = useState<
-    { id: string; name: string; size: number }[]
-  >([]);
+  const [pdfFiles, setPdfFiles] = useState<PdfFileData[]>([]);
 
   useEffect(() => {
     setActiveTool("pdf-merge");
@@ -22,7 +33,7 @@ export default function PDFMergePage() {
 
   useEffect(() => {
     const loadPdfs = async () => {
-      const pdfs = [];
+      const pdfs: PdfFileData[] = [];
       for (const layer of layers) {
         const fileData = await db.files.get(layer.fileId);
         if (fileData && fileData.type === "application/pdf") {
@@ -30,6 +41,7 @@ export default function PDFMergePage() {
             id: layer.id,
             name: layer.name,
             size: fileData.size,
+            blob: fileData.blob,
           });
         }
       }
@@ -75,13 +87,37 @@ export default function PDFMergePage() {
     }
   };
 
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+  const { getRootProps, getInputProps, open } = useDropzone({
     onDrop,
     noClick: true,
     accept: {
       "application/pdf": [],
     },
   });
+
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    // We need to reorder the items in the Zustand store layers
+    const store = useWorkspaceStore.getState();
+    const currentLayers = [...store.layers];
+
+    // Since layers might contain non-PDF layers, we must only swap the PDF layers.
+    // To make it easy, we find the absolute indices in the global layers array.
+    const sourcePdf = pdfFiles[result.source.index];
+    const destPdf = pdfFiles[result.destination.index];
+
+    const sourceIndex = currentLayers.findIndex((l) => l.id === sourcePdf.id);
+    const destIndex = currentLayers.findIndex((l) => l.id === destPdf.id);
+
+    if (sourceIndex > -1 && destIndex > -1) {
+      const [movedLayer] = currentLayers.splice(sourceIndex, 1);
+      currentLayers.splice(destIndex, 0, movedLayer);
+
+      // Update global store directly using an undocumented/hacky way or use a new method
+      useWorkspaceStore.setState({ layers: currentLayers });
+    }
+  };
 
   return (
     <div
@@ -113,36 +149,76 @@ export default function PDFMergePage() {
             </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {pdfFiles.map((pdf, index) => (
-              <div
-                key={pdf.id}
-                className="flex items-center gap-4 p-4 bg-background border border-panel-border rounded-xl shadow-sm group"
-              >
-                <div className="cursor-grab text-muted-foreground hover:text-foreground">
-                  <GripVertical size={20} />
-                </div>
-                <div className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
-                  <FileText size={20} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground truncate">
-                    {pdf.name}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {(pdf.size / 1024 / 1024).toFixed(2)} MB • Document{" "}
-                    {index + 1}
-                  </p>
-                </div>
-                <button
-                  onClick={() => removeLayer(pdf.id)}
-                  className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                  title="Remove PDF"
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="pdf-list">
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="flex flex-col gap-6"
                 >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            ))}
+                  {pdfFiles.map((pdf, index) => (
+                    <Draggable key={pdf.id} draggableId={pdf.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          className={`flex flex-col overflow-hidden bg-background border rounded-xl transition-all ${
+                            snapshot.isDragging
+                              ? "shadow-2xl border-primary/50 rotate-1 scale-[1.02] z-50"
+                              : "shadow-sm border-panel-border"
+                          }`}
+                        >
+                          {/* File Header */}
+                          <div className="flex items-center gap-4 p-4 bg-muted/30 border-b border-panel-border">
+                            <div
+                              {...provided.dragHandleProps}
+                              className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+                            >
+                              <GripVertical size={20} />
+                            </div>
+                            <div className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+                              <FileText size={20} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-foreground truncate">
+                                {pdf.name}
+                              </h3>
+                              <p className="text-xs text-muted-foreground">
+                                {(pdf.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => removeLayer(pdf.id)}
+                              className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                              title="Remove PDF"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+
+                          {/* PDF Page Thumbnails */}
+                          <PDFFileViewer blob={pdf.blob} layerId={pdf.id} />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        )}
+
+        {pdfFiles.length > 0 && (
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={open}
+              className="px-6 py-3 bg-panel border border-panel-border text-foreground font-medium rounded-xl hover:bg-muted transition-colors flex items-center gap-2 shadow-sm"
+            >
+              <FileText size={18} />
+              Add More PDFs
+            </button>
           </div>
         )}
       </div>
