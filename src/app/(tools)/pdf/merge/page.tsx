@@ -130,15 +130,15 @@ export default function PDFMergePage() {
   return (
     <div
       {...getRootProps()}
-      className="absolute inset-0 z-10 bg-panel overflow-y-auto p-8 outline-none"
+      className="absolute inset-0 z-10 bg-background overflow-y-auto p-4 md:p-8 outline-none"
     >
       <input {...getInputProps()} />
       <div className="max-w-4xl mx-auto relative z-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className="mb-6 md:mb-8 text-center md:text-left">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
             PDF Merge Studio
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground">
             Drop PDF files anywhere on the screen. Drag to reorder, then export
             to merge them into a single document.
           </p>

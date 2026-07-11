@@ -104,7 +104,7 @@ export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className={`flex-shrink-0 border border-panel-border shadow-sm bg-white rounded-md overflow-hidden relative group cursor-grab active:cursor-grabbing transition-transform ${snapshot.isDragging ? "z-50 scale-105 shadow-xl rotate-2" : ""}`}
+                        className={`flex-shrink-0 border border-panel-border shadow-sm bg-background rounded-md overflow-hidden relative group cursor-grab active:cursor-grabbing transition-transform ${snapshot.isDragging ? "z-50 scale-105 shadow-xl rotate-2" : ""}`}
                       >
                         <div className="absolute top-1 left-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded z-30 backdrop-blur-sm pointer-events-none">
                           {index + 1}
@@ -178,7 +178,7 @@ export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
                   pageNumber={previewPageNum}
                   width={
                     typeof window !== "undefined"
-                      ? Math.min(window.innerWidth * 0.8, 800)
+                      ? Math.min(window.innerWidth * 0.9, 800)
                       : 800
                   }
                   renderTextLayer={false}
