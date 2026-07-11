@@ -1,5 +1,186 @@
-import { redirect } from "next/navigation";
+import Link from "next/link";
+import {
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+  Layers,
+  Image as ImageIcon,
+  FileText,
+} from "lucide-react";
 
 export default function Home() {
-  redirect("/image/crop");
+  return (
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
+      {/* Navigation */}
+      <nav className="w-full border-b border-panel-border bg-background/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+            </div>
+            File Forge
+          </div>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/image/crop"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Image Tools
+            </Link>
+            <Link
+              href="/pdf/merge"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              PDF Tools
+            </Link>
+            <Link
+              href="/image/crop"
+              className="px-4 py-2 bg-foreground text-background text-sm font-bold rounded-full hover:bg-foreground/90 transition-all shadow-md"
+            >
+              Launch App
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="relative max-w-7xl mx-auto px-6 pt-32 pb-20 text-center flex flex-col items-center">
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background"></div>
+
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-8 border border-primary/20">
+          <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+          100% Local Browser Processing
+        </div>
+
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight max-w-4xl mb-8 leading-[1.1]">
+          The Ultimate{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-500">
+            Privacy-First
+          </span>{" "}
+          File Workspace
+        </h1>
+
+        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10 leading-relaxed">
+          Process images, PDFs, and media directly in your browser using
+          WebAssembly and WebGL. Zero server uploads. Infinite speed. Total
+          privacy.
+        </p>
+
+        <div className="flex items-center gap-4">
+          <Link
+            href="/image/crop"
+            className="px-8 py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:-translate-y-0.5 transition-all shadow-xl shadow-primary/20 flex items-center gap-2 text-lg"
+          >
+            Start Editing Free <ArrowRight size={20} />
+          </Link>
+        </div>
+      </section>
+
+      {/* Tools Showcase */}
+      <section className="max-w-7xl mx-auto px-6 py-20">
+        <h2 className="text-3xl font-bold text-center mb-12">
+          Professional Tools. Zero Friction.
+        </h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          <Link
+            href="/image/crop"
+            className="group block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
+          >
+            <div className="bg-panel h-full rounded-xl p-8 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
+              <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center mb-6">
+                <ImageIcon size={24} />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors">
+                Image Editor
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Non-destructive cropping, WebGL hardware-accelerated filters,
+                and Photoshop-style blend modes.
+              </p>
+              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+                Try Image Tools <ArrowRight size={16} />
+              </span>
+            </div>
+          </Link>
+
+          <Link
+            href="/pdf/merge"
+            className="group block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
+          >
+            <div className="bg-panel h-full rounded-xl p-8 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
+              <div className="w-12 h-12 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center mb-6">
+                <FileText size={24} />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors">
+                PDF Studio (Beta)
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Merge, split, and manipulate massive PDF documents securely on
+                your local machine using WASM.
+              </p>
+              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+                Try PDF Tools <ArrowRight size={16} />
+              </span>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="max-w-7xl mx-auto px-6 py-20 border-t border-panel-border">
+        <div className="grid md:grid-cols-3 gap-12">
+          <div className="flex flex-col gap-4">
+            <div className="w-12 h-12 bg-green-500/10 text-green-500 rounded-xl flex items-center justify-center">
+              <ShieldCheck size={24} />
+            </div>
+            <h3 className="text-xl font-bold">100% Private</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Your files never leave your device. Everything is processed
+              locally in your browser memory. We literally cannot see your data.
+            </p>
+          </div>
+          <div className="flex flex-col gap-4">
+            <div className="w-12 h-12 bg-yellow-500/10 text-yellow-500 rounded-xl flex items-center justify-center">
+              <Zap size={24} />
+            </div>
+            <h3 className="text-xl font-bold">WASM Accelerated</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              By leveraging WebAssembly and Web Workers, File Forge bypasses
+              standard Javascript limitations for desktop-class performance.
+            </p>
+          </div>
+          <div className="flex flex-col gap-4">
+            <div className="w-12 h-12 bg-purple-500/10 text-purple-500 rounded-xl flex items-center justify-center">
+              <Layers size={24} />
+            </div>
+            <h3 className="text-xl font-bold">Figma-like Canvas</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Say goodbye to clunky form-based editors. Experience a fluid,
+              infinite canvas with non-destructive layers and history.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-panel-border py-12 text-center text-muted-foreground">
+        <p className="text-sm">
+          Built with Next.js, PixiJS, and WebAssembly. File Forge &copy;{" "}
+          {new Date().getFullYear()}
+        </p>
+      </footer>
+    </div>
+  );
 }
