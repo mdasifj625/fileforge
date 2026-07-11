@@ -19,6 +19,14 @@ interface PDFFileViewerProps {
 
 export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
   const [numPages, setNumPages] = useState<number>();
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const url = URL.createObjectURL(blob);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFileUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [blob]);
 
   const layer = useWorkspaceStore((state) =>
     state.layers.find((l) => l.id === layerId),
@@ -50,10 +58,12 @@ export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
     updateLayerTransform(layerId, { pageOrder: items });
   };
 
+  if (!fileUrl) return null;
+
   return (
     <div className="w-full overflow-x-auto py-4 px-2 no-scrollbar">
       <Document
-        file={blob}
+        file={fileUrl}
         onLoadSuccess={onDocumentLoadSuccess}
         loading={
           <div className="h-32 w-24 bg-muted animate-pulse rounded-lg"></div>
