@@ -44,6 +44,8 @@ export interface WorkspaceState {
   theme: "light" | "dark" | "system";
   layers: FileLayer[];
   activeLayerId: string | null;
+  exportTrigger: number;
+  exportImageBlob: Blob | null;
 
   setActiveTool: (tool: string | null) => void;
   setZoom: (zoom: number) => void;
@@ -53,6 +55,8 @@ export interface WorkspaceState {
   replaceLayer: (id: string, newLayer: FileLayer) => void;
   updateLayerTransform: (id: string, transform: Partial<FileLayer>) => void;
   setActiveLayerId: (id: string | null) => void;
+  triggerExport: () => void;
+  setExportImageBlob: (blob: Blob | null) => void;
   undo: () => void;
   redo: () => void;
 }
@@ -73,7 +77,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   theme: "system",
   layers: [],
   activeLayerId: null,
+  exportTrigger: 0,
+  exportImageBlob: null,
 
+  triggerExport: () =>
+    set((state) => ({ exportTrigger: state.exportTrigger + 1 })),
+  setExportImageBlob: (blob) => set({ exportImageBlob: blob }),
   setActiveTool: (tool) => set({ activeTool: tool }),
   setZoom: (zoom) => set({ zoom }),
   setTheme: (theme) => set({ theme }),

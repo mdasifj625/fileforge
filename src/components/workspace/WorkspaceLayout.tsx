@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { Toolbar } from "./Toolbar";
 import { CanvasArea } from "./CanvasArea";
 import { PropertiesPanel } from "./PropertiesPanel";
+import { ExportModal } from "./ExportModal";
 import { Undo2, Redo2 } from "lucide-react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
@@ -12,6 +13,7 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
   const futureCount = useWorkspaceStore((s) => s.future?.length || 0);
   const undo = useWorkspaceStore((s) => s.undo);
   const redo = useWorkspaceStore((s) => s.redo);
+  const triggerExport = useWorkspaceStore((s) => s.triggerExport);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -97,7 +99,10 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
             </div>
 
             <div className="h-4 w-px bg-panel-border mx-1"></div>
-            <button className="px-3 py-1.5 text-sm font-medium bg-primary hover:bg-primary-hover text-primary-foreground rounded-md transition-colors shadow-sm shadow-primary/20">
+            <button
+              onClick={triggerExport}
+              className="px-3 py-1.5 text-sm font-medium bg-primary hover:bg-primary-hover text-primary-foreground rounded-md transition-colors shadow-sm shadow-primary/20"
+            >
               Export
             </button>
           </div>
@@ -125,6 +130,7 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
 
       {/* Right Properties Panel */}
       <PropertiesPanel />
+      <ExportModal />
     </div>
   );
 }

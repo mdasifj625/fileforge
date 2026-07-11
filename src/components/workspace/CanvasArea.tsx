@@ -14,12 +14,41 @@ export function CanvasArea() {
     Record<string, PIXI.Sprite & { isBeingManipulated?: boolean }>
   >({});
   const transformOverlayRef = useRef<PIXI.Container>(null);
+  const gridRef = useRef<PIXI.Graphics>(null);
   const [spriteUpdateTick, setSpriteUpdateTick] = useState(0);
 
   const addLayer = useWorkspaceStore((state) => state.addLayer);
   const layers = useWorkspaceStore((state) => state.layers);
   const activeLayerId = useWorkspaceStore((state) => state.activeLayerId);
   const activeTool = useWorkspaceStore((state) => state.activeTool);
+  const exportTrigger = useWorkspaceStore((state) => state.exportTrigger);
+
+  // Export Logic
+  useEffect(() => {
+    if (exportTrigger > 0 && appRef.current) {
+      const app = appRef.current;
+      const grid = gridRef.current;
+      const overlay = transformOverlayRef.current;
+
+      const wasGridVisible = grid?.visible;
+      const wasOverlayVisible = overlay?.visible;
+
+      if (grid) grid.visible = false;
+      if (overlay) overlay.visible = false;
+
+      // Force synchronous render to ensure the canvas doesn't have the grid/overlay
+      app.renderer.render(app.stage);
+
+      app.canvas.toBlob((blob) => {
+        if (blob) {
+          useWorkspaceStore.getState().setExportImageBlob(blob);
+        }
+        if (grid) grid.visible = wasGridVisible ?? true;
+        if (overlay) overlay.visible = wasOverlayVisible ?? true;
+        app.renderer.render(app.stage); // Render again to restore UI
+      }, "image/png");
+    }
+  }, [exportTrigger]);
 
   // PIXI Initialization
   useEffect(() => {
@@ -50,6 +79,7 @@ export function CanvasArea() {
         grid.moveTo(0, y).lineTo(app.screen.width, y);
       }
       app.stage.addChild(grid);
+      gridRef.current = grid;
 
       // Initialize Transform Overlay Container (Always on top)
       const transformOverlay = new PIXI.Container();
