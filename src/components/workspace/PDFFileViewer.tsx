@@ -9,7 +9,7 @@ import {
   DropResult,
 } from "@hello-pangea/dnd";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
-import { Trash2, Maximize2, X } from "lucide-react";
+import { Trash2, Eye, X } from "lucide-react";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -111,32 +111,34 @@ export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
                         </div>
 
                         {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center gap-2 backdrop-blur-[1px]">
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex flex-col items-center justify-center gap-3 backdrop-blur-[1px]">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setPreviewPageNum(pageNum);
                             }}
-                            className="p-2 bg-white/20 hover:bg-white text-white hover:text-black rounded-full transition-colors shadow-sm"
+                            className="p-2 bg-white/20 hover:bg-white text-white hover:text-black rounded-full transition-all shadow-sm backdrop-blur-sm"
                             title="Preview Page"
                           >
-                            <Maximize2 size={16} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removePage(index);
-                            }}
-                            className="p-2 bg-white/20 hover:bg-red-500 text-white rounded-full transition-colors shadow-sm"
-                            title="Remove Page"
-                          >
-                            <Trash2 size={16} />
+                            <Eye size={18} />
                           </button>
                         </div>
 
+                        {/* Top Right Simple Delete */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removePage(index);
+                          }}
+                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 text-white hover:text-red-400 bg-black/40 hover:bg-black/80 rounded z-30 transition-all pointer-events-auto"
+                          title="Remove Page"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+
                         <Page
                           pageNumber={pageNum}
-                          width={120}
+                          width={160}
                           renderTextLayer={false}
                           renderAnnotationLayer={false}
                         />
