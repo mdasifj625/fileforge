@@ -30,7 +30,7 @@ export function CanvasArea() {
     const initPixi = async () => {
       await app.init({
         resizeTo: containerRef.current!,
-        backgroundColor: 0x18181b, // zinc-900
+        backgroundAlpha: 0,
         resolution: window.devicePixelRatio || 1,
         autoDensity: true,
       });
@@ -41,7 +41,7 @@ export function CanvasArea() {
 
       // Add a simple grid background
       const grid = new PIXI.Graphics();
-      grid.lineStyle(1, 0x27272a, 0.5);
+      grid.lineStyle(1, 0x888888, 0.15); // Neutral transparent grid works on light/dark
       const gridSize = 50;
       for (let x = 0; x < app.screen.width; x += gridSize) {
         grid.moveTo(x, 0).lineTo(x, app.screen.height);
@@ -76,6 +76,17 @@ export function CanvasArea() {
     const renderLayers = async () => {
       const app = appRef.current;
       if (!app) return;
+
+      // Clean up deleted layers
+      const currentLayerIds = new Set(layers.map((l) => l.id));
+      for (const id in spritesRef.current) {
+        if (!currentLayerIds.has(id)) {
+          const sprite = spritesRef.current[id];
+          app.stage.removeChild(sprite);
+          sprite.destroy({ texture: true });
+          delete spritesRef.current[id];
+        }
+      }
 
       for (let i = layers.length - 1; i >= 0; i--) {
         const layer = layers[i];
@@ -417,7 +428,7 @@ export function CanvasArea() {
         <div className="absolute top-4 left-4 z-20 pointer-events-auto">
           <button
             onClick={open}
-            className="bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 text-xs px-3 py-1.5 rounded-md border border-zinc-700/50 shadow-sm backdrop-blur-md transition-colors flex items-center gap-2"
+            className="bg-panel/80 hover:bg-muted text-foreground text-xs px-3 py-1.5 rounded-md border border-panel-border shadow-sm backdrop-blur-md transition-colors flex items-center gap-2"
           >
             <svg
               width="14"
@@ -438,8 +449,8 @@ export function CanvasArea() {
       )}
 
       {isDragActive && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-500/20 backdrop-blur-sm border-2 border-blue-500 border-dashed m-4 rounded-xl pointer-events-none">
-          <p className="text-xl font-semibold text-blue-100 shadow-sm">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-primary/20 backdrop-blur-sm border-2 border-primary border-dashed m-4 rounded-xl pointer-events-none">
+          <p className="text-xl font-semibold text-primary shadow-sm">
             Drop files to add as layers
           </p>
         </div>
@@ -449,9 +460,9 @@ export function CanvasArea() {
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
           <button
             onClick={open}
-            className="group flex flex-col items-center gap-3 bg-zinc-950/80 hover:bg-zinc-900 px-8 py-6 rounded-2xl pointer-events-auto shadow-2xl backdrop-blur-md border border-zinc-800 transition-all hover:border-zinc-700"
+            className="group flex flex-col items-center gap-3 bg-panel/80 hover:bg-muted px-8 py-6 rounded-2xl pointer-events-auto shadow-2xl backdrop-blur-md border border-panel-border transition-all hover:border-muted-foreground/30"
           >
-            <div className="w-12 h-12 rounded-full bg-zinc-800/50 flex items-center justify-center text-zinc-400 group-hover:text-blue-400 group-hover:bg-blue-500/10 transition-colors">
+            <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-colors shadow-sm">
               <svg
                 width="24"
                 height="24"
@@ -468,10 +479,10 @@ export function CanvasArea() {
               </svg>
             </div>
             <div className="text-center">
-              <p className="text-zinc-300 font-medium mb-1">
+              <p className="text-foreground font-medium mb-1 tracking-wide">
                 Drag & drop files here
               </p>
-              <p className="text-zinc-500 text-sm">
+              <p className="text-muted-foreground text-sm">
                 or click to browse your computer
               </p>
             </div>
