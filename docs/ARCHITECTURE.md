@@ -48,7 +48,14 @@ This document provides a high-level overview of the systems and architecture dri
 - **Aspect Ratio Locking**: Crop boundaries dynamically calculate safe maximum extents to prevent out-of-bounds dragging, and can rigidly enforce standard aspect ratios (e.g. 1:1, 16:9).
 - **Image Panning**: By calculating relative mouse offsets and updating `sprite.texture.frame` instead of `sprite.x/y`, users can seamlessly drag the image _behind_ the stationary crop mask.
 
-## 6. Upcoming Implementation: Image Processing
+## 6. Image Processing (Web Workers)
 
-- **Destructive Workflows**: Future complex filters (like blur, color grading, format conversion) will be offloaded to Web Workers.
-- **Web Workers**: Connecting `image.worker.ts` to process intense mathematical manipulations off the main UI thread.
+- **Destructive Workflows**: Complex pixel-level filters (Grayscale, Sepia, Invert, Vintage, Solarize) are completely offloaded to Web Workers via `image.worker.ts`.
+- **OffscreenCanvas**: The worker natively decodes image blobs using `createImageBitmap` and processes the raw `ImageData` via an `OffscreenCanvas`. This prevents heavy JavaScript loops from blocking the main UI thread.
+- **RPC & Storage**: Uses `Comlink` for type-safe RPC. When a worker completes a filter, the new resulting blob is automatically saved to IndexedDB as a new file, and the Canvas layer seamlessly hot-swaps to the new texture.
+
+## 7. History & Time Travel (Undo/Redo)
+
+- **Zustand State Wrapping**: The `useWorkspaceStore` implements a fully functional `past` and `future` array stack for layer states.
+- **Layer Snapshots**: Before any layer transformation, addition, or removal, the current layer tree is snapshotted into the `past` array.
+- **Original File Restoration**: Every layer explicitly tracks its `originalFileId`, allowing the "Restore Original" feature to revert a file back to its pre-filtered native form without corrupting the broader undo/redo history timeline.

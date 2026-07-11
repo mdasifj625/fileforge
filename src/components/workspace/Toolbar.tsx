@@ -4,12 +4,10 @@ import React from "react";
 import {
   Crop,
   Image as ImageIcon,
-  Download,
   Settings,
   Layers,
   MousePointer2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 const TOOLS = [

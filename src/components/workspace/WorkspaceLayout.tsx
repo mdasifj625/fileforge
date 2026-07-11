@@ -4,9 +4,15 @@ import React, { useEffect } from "react";
 import { Toolbar } from "./Toolbar";
 import { CanvasArea } from "./CanvasArea";
 import { PropertiesPanel } from "./PropertiesPanel";
+import { Undo2, Redo2 } from "lucide-react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
+  const pastCount = useWorkspaceStore((s) => s.past?.length || 0);
+  const futureCount = useWorkspaceStore((s) => s.future?.length || 0);
+  const undo = useWorkspaceStore((s) => s.undo);
+  const redo = useWorkspaceStore((s) => s.redo);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -69,9 +75,28 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
               </svg>
             </button>
             <div className="h-4 w-px bg-panel-border mx-1"></div>
-            <button className="px-3 py-1.5 text-sm font-medium text-foreground bg-muted hover:bg-accent rounded-md transition-colors">
-              Undo
-            </button>
+
+            {/* Undo/Redo */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={undo}
+                disabled={pastCount === 0}
+                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                title="Undo"
+              >
+                <Undo2 size={18} />
+              </button>
+              <button
+                onClick={redo}
+                disabled={futureCount === 0}
+                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                title="Redo"
+              >
+                <Redo2 size={18} />
+              </button>
+            </div>
+
+            <div className="h-4 w-px bg-panel-border mx-1"></div>
             <button className="px-3 py-1.5 text-sm font-medium bg-primary hover:bg-primary-hover text-primary-foreground rounded-md transition-colors shadow-sm shadow-primary/20">
               Export
             </button>

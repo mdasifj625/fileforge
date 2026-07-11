@@ -763,6 +763,7 @@ export function CanvasArea() {
         addLayer({
           id: layerId,
           fileId: fileId,
+          originalFileId: fileId,
           name: file.name,
           visible: true,
           locked: false,

@@ -1,6 +1,7 @@
 import * as Comlink from "comlink";
 
-export type FilterType = "grayscale" | "invert" | "sepia";
+export type FilterType =
+  "grayscale" | "invert" | "sepia" | "vintage" | "solarize";
 
 /**
  * Image Processing Worker
@@ -47,6 +48,14 @@ const imageProcessor = {
         data[i] = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189);
         data[i + 1] = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168);
         data[i + 2] = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131);
+      } else if (filterType === "vintage") {
+        data[i] = Math.min(255, r * 0.9 + g * 0.5 + b * 0.1);
+        data[i + 1] = Math.min(255, r * 0.3 + g * 0.8 + b * 0.1);
+        data[i + 2] = Math.min(255, r * 0.2 + g * 0.3 + b * 0.5);
+      } else if (filterType === "solarize") {
+        data[i] = r > 127 ? 255 - r : r;
+        data[i + 1] = g > 127 ? 255 - g : g;
+        data[i + 2] = b > 127 ? 255 - b : b;
       }
     }
 

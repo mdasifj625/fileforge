@@ -67,6 +67,18 @@ export function PropertiesPanel() {
     }
   };
 
+  const restoreOriginal = () => {
+    if (!activeLayer || !activeLayer.originalFileId) return;
+    if (activeLayer.fileId === activeLayer.originalFileId) return; // Already original
+
+    const newLayerId = crypto.randomUUID();
+    replaceLayer(activeLayer.id, {
+      ...activeLayer,
+      id: newLayerId,
+      fileId: activeLayer.originalFileId,
+    });
+  };
+
   return (
     <aside className="w-80 bg-background flex flex-col z-20 border-l border-panel-border shadow-2xl">
       <div className="h-14 border-b border-panel-border flex items-center px-5 bg-background/50 backdrop-blur-md">
@@ -376,11 +388,39 @@ export function PropertiesPanel() {
                   Sepia
                 </button>
                 <button
+                  onClick={() => applyFilter("vintage")}
+                  disabled={isFiltering}
+                  className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
+                >
+                  Vintage
+                </button>
+                <button
+                  onClick={() => applyFilter("solarize")}
+                  disabled={isFiltering}
+                  className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
+                >
+                  Solarize
+                </button>
+                <button
                   onClick={() => applyFilter("invert")}
                   disabled={isFiltering}
                   className="col-span-2 bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
                 >
                   Invert Colors
+                </button>
+
+                <hr className="col-span-2 border-panel-border my-2" />
+
+                <button
+                  onClick={restoreOriginal}
+                  disabled={
+                    isFiltering ||
+                    !activeLayer?.originalFileId ||
+                    activeLayer.fileId === activeLayer.originalFileId
+                  }
+                  className="col-span-2 bg-background border border-panel-border hover:bg-muted text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-30 disabled:hover:bg-background"
+                >
+                  Restore Original
                 </button>
               </div>
             </div>
