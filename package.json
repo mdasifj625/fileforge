@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --fix",
+    "lint": "tsc --noEmit && eslint . --fix",
     "prepare": "node scripts/prepare.mjs"
   },
   "dependencies": {
