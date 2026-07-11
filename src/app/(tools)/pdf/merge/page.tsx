@@ -33,11 +33,65 @@ export default function PDFMergePage() {
   const layers = useWorkspaceStore((state) => state.layers);
   const removeLayer = useWorkspaceStore((state) => state.removeLayer);
 
+  const exportTrigger = useWorkspaceStore((state) => state.exportTrigger);
   const [pdfFiles, setPdfFiles] = useState<PdfFileData[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     setActiveTool("pdf-merge");
   }, [setActiveTool]);
+
+  useEffect(() => {
+    if (exportTrigger === 0) return;
+
+    const exportPdf = async () => {
+      setIsExporting(true);
+      try {
+        const { PDFDocument } = await import("pdf-lib");
+        const mergedPdf = await PDFDocument.create();
+
+        for (const layer of layers) {
+          const pdfFile = pdfFiles.find((p) => p.id === layer.id);
+          if (!pdfFile) continue;
+
+          const buffer = await pdfFile.blob.arrayBuffer();
+          const sourcePdf = await PDFDocument.load(buffer);
+
+          let pagesToCopy: number[];
+          if (layer.pageOrder) {
+            pagesToCopy = layer.pageOrder.map((p) => p - 1);
+          } else {
+            pagesToCopy = sourcePdf.getPageIndices();
+          }
+
+          if (pagesToCopy.length === 0) continue;
+
+          const copiedPages = await mergedPdf.copyPages(sourcePdf, pagesToCopy);
+          copiedPages.forEach((page) => mergedPdf.addPage(page));
+        }
+
+        const mergedPdfBytes = await mergedPdf.save();
+        const mergedBlob = new Blob([mergedPdfBytes as unknown as BlobPart], {
+          type: "application/pdf",
+        });
+
+        const url = URL.createObjectURL(mergedBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `file-forge-merged-${Date.now()}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("PDF merge failed", err);
+        alert("Failed to merge PDF files. Please try again.");
+      } finally {
+        setIsExporting(false);
+      }
+    };
+
+    exportPdf();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exportTrigger]);
 
   useEffect(() => {
     const loadPdfs = async () => {
