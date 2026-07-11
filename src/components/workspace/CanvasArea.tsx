@@ -9,10 +9,13 @@ import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 export function CanvasArea() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const appRef = useRef<PIXI.Application>(null);
+  const spritesRef = useRef<Record<string, PIXI.Sprite>>({});
+
   const addLayer = useWorkspaceStore((state) => state.addLayer);
   const layers = useWorkspaceStore((state) => state.layers);
 
-  // PIXI Setup
+  // PIXI Initialization
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -29,14 +32,88 @@ export function CanvasArea() {
       if (containerRef.current) {
         containerRef.current.appendChild(app.canvas);
       }
+
+      // Store app ref for later
+      appRef.current = app;
     };
 
     initPixi();
 
     return () => {
-      app.destroy(true, { children: true, texture: true });
+      if (appRef.current) {
+        appRef.current.destroy(true, { children: true, texture: true });
+        appRef.current = null;
+      }
     };
   }, []);
+
+  // Render Pipeline: Listen to layers and render them
+  useEffect(() => {
+    const renderLayers = async () => {
+      const app = appRef.current;
+      if (!app) return;
+
+      // For each layer, ensure it exists in PixiJS
+      for (let i = layers.length - 1; i >= 0; i--) {
+        const layer = layers[i];
+
+        // If we already have this sprite, skip creation
+        if (spritesRef.current[layer.id]) {
+          const sprite = spritesRef.current[layer.id];
+          sprite.visible = layer.visible;
+          // Set zIndex based on array order (bottom of array = top of screen)
+          sprite.zIndex = layers.length - i;
+          continue;
+        }
+
+        // Otherwise, load it from Dexie
+        const fileData = await db.files.get(layer.fileId);
+        if (!fileData) continue;
+
+        try {
+          const url = URL.createObjectURL(fileData.blob);
+
+          // Manually create an Image element to bypass PIXI.Assets.load extension guessing on blob URLs
+          const image = new window.Image();
+          image.src = url;
+          await new Promise((resolve, reject) => {
+            image.onload = resolve;
+            image.onerror = reject;
+          });
+
+          const texture = PIXI.Texture.from(image);
+          const sprite = new PIXI.Sprite(texture);
+
+          // Center the sprite
+          sprite.anchor.set(0.5);
+          sprite.x = app.screen.width / 2;
+          sprite.y = app.screen.height / 2;
+
+          // Basic scale to fit if it's too large
+          const scaleX = (app.screen.width * 0.8) / sprite.width;
+          const scaleY = (app.screen.height * 0.8) / sprite.height;
+          const scale = Math.min(scaleX, scaleY, 1);
+          sprite.scale.set(scale);
+
+          sprite.zIndex = layers.length - i;
+
+          // Enable interaction so we can drag it later
+          sprite.eventMode = "static";
+          sprite.cursor = "pointer";
+
+          app.stage.addChild(sprite);
+          spritesRef.current[layer.id] = sprite;
+
+          // Enable z-index sorting on the stage
+          app.stage.sortableChildren = true;
+        } catch (error) {
+          console.error("Failed to load texture for layer", layer.name, error);
+        }
+      }
+    };
+
+    renderLayers();
+  }, [layers]);
 
   // Handle File Drops
   const onDrop = useCallback(
@@ -45,7 +122,6 @@ export function CanvasArea() {
         const fileId = uuidv4();
         const layerId = uuidv4();
 
-        // 1. Save file Blob to Dexie IndexedDB
         await db.files.add({
           id: fileId,
           name: file.name,
@@ -55,7 +131,6 @@ export function CanvasArea() {
           createdAt: Date.now(),
         });
 
-        // 2. Add as a layer in the Workspace Store
         addLayer({
           id: layerId,
           fileId: fileId,
@@ -63,8 +138,6 @@ export function CanvasArea() {
           visible: true,
           locked: false,
         });
-
-        console.log(`Saved ${file.name} to local DB and added as layer!`);
       }
     },
     [addLayer],
@@ -72,7 +145,7 @@ export function CanvasArea() {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    noClick: true, // Let them click layers/canvas, not upload dialog anywhere
+    noClick: true,
     accept: {
       "image/*": [],
       "application/pdf": [],
@@ -91,20 +164,18 @@ export function CanvasArea() {
 
       <div ref={containerRef} className="absolute inset-0" />
 
-      {/* Overlay for drag state */}
       {isDragActive && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-500/20 backdrop-blur-sm border-2 border-blue-500 border-dashed m-4 rounded-xl">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-500/20 backdrop-blur-sm border-2 border-blue-500 border-dashed m-4 rounded-xl pointer-events-none">
           <p className="text-xl font-semibold text-blue-100 shadow-sm">
             Drop files to add as layers
           </p>
         </div>
       )}
 
-      {/* Empty State Overlay */}
       {layers.length === 0 && !isDragActive && (
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
           <p className="text-zinc-400 bg-zinc-950/80 px-6 py-3 rounded-full font-medium pointer-events-auto shadow-lg backdrop-blur-md border border-zinc-800">
-            Drag & Drop files here to start editing
+            Drag & Drop images here to start editing
           </p>
         </div>
       )}
