@@ -1,10 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { db } from "@/db";
+import * as Comlink from "comlink";
+import { FilterType, ImageProcessor } from "@/workers/image.worker";
 
 export function PropertiesPanel() {
-  const { activeLayerId, layers, updateLayerTransform } = useWorkspaceStore();
+  const { activeLayerId, layers, updateLayerTransform, replaceLayer } =
+    useWorkspaceStore();
+
+  const [isFiltering, setIsFiltering] = useState(false);
 
   const activeLayer = layers.find((l) => l.id === activeLayerId);
 
@@ -13,6 +19,51 @@ export function PropertiesPanel() {
     const num = parseFloat(value);
     if (!isNaN(num)) {
       updateLayerTransform(activeLayer.id, { [key]: num });
+    }
+  };
+
+  const applyFilter = async (filterType: FilterType) => {
+    if (!activeLayer || isFiltering) return;
+
+    setIsFiltering(true);
+    try {
+      const fileRecord = await db.files.get(activeLayer.fileId);
+      if (!fileRecord) throw new Error("File not found in DB");
+
+      const worker = new Worker(
+        new URL("@/workers/image.worker", import.meta.url),
+        { type: "module" },
+      );
+      const api = Comlink.wrap<ImageProcessor>(worker);
+
+      const newBlob = await api.processImage(fileRecord.blob, filterType);
+
+      // Save new blob
+      const newFileId = crypto.randomUUID();
+      await db.files.put({
+        id: newFileId,
+        blob: newBlob,
+        name: `${filterType}-${fileRecord.name}`,
+        type: fileRecord.type,
+        size: newBlob.size,
+        // eslint-disable-next-line react-hooks/purity
+        createdAt: Date.now(),
+      });
+
+      // Replace layer to force Canvas to re-init texture
+      const newLayerId = crypto.randomUUID();
+      replaceLayer(activeLayer.id, {
+        ...activeLayer,
+        id: newLayerId,
+        fileId: newFileId,
+      });
+
+      worker.terminate();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to apply filter.");
+    } finally {
+      setIsFiltering(false);
     }
   };
 
@@ -301,28 +352,36 @@ export function PropertiesPanel() {
               </>
             )}
 
-            {/* Appearance Settings Placeholder */}
+            {/* Image Filters (Web Worker) */}
             <div>
-              <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
-                Appearance
+              <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">
+                <span>Filters (Worker)</span>
+                {isFiltering && (
+                  <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                )}
               </h3>
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">
-                    Opacity
-                  </span>
-                  <span className="text-xs font-mono text-foreground bg-panel border border-panel-border px-2 py-1 rounded-md">
-                    100%
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">
-                    Blend Mode
-                  </span>
-                  <span className="text-xs font-mono text-foreground bg-panel border border-panel-border px-2 py-1 rounded-md">
-                    Normal
-                  </span>
-                </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => applyFilter("grayscale")}
+                  disabled={isFiltering}
+                  className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
+                >
+                  Grayscale
+                </button>
+                <button
+                  onClick={() => applyFilter("sepia")}
+                  disabled={isFiltering}
+                  className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
+                >
+                  Sepia
+                </button>
+                <button
+                  onClick={() => applyFilter("invert")}
+                  disabled={isFiltering}
+                  className="col-span-2 bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
+                >
+                  Invert Colors
+                </button>
               </div>
             </div>
           </div>

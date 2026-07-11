@@ -30,6 +30,7 @@ export interface WorkspaceState {
   setTheme: (theme: "light" | "dark" | "system") => void;
   addLayer: (layer: FileLayer) => void;
   removeLayer: (id: string) => void;
+  replaceLayer: (id: string, newLayer: FileLayer) => void;
   updateLayerTransform: (id: string, transform: Partial<FileLayer>) => void;
   setActiveLayerId: (id: string | null) => void;
 }
@@ -53,6 +54,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
     set((state) => ({
       layers: state.layers.filter((l) => l.id !== id),
       activeLayerId: state.activeLayerId === id ? null : state.activeLayerId,
+    })),
+  replaceLayer: (id, newLayer) =>
+    set((state) => ({
+      layers: state.layers.map((l) => (l.id === id ? newLayer : l)),
+      activeLayerId:
+        state.activeLayerId === id ? newLayer.id : state.activeLayerId,
     })),
   updateLayerTransform: (id, transform) =>
     set((state) => ({
