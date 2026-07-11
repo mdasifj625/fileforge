@@ -181,6 +181,9 @@ export function CanvasArea() {
         const fileData = await db.files.get(layer.fileId);
         if (!fileData) continue;
 
+        // Only attempt to render images in PixiJS
+        if (!fileData.type.startsWith("image/")) continue;
+
         try {
           const imageBitmap = await window.createImageBitmap(fileData.blob);
           let texture = PIXI.Texture.from(imageBitmap);
