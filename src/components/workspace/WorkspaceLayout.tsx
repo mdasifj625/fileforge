@@ -52,14 +52,16 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex flex-col-reverse md:flex-row h-screen w-screen overflow-hidden bg-background text-foreground">
+    <div className="flex flex-col md:flex-row h-screen w-screen overflow-hidden bg-background text-foreground">
       {/* Left Toolbar / Navigation */}
-      <Toolbar />
+      <div className="order-3 md:order-1 shrink-0 z-20">
+        <Toolbar />
+      </div>
 
       {/* Center Canvas Area (PixiJS WebGL preview will go here) */}
-      <div className="flex-1 flex flex-col relative overflow-hidden bg-panel md:border-x border-panel-border">
+      <div className="order-1 md:order-2 flex-1 flex flex-col relative overflow-hidden bg-panel md:border-x border-panel-border">
         {/* Top bar can contain tool title, export button, undo/redo */}
-        <header className="h-14 border-b border-panel-border flex items-center justify-between px-4 bg-background/50 backdrop-blur-md z-10">
+        <header className="h-14 border-b border-panel-border flex items-center justify-between px-4 bg-background/50 backdrop-blur-md z-10 shrink-0">
           <div className="text-sm font-semibold text-muted-foreground tracking-wide">
             File Forge Workspace
           </div>
@@ -119,14 +121,16 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
             </button>
           </div>
         </header>
-        <main className="flex-1 relative">
+        <main className="flex-1 relative overflow-hidden">
           <CanvasArea />
           {children}
         </main>{" "}
       </div>
 
       {/* Right Properties Panel */}
-      <PropertiesPanel />
+      <div className="order-2 md:order-3 shrink-0 z-30">
+        <PropertiesPanel />
+      </div>
       <ExportModal />
     </div>
   );
