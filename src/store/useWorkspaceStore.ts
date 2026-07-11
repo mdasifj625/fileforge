@@ -6,6 +6,11 @@ export interface FileLayer {
   name: string;
   visible: boolean;
   locked: boolean;
+  x: number;
+  y: number;
+  scaleX: number;
+  scaleY: number;
+  rotation: number;
 }
 
 export interface WorkspaceState {
@@ -19,6 +24,8 @@ export interface WorkspaceState {
   setZoom: (zoom: number) => void;
   setTheme: (theme: "light" | "dark" | "system") => void;
   addLayer: (layer: FileLayer) => void;
+  removeLayer: (id: string) => void;
+  updateLayerTransform: (id: string, transform: Partial<FileLayer>) => void;
   setActiveLayerId: (id: string | null) => void;
 }
 
@@ -36,6 +43,17 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
     set((state) => ({
       layers: [layer, ...state.layers],
       activeLayerId: layer.id,
+    })),
+  removeLayer: (id) =>
+    set((state) => ({
+      layers: state.layers.filter((l) => l.id !== id),
+      activeLayerId: state.activeLayerId === id ? null : state.activeLayerId,
+    })),
+  updateLayerTransform: (id, transform) =>
+    set((state) => ({
+      layers: state.layers.map((layer) =>
+        layer.id === id ? { ...layer, ...transform } : layer,
+      ),
     })),
   setActiveLayerId: (id) => set({ activeLayerId: id }),
 }));
