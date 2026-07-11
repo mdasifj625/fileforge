@@ -839,31 +839,6 @@ export function CanvasArea() {
 
       <div ref={containerRef} className="absolute inset-0" />
 
-      {/* Floating Add Button when layers exist */}
-      {layers.length > 0 && (
-        <div className="absolute top-4 left-4 z-20 pointer-events-auto">
-          <button
-            onClick={open}
-            className="bg-panel/80 hover:bg-muted text-foreground text-xs px-3 py-1.5 rounded-md border border-panel-border shadow-sm backdrop-blur-md transition-colors flex items-center gap-2"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Add Layer
-          </button>
-        </div>
-      )}
-
       {isDragActive && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-primary/20 backdrop-blur-sm border-2 border-primary border-dashed m-4 rounded-xl pointer-events-none">
           <p className="text-xl font-semibold text-primary shadow-sm">
