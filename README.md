@@ -27,4 +27,7 @@ yarn install
 yarn dev
 ```
 
-For AI coding agents, please refer to the `.agents/` directory for architecture decisions and guidelines.
+## Documentation
+
+- [ARCHITECTURE.md](./docs/ARCHITECTURE.md): Detailed overview of the system design, Canvas Engine, and State Management.
+- [AI Rules](./.agents/AGENTS.md): Core rules and context specifically designed for AI coding agents.
