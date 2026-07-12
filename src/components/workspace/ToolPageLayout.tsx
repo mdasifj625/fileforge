@@ -4,7 +4,16 @@ import React, { useEffect } from "react";
 import { WorkspaceLayout } from "./WorkspaceLayout";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import Link from "next/link";
-import { ArrowRight, Sparkles, Zap, Shield } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  Zap,
+  Shield,
+  Menu,
+  X,
+  ChevronDown,
+} from "lucide-react";
+import { useState } from "react";
 
 interface ToolPageLayoutProps {
   toolId: string;
@@ -24,6 +33,43 @@ export function ToolPageLayout({
   children,
 }: ToolPageLayoutProps) {
   const setActiveTool = useWorkspaceStore((state) => state.setActiveTool);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const TOOL_MENUS = [
+    {
+      title: "Image",
+      items: [
+        { name: "Compress", href: "/image/compress" },
+        { name: "Resize", href: "/image/resize" },
+        { name: "Crop", href: "/image/crop" },
+        { name: "Convert", href: "/image/convert" },
+      ],
+    },
+    {
+      title: "PDF",
+      items: [
+        { name: "Merge", href: "/pdf/merge" },
+        { name: "Split", href: "/pdf/split" },
+        { name: "Images to PDF", href: "/pdf/images-to-pdf" },
+        { name: "Extract Pages", href: "/pdf/extract-pages" },
+      ],
+    },
+    {
+      title: "Video",
+      items: [
+        { name: "Compress", href: "/video/compress" },
+        { name: "Trim", href: "/video/trim" },
+        { name: "Convert", href: "/video/convert" },
+      ],
+    },
+    {
+      title: "AI",
+      items: [
+        { name: "Remove Background", href: "/ai/remove-background" },
+        { name: "Extract Text (OCR)", href: "/ai/ocr" },
+      ],
+    },
+  ];
 
   useEffect(() => {
     setActiveTool(toolId);
@@ -54,28 +100,32 @@ export function ToolPageLayout({
           File Forge
         </Link>
         <nav className="hidden md:flex ml-10 gap-6 text-sm font-medium text-muted-foreground">
-          <Link
-            href="/image/compress"
-            className="hover:text-foreground transition-colors"
-          >
-            Image Tools
-          </Link>
-          <Link
-            href="/pdf/merge"
-            className="hover:text-foreground transition-colors"
-          >
-            PDF Tools
-          </Link>
-          <Link
-            href="/video/compress"
-            className="hover:text-foreground transition-colors"
-          >
-            Video Tools
-          </Link>
+          {TOOL_MENUS.map((menu) => (
+            <div key={menu.title} className="relative group">
+              <div className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors py-4">
+                {menu.title}{" "}
+                <ChevronDown
+                  size={14}
+                  className="group-hover:rotate-180 transition-transform"
+                />
+              </div>
+              <div className="absolute top-[100%] left-0 w-48 bg-panel border border-panel-border rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all flex flex-col p-2 z-50">
+                {menu.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="px-4 py-2 hover:bg-muted hover:text-foreground rounded-lg transition-colors"
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Right Nav (Theme) */}
-        <div className="ml-auto flex items-center">
+        <div className="ml-auto flex items-center gap-2">
           <button
             onClick={() =>
               useWorkspaceStore
@@ -103,8 +153,40 @@ export function ToolPageLayout({
               <path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" />
             </svg>
           </button>
+
+          <button
+            className="md:hidden p-2 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-panel rounded-xl transition-colors"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </header>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed top-16 left-0 w-full h-[calc(100vh-4rem)] bg-background border-b border-panel-border z-40 p-4 flex flex-col gap-6 overflow-y-auto">
+          {TOOL_MENUS.map((menu) => (
+            <div key={menu.title} className="flex flex-col gap-2">
+              <div className="font-bold text-foreground px-2">
+                {menu.title} Tools
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {menu.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-3 bg-panel border border-panel-border rounded-xl font-medium text-foreground hover:border-primary transition-colors text-sm flex items-center justify-center text-center"
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <main className="flex-1 flex flex-col items-center">
         {/* Compact Premium Hero Section */}
