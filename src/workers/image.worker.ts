@@ -66,6 +66,67 @@ const imageProcessor = {
     const type = fileBlob.type || "image/png";
     return await canvas.convertToBlob({ type });
   },
+
+  async exportHighResImage(
+    fileBlob: Blob,
+    options: {
+      cropRect?: { x: number; y: number; width: number; height: number };
+      scaleX: number;
+      scaleY: number;
+      rotation: number;
+      format: "image/png" | "image/jpeg" | "image/webp";
+      quality: number;
+    },
+  ): Promise<Blob> {
+    console.log("Worker: Exporting high-res image...", options);
+
+    const bitmap = await createImageBitmap(fileBlob);
+
+    // 1. Determine source crop coordinates
+    const sx = options.cropRect ? options.cropRect.x : 0;
+    const sy = options.cropRect ? options.cropRect.y : 0;
+    const sw = options.cropRect ? options.cropRect.width : bitmap.width;
+    const sh = options.cropRect ? options.cropRect.height : bitmap.height;
+
+    // 2. Determine final output dimensions
+    const outW = Math.max(1, Math.round(sw * Math.abs(options.scaleX)));
+    const outH = Math.max(1, Math.round(sh * Math.abs(options.scaleY)));
+
+    const canvas = new OffscreenCanvas(outW, outH);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Failed to get 2D context for export");
+
+    // Fill white background for JPEG
+    if (options.format === "image/jpeg") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, outW, outH);
+    }
+
+    // 3. Apply transformations
+    ctx.save();
+
+    // Translate to center to apply rotation and flip
+    ctx.translate(outW / 2, outH / 2);
+
+    if (options.rotation) {
+      ctx.rotate(options.rotation);
+    }
+
+    // Flip if scale is negative
+    const signX = options.scaleX < 0 ? -1 : 1;
+    const signY = options.scaleY < 0 ? -1 : 1;
+    ctx.scale(signX, signY);
+
+    // Draw the specific crop region to the canvas
+    ctx.drawImage(bitmap, sx, sy, sw, sh, -outW / 2, -outH / 2, outW, outH);
+
+    ctx.restore();
+
+    return await canvas.convertToBlob({
+      type: options.format,
+      quality: options.quality,
+    });
+  },
 };
 
 export type ImageProcessor = typeof imageProcessor;

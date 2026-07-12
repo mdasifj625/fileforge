@@ -2,6 +2,9 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { db } from "@/db";
+import * as Comlink from "comlink";
+import { ImageProcessor } from "@/workers/image.worker";
 
 export function ExportModal() {
   const { exportImageBlob, setExportImageBlob } = useWorkspaceStore();
@@ -77,19 +80,64 @@ export function ExportModal() {
 
   if (!exportImageBlob) return null;
 
-  const handleDownload = () => {
-    if (!previewUrl) return;
-    const ext =
-      format === "image/jpeg"
-        ? "jpg"
-        : format === "image/webp"
-          ? "webp"
-          : "png";
-    const a = document.createElement("a");
-    a.href = previewUrl;
-    a.download = `file-forge-export-${Date.now()}.${ext}`;
-    a.click();
-    setExportImageBlob(null); // Close modal
+  const handleDownload = async () => {
+    setIsProcessing(true);
+    try {
+      const state = useWorkspaceStore.getState();
+      const activeLayer = state.layers.find(
+        (l) => l.id === state.activeLayerId,
+      );
+
+      let finalBlob = exportImageBlob;
+
+      if (activeLayer) {
+        const fileRecord = await db.files.get(activeLayer.fileId);
+        if (fileRecord) {
+          const worker = new Worker(
+            new URL("@/workers/image.worker", import.meta.url),
+            { type: "module" },
+          );
+          const api = Comlink.wrap<ImageProcessor>(worker);
+
+          const totalScaleX = activeLayer.scaleX * scale;
+          const totalScaleY = activeLayer.scaleY * scale;
+
+          finalBlob = await api.exportHighResImage(fileRecord.blob, {
+            cropRect: activeLayer.cropRect,
+            scaleX: totalScaleX,
+            scaleY: totalScaleY,
+            rotation: activeLayer.rotation || 0,
+            format,
+            quality: quality / 100,
+          });
+
+          worker.terminate();
+        }
+      }
+
+      if (!finalBlob) throw new Error("Export failed");
+
+      const ext =
+        format === "image/jpeg"
+          ? "jpg"
+          : format === "image/webp"
+            ? "webp"
+            : "png";
+
+      const a = document.createElement("a");
+      const finalUrl = URL.createObjectURL(finalBlob);
+      a.href = finalUrl;
+      a.download = `file-forge-export-${Date.now()}.${ext}`;
+      a.click();
+
+      setTimeout(() => URL.revokeObjectURL(finalUrl), 1000);
+      setExportImageBlob(null); // Close modal
+    } catch (e) {
+      console.error(e);
+      alert("Failed to export high-resolution image.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
