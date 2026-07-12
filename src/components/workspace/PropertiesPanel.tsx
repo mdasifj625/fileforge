@@ -52,7 +52,7 @@ export function PropertiesPanel() {
         name: `${filterType}-${fileRecord.name}`,
         type: fileRecord.type,
         size: newBlob.size,
-        // eslint-disable-next-line react-hooks/purity
+
         createdAt: Date.now(),
       });
 
@@ -396,65 +396,49 @@ export function PropertiesPanel() {
               </>
             )}
 
-            {/* Image Filters (Web Worker) */}
-            {activeTool === "image" && (
+            {/* Compress Settings */}
+            {activeTool === "compress" && (
+              <div>
+                <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
+                  Compression Settings
+                </h3>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Adjust format and quality settings before exporting. Click
+                  Export in the top bar to apply.
+                </p>
+                {/* Note: The actual format/quality settings are handled by the ExportModal when Export is clicked. */}
+                <div className="bg-primary/10 border border-primary/20 text-primary text-xs p-3 rounded-lg">
+                  Click the <strong>Export</strong> button in the top bar to
+                  compress and save this image.
+                </div>
+              </div>
+            )}
+
+            {/* Remove Background */}
+            {activeTool === "remove-background" && (
               <div>
                 <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">
-                  <span>Filters (Worker)</span>
+                  <span>Background</span>
                   {isFiltering && (
                     <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                   )}
                 </h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-4">
                   <button
-                    onClick={() => applyFilter("grayscale")}
-                    disabled={isFiltering}
-                    className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
-                  >
-                    Grayscale
-                  </button>
-                  <button
-                    onClick={() => applyFilter("sepia")}
-                    disabled={isFiltering}
-                    className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
-                  >
-                    Sepia
-                  </button>
-                  <button
-                    onClick={() => applyFilter("vintage")}
-                    disabled={isFiltering}
-                    className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
-                  >
-                    Vintage
-                  </button>
-                  <button
-                    onClick={() => applyFilter("solarize")}
-                    disabled={isFiltering}
-                    className="bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
-                  >
-                    Solarize
-                  </button>
-                  <button
-                    onClick={() => applyFilter("invert")}
-                    disabled={isFiltering}
-                    className="col-span-2 bg-panel border border-panel-border hover:border-primary text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-50"
-                  >
-                    Invert Colors
-                  </button>
-
-                  <hr className="col-span-2 border-panel-border my-2" />
-
-                  <button
-                    onClick={restoreOriginal}
-                    disabled={
-                      isFiltering ||
-                      !activeLayer?.originalFileId ||
-                      activeLayer.fileId === activeLayer.originalFileId
+                    onClick={() =>
+                      alert(
+                        "Background removal is an advanced feature coming soon!",
+                      )
                     }
-                    className="col-span-2 bg-background border border-panel-border hover:bg-muted text-foreground text-xs py-2 rounded-lg transition-all disabled:opacity-30 disabled:hover:bg-background"
+                    disabled={isFiltering}
+                    className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
                   >
-                    Restore Original
+                    Remove Background (AI)
                   </button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Uses local AI models to segment and remove the image
+                    background.
+                  </p>
                 </div>
               </div>
             )}

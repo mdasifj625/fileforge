@@ -14,10 +14,19 @@ import Link from "next/link";
 import { FilePlus2 } from "lucide-react";
 
 const TOOLS = [
-  { id: "select", icon: MousePointer2, name: "Select", href: "/image/select" },
-  { id: "crop", icon: Crop, name: "Crop", href: "/image/crop" },
-  { id: "image", icon: ImageIcon, name: "Image Tools", href: "/image/filters" },
-  { id: "layers", icon: Layers, name: "Layers", href: "/image/layers" },
+  { id: "crop", icon: Crop, name: "Crop Image", href: "/image/crop" },
+  {
+    id: "compress",
+    icon: ImageIcon,
+    name: "Compress Image",
+    href: "/image/compress",
+  },
+  {
+    id: "remove-background",
+    icon: Layers,
+    name: "Remove Background",
+    href: "/image/remove-background",
+  },
   { id: "pdf-merge", icon: FilePlus2, name: "PDF Merge", href: "/pdf/merge" },
 ];
 

@@ -3,11 +3,11 @@
 import { useEffect } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
-export default function ImageSelectPage() {
+export default function RemoveBackgroundPage() {
   const setActiveTool = useWorkspaceStore((state) => state.setActiveTool);
 
   useEffect(() => {
-    setActiveTool("select");
+    setActiveTool("remove-background");
   }, [setActiveTool]);
 
   return null;
