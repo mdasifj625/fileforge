@@ -6,11 +6,10 @@ This document provides a high-level overview of the systems and architecture dri
 
 - **Semantic CSS Framework**: Built on a robust, Apple/Linear-style OKLCH semantic token system defined in `src/app/globals.css`.
 - **Themes**: Full support for Light and Dark modes via `--background`, `--panel`, `--foreground`, etc., synchronized to `document.documentElement.classList`.
-- **Layout Structure**: A responsive workspace with:
-  - Left Toolbar (`Toolbar.tsx`)
-  - Center Canvas (`CanvasArea.tsx`)
-  - Right Properties panel (`PropertiesPanel.tsx`)
-  - Bottom Layer List integrated directly into the workspace layout.
+- **Layout Structure**: A premium, edge-to-edge responsive workspace designed for individual tools (`ToolPageLayout.tsx` and `WorkspaceLayout.tsx`):
+  - **Tool-Specific Pages**: Instead of a global toolbar, each tool has its own dedicated dynamic route (e.g., `/image/[tool]/page.tsx`).
+  - **Center Canvas (`CanvasArea.tsx`)**: Edge-to-edge 55vh on mobile, perfectly scaled flex-1 on desktop.
+  - **Right Properties Panel (`PropertiesPanel.tsx`)**: Responsive natural document flow on mobile (scrolls natively below canvas without UI hacks) and a sticky sidebar on desktop.
 
 ## 2. Canvas Engine (PixiJS)
 

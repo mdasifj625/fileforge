@@ -9,6 +9,7 @@ File Forge is a local-first, privacy-focused file processing workspace. It allow
 - **Image Processing Filters:** Apply pixel-level filters (Grayscale, Vintage, Sepia, etc.) processed securely via background Web Workers.
 - **Time Travel:** Fully integrated Undo/Redo history system that tracks complex state transformations and retains original native file references.
 - **Privacy First:** No server uploads, no data collection.
+- **Standalone Tools:** Dedicated dynamic routes (e.g., `/image/crop`, `/pdf/merge`) that offer focused, edge-to-edge workspaces optimized for mobile and desktop without cluttered global toolbars.
 - **Blazing Fast:** Leveraging `Comlink` for worker RPC and `PixiJS` (WebGL) for 60fps real-time previews.
 
 ## Tech Stack

@@ -52,7 +52,7 @@ file-forge/
 │   │   └── layout.tsx          # Root layout (Providers, Fonts, Metadata)
 │   ├── components/             # Reusable UI Components
 │   │   ├── ui/                 # Radix UI + Tailwind Design System
-│   │   ├── workspace/          # Core Editor UI (Canvas, Layers, Toolbar, Properties)
+│   │   ├── workspace/          # Core Editor UI (ToolPageLayout, WorkspaceLayout, Canvas, Properties)
 │   │   └── layout/             # Navigation, Footer, SEO Breadcrumbs
 │   ├── engines/                # Processing Engine APIs (Main Thread Wrapper)
 │   │   ├── image/              # ImageEngine (Pica, OpenCV wrappers)
@@ -77,7 +77,7 @@ file-forge/
 **Routing Structure:**
 
 - `/` - Landing page (Optimized for conversions and explaining the "Local-first" advantage)
-- `/[category]/[tool]` - e.g., `/image/remove-background`, `/pdf/merge-pdf`. Each route is completely independent for SEO.
+- `/[category]/[tool]` - Dynamic tool routes (e.g., `/image/remove-background`, `/pdf/merge-pdf`). Each route is completely independent for SEO and acts as a dedicated standalone tool without a confusing global editor toolbar.
 - `/blog/[slug]` - Educational content, use-case guides, and "How to" articles.
 
 **Workspace Navigation & SEO:**
