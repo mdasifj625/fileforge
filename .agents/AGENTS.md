@@ -31,4 +31,9 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 - **Correct Method**: Always convert the file into an ArrayBuffer and store it as a generic `Blob` (`new Blob([await file.arrayBuffer()], { type: file.type })`).
 - **Error Handling**: If `createImageBitmap` throws an `InvalidStateError` (indicating file corruption), gracefully catch it, call `removeLayer(id)` to clear the broken layer from the Zustand state, and log it.
 
+### 4. Web Workers & WASM
+
+- **FFmpeg & Shared Memory**: When using `@ffmpeg/ffmpeg`, the worker utilizes `SharedArrayBuffer`. When casting FFmpeg outputs (which are `Uint8Array<ArrayBufferLike>`) to standard Blobs, ALWAYS explicitly cast to `Uint8Array<ArrayBuffer>` (e.g., `new Blob([data as unknown as Uint8Array<ArrayBuffer>])`) to satisfy strict TypeScript `BlobPart` constraints without using `any`.
+- **AI Models (Transformers.js)**: Transformers.js and the `AutoProcessor` library occasionally reference DOM globals like `document` which do not exist in Web Workers, causing `ReferenceError` crashes. NEVER remove the `import "./polyfill"` line at the top of AI workers, as it safely mocks these globals.
+
 <!-- END:file-forge-agent-rules -->

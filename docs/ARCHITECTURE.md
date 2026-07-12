@@ -58,3 +58,25 @@ This document provides a high-level overview of the systems and architecture dri
 - **Zustand State Wrapping**: The `useWorkspaceStore` implements a fully functional `past` and `future` array stack for layer states.
 - **Layer Snapshots**: Before any layer transformation, addition, or removal, the current layer tree is snapshotted into the `past` array.
 - **Original File Restoration**: Every layer explicitly tracks its `originalFileId`, allowing the "Restore Original" feature to revert a file back to its pre-filtered native form without corrupting the broader undo/redo history timeline.
+
+## 8. Document & PDF Processing
+
+- **PDF Generation & Manipulation**: Utilizes `pdf-lib` via a dedicated `pdf.worker.ts` to merge, split, and construct PDF files from raw images.
+- **Viewer Component**: Uses `react-pdf` to render a fully native React component thumbnail grid, allowing drag-and-drop array reordering for multi-page documents seamlessly within the workspace layout.
+
+## 9. Media Heavyweight (Video & Audio)
+
+- **FFmpeg Integration**: Powered by `@ffmpeg/ffmpeg` and compiled to WebAssembly. Allows deep manipulation of `.mp4`, `.webm`, `.mp3`, and `.wav` formats locally.
+- **Shared Memory**: Requires strict `Cross-Origin-Embedder-Policy` and `Cross-Origin-Opener-Policy` headers in `next.config.ts` to unlock `SharedArrayBuffer` for zero-copy memory transfers.
+- **Audio Workspaces**: Specialized `AudioWorkspaceArea` and `VideoWorkspaceArea` intercept these file types to bypass the PixiJS WebGL canvas, replacing it with native HTML5 `<audio>` and `<video>` players while retaining identical property pane synchronization.
+
+## 10. AI Processing (Machine Learning)
+
+- **ONNX & Transformers.js**: Runs true Machine Learning models locally using the browser's WASM backend.
+- **Background Removal**: Implements the advanced RMBG-1.4 model within `rmbg.worker.ts` to generate precise alpha masks and extract foreground subjects from images.
+- **Polyfill Overrides**: Uses a custom `polyfill.ts` injected into the worker to safely mock DOM variables (like `document`), circumventing library bugs in `AutoProcessor` and ensuring flawless background AI execution.
+
+## 11. Local Utilities
+
+- **Archive Tools**: Natively packs and extracts `.zip` archives into the browser's IndexedDB using `jszip`, bypassing OS file explorers entirely.
+- **Cryptographic & Encoders**: Securely generates UUIDs via the native `crypto.randomUUID()` Web Crypto API and processes gigabyte-scale files into Base64 using chunked `ArrayBuffer` iterators to prevent JavaScript engine call stack limitations.
