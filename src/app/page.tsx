@@ -115,6 +115,12 @@ export default function Home() {
               ))}
             </nav>
             <Link
+              href="/auth"
+              className="hidden md:flex ml-4 px-4 py-2 text-foreground font-bold text-sm hover:opacity-80 transition-opacity"
+            >
+              Log In
+            </Link>
+            <Link
               href="/image/compress"
               className="ml-4 px-4 py-2 bg-foreground text-background text-sm font-bold rounded-full hover:bg-foreground/90 transition-all shadow-md"
             >

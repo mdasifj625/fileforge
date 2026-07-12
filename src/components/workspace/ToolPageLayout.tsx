@@ -137,8 +137,15 @@ export function ToolPageLayout({
           ))}
         </nav>
 
-        {/* Right Nav (Theme) */}
-        <div className="ml-auto flex items-center gap-2">
+        {/* Right Nav (Theme & Auth) */}
+        <div className="ml-auto flex items-center gap-4">
+          <Link
+            href="/auth"
+            className="hidden md:flex text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Log In
+          </Link>
+
           <button
             onClick={() =>
               useWorkspaceStore
