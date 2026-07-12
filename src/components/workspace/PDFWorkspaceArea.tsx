@@ -52,7 +52,7 @@ export function PDFWorkspaceArea() {
   useEffect(() => {
     if (
       exportTrigger > 0 &&
-      activeTool === "pdf-merge" &&
+      activeTool?.startsWith("pdf-") &&
       pdfLayers.length > 0
     ) {
       const handleExport = async () => {
@@ -64,24 +64,45 @@ export function PDFWorkspaceArea() {
           );
           const api = Comlink.wrap<PdfProcessor>(worker);
 
-          const payload = pdfLayers.map((layer) => ({
-            blob: blobs[layer.fileId],
-            pageOrder: layer.pageOrder,
-          }));
+          let finalBlob: Blob;
+          let filename: string;
 
-          const mergedBlob = await api.mergePdfs(payload);
+          if (
+            activeTool === "pdf-merge" ||
+            activeTool === "pdf-extract-pages" ||
+            activeTool === "pdf-delete-pages"
+          ) {
+            const payload = pdfLayers.map((layer) => ({
+              blob: blobs[layer.fileId],
+              pageOrder: layer.pageOrder,
+            }));
+            finalBlob = await api.mergePdfs(payload);
+            filename = `merged-file-forge-${Date.now()}.pdf`;
+          } else if (activeTool === "pdf-split") {
+            // For split, process the first uploaded PDF layer
+            finalBlob = await api.splitPdf(
+              blobs[pdfLayers[0].fileId],
+              pdfLayers[0].pageOrder,
+            );
+            filename = `split-file-forge-${Date.now()}.zip`;
+          } else {
+            worker.terminate();
+            setIsMerging(false);
+            return;
+          }
+
           worker.terminate();
 
-          const url = URL.createObjectURL(mergedBlob);
+          const url = URL.createObjectURL(finalBlob);
           const a = document.createElement("a");
           a.href = url;
-          a.download = `merged-file-forge-${Date.now()}.pdf`;
+          a.download = filename;
           a.click();
 
           setTimeout(() => URL.revokeObjectURL(url), 1000);
         } catch (e) {
-          console.error("PDF Merge Failed:", e);
-          alert("Failed to merge PDFs.");
+          console.error("PDF Operation Failed:", e);
+          alert("Failed to process PDF.");
         } finally {
           setIsMerging(false);
         }
@@ -105,8 +126,9 @@ export function PDFWorkspaceArea() {
               )}
             </h2>
             <p className="text-muted-foreground text-sm">
-              Drag to reorder or remove pages before merging. Click Export when
-              done.
+              {activeTool === "pdf-split"
+                ? "Remove pages you don't want. Click Export to split the remaining pages into separate PDFs."
+                : "Drag to reorder or remove pages before exporting. Click Export when done."}
             </p>
           </div>
         </div>

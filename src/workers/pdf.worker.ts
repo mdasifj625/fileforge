@@ -34,6 +34,32 @@ const pdfProcessor = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return new Blob([mergedPdfBytes as any], { type: "application/pdf" });
   },
+
+  async splitPdf(fileBlob: Blob, pageOrder?: number[]): Promise<Blob> {
+    console.log("Worker: Splitting PDF...");
+    const JSZip = (await import("jszip")).default;
+    const arrayBuffer = await fileBlob.arrayBuffer();
+    const pdf = await PDFDocument.load(arrayBuffer);
+
+    const pageIndices = pageOrder
+      ? pageOrder.map((num) => num - 1)
+      : pdf.getPageIndices();
+
+    const zip = new JSZip();
+
+    for (let i = 0; i < pageIndices.length; i++) {
+      const pageIndex = pageIndices[i];
+      const singlePagePdf = await PDFDocument.create();
+      const [copiedPage] = await singlePagePdf.copyPages(pdf, [pageIndex]);
+      singlePagePdf.addPage(copiedPage);
+
+      const bytes = await singlePagePdf.save();
+      zip.file(`page-${pageIndex + 1}.pdf`, bytes);
+    }
+
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    return zipBlob;
+  },
 };
 
 export type PdfProcessor = typeof pdfProcessor;
