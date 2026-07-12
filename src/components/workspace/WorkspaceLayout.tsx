@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Toolbar } from "./Toolbar";
 import { CanvasArea } from "./CanvasArea";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { ExportModal } from "./ExportModal";
@@ -52,70 +51,39 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex flex-col md:flex-row h-[70vh] min-h-[600px] w-full max-w-[1600px] mx-auto overflow-hidden bg-background text-foreground border border-panel-border md:rounded-2xl shadow-2xl">
-      {/* Left Toolbar / Navigation */}
-      <div className="order-3 md:order-1 shrink-0 z-20">
-        <Toolbar />
-      </div>
-
+    <div className="flex flex-col md:flex-row h-auto md:h-[80vh] w-full overflow-hidden bg-background text-foreground">
       {/* Center Canvas Area (PixiJS WebGL preview will go here) */}
-      <div className="order-1 md:order-2 flex-1 flex flex-col relative overflow-hidden bg-panel md:border-x border-panel-border">
+      <div className="order-1 md:order-1 flex-none md:flex-1 h-[55vh] min-h-[400px] md:h-auto md:min-h-0 flex flex-col relative overflow-hidden bg-panel md:border-r border-panel-border">
         {/* Top bar can contain tool title, export button, undo/redo */}
-        <header className="h-14 border-b border-panel-border flex items-center justify-between px-4 bg-background/50 backdrop-blur-md z-10 shrink-0">
-          <div className="text-sm font-semibold text-muted-foreground tracking-wide">
-            File Forge Workspace
-          </div>
-          <div className="flex gap-3 items-center">
-            {/* Theme Toggle placeholder or active here */}
+        <header className="h-14 border-b border-panel-border flex items-center justify-between px-3 md:px-5 bg-background/50 backdrop-blur-md z-10 shrink-0 relative">
+          {/* Left Side: Empty or Tool specific breadcrumbs later */}
+          <div className="flex items-center gap-2 w-[40px] md:w-auto"></div>
+
+          {/* Center: Undo / Redo */}
+          <div className="flex items-center gap-1 md:absolute md:left-1/2 md:-translate-x-1/2">
             <button
-              onClick={() =>
-                useWorkspaceStore
-                  .getState()
-                  .setTheme(theme === "dark" ? "light" : "dark")
-              }
-              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-              title="Toggle Theme"
+              onClick={undo}
+              disabled={pastCount === 0}
+              className="p-2 w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+              title="Undo"
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="5" />
-                <path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" />
-              </svg>
+              <Undo2 size={18} />
             </button>
-            <div className="h-4 w-px bg-panel-border mx-1"></div>
+            <button
+              onClick={redo}
+              disabled={futureCount === 0}
+              className="p-2 w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+              title="Redo"
+            >
+              <Redo2 size={18} />
+            </button>
+          </div>
 
-            {/* Undo/Redo */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={undo}
-                disabled={pastCount === 0}
-                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
-                title="Undo"
-              >
-                <Undo2 size={18} />
-              </button>
-              <button
-                onClick={redo}
-                disabled={futureCount === 0}
-                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
-                title="Redo"
-              >
-                <Redo2 size={18} />
-              </button>
-            </div>
-
-            <div className="h-4 w-px bg-panel-border mx-1"></div>
+          {/* Right Side: Export */}
+          <div className="flex items-center">
             <button
               onClick={triggerExport}
-              className="px-3 py-1.5 text-sm font-medium bg-primary hover:bg-primary-hover text-primary-foreground rounded-md transition-colors shadow-sm shadow-primary/20"
+              className="px-5 py-2 text-sm font-bold bg-primary hover:bg-primary-hover text-primary-foreground rounded-lg transition-colors shadow-sm shadow-primary/20"
             >
               Export
             </button>
@@ -128,7 +96,7 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
       </div>
 
       {/* Right Properties Panel */}
-      <div className="order-2 md:order-3 shrink-0 z-30">
+      <div className="order-2 md:order-2 shrink-0 z-30">
         <PropertiesPanel />
       </div>
       <ExportModal />

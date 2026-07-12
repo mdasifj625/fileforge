@@ -16,7 +16,6 @@ export function PropertiesPanel() {
   } = useWorkspaceStore();
 
   const [isFiltering, setIsFiltering] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
 
   const activeLayer = layers.find((l) => l.id === activeLayerId);
 
@@ -86,36 +85,14 @@ export function PropertiesPanel() {
   };
 
   return (
-    <aside
-      className={`w-full ${isExpanded ? "h-1/2" : "h-14"} md:h-auto md:w-80 shrink-0 bg-background flex flex-col z-20 md:border-l border-t md:border-t-0 border-panel-border shadow-2xl transition-all duration-300`}
-    >
-      <div
-        className="h-14 shrink-0 border-b border-panel-border flex items-center justify-between px-5 bg-background/50 backdrop-blur-md cursor-pointer md:cursor-default select-none"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
+    <aside className="w-full h-auto md:h-full md:w-80 shrink-0 bg-background flex flex-col z-20 border-t md:border-t-0 md:border-l border-panel-border transition-all duration-300">
+      <div className="h-14 shrink-0 border-b border-panel-border flex items-center px-5 bg-background/50 backdrop-blur-md select-none">
         <h2 className="text-sm font-bold text-foreground uppercase tracking-widest">
           Properties
         </h2>
-        <div className="md:hidden text-muted-foreground flex items-center justify-center">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
-          >
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
-        </div>
       </div>
 
-      <div
-        className={`p-5 flex-1 overflow-y-auto ${!isExpanded ? "hidden md:block" : "block"}`}
-      >
+      <div className="p-5 flex-1 overflow-y-auto block">
         {activeLayer ? (
           <div className="space-y-8">
             {/* Transform Settings */}

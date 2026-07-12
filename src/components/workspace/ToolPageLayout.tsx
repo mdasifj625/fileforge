@@ -31,7 +31,6 @@ export function ToolPageLayout({
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Site Header */}
       <header className="h-16 border-b border-panel-border bg-background flex items-center px-6 shrink-0 sticky top-0 z-50">
         <Link
           href="/"
@@ -74,66 +73,113 @@ export function ToolPageLayout({
             Video Tools
           </Link>
         </nav>
+
+        {/* Right Nav (Theme) */}
+        <div className="ml-auto flex items-center">
+          <button
+            onClick={() =>
+              useWorkspaceStore
+                .getState()
+                .setTheme(
+                  useWorkspaceStore.getState().theme === "dark"
+                    ? "light"
+                    : "dark",
+                )
+            }
+            className="p-2 w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-panel rounded-xl transition-colors"
+            title="Toggle Theme"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="5" />
+              <path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" />
+            </svg>
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 flex flex-col items-center">
-        {/* Tool Header Section */}
-        <section className="w-full max-w-5xl mx-auto px-4 py-12 md:py-20 text-center">
-          <div className="inline-flex items-center justify-center px-3 py-1 mb-6 text-xs font-semibold uppercase tracking-widest text-primary bg-primary/10 rounded-full">
-            {category} Tool
+        {/* Compact Premium Hero Section */}
+        <section className="relative w-full max-w-7xl mx-auto px-6 py-12 md:py-16 text-center flex flex-col items-center">
+          {/* Background Glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-[200px] bg-primary/10 blur-[80px] rounded-full pointer-events-none -z-10"></div>
+
+          <div className="inline-flex items-center justify-center px-3 py-1 mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-primary bg-primary/10 rounded-full border border-primary/20 backdrop-blur-md">
+            {category} Studio
           </div>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">
+          <h1 className="text-3xl md:text-5xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-br from-foreground via-foreground to-muted-foreground leading-tight">
             {title}
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed mb-6">
             {description}
           </p>
         </section>
 
-        {/* Editor Area (WorkspaceLayout provides Toolbar, Canvas, Properties, Export, etc.) */}
-        <section className="w-full px-4 md:px-8 mb-24">
-          <WorkspaceLayout>{children}</WorkspaceLayout>
+        <section className="w-full px-0 mb-0 relative z-10">
+          <div className="w-full mx-auto shadow-2xl rounded-none ring-0 border-y border-panel-border overflow-hidden bg-background">
+            <WorkspaceLayout>{children}</WorkspaceLayout>
+          </div>
         </section>
 
-        {/* How it works */}
-        <section className="w-full bg-panel border-y border-panel-border py-24">
-          <div className="max-w-5xl mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold mb-4">How it works</h2>
-              <p className="text-muted-foreground text-lg">
-                Fast, secure, and entirely in your browser.
+        {/* How it works (Redesigned) */}
+        <section className="w-full bg-panel/50 border-y border-panel-border py-32 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-20">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
+                How it works
+              </h2>
+              <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
+                File Forge processes your files securely in your browser using
+                WASM. Zero server uploads.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-background border border-panel-border p-6 rounded-2xl">
-                <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6">
-                  <Zap size={24} />
+            <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+              <div className="bg-background border border-panel-border p-8 rounded-[2rem] shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[100px] -z-10 transition-transform group-hover:scale-110"></div>
+                <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-8 shadow-inner">
+                  <Zap size={28} />
                 </div>
-                <h3 className="text-xl font-bold mb-3">1. Upload File</h3>
-                <p className="text-muted-foreground">
-                  Drag and drop your files into the editor. We support all major
-                  formats.
+                <h3 className="text-2xl font-bold mb-4 tracking-tight">
+                  1. Upload File
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Drag and drop your files into the editor. Your files instantly
+                  load into the browser&apos;s memory.
                 </p>
               </div>
-              <div className="bg-background border border-panel-border p-6 rounded-2xl">
-                <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6">
-                  <Sparkles size={24} />
+              <div className="bg-background border border-panel-border p-8 rounded-[2rem] shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[100px] -z-10 transition-transform group-hover:scale-110"></div>
+                <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-8 shadow-inner">
+                  <Sparkles size={28} />
                 </div>
-                <h3 className="text-xl font-bold mb-3">2. Process & Edit</h3>
-                <p className="text-muted-foreground">
-                  Adjust settings in the right panel and see live previews
-                  instantly.
+                <h3 className="text-2xl font-bold mb-4 tracking-tight">
+                  2. Process & Edit
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Adjust settings in the right panel and see live
+                  hardware-accelerated previews instantly.
                 </p>
               </div>
-              <div className="bg-background border border-panel-border p-6 rounded-2xl">
-                <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6">
-                  <Shield size={24} />
+              <div className="bg-background border border-panel-border p-8 rounded-[2rem] shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[100px] -z-10 transition-transform group-hover:scale-110"></div>
+                <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-8 shadow-inner">
+                  <Shield size={28} />
                 </div>
-                <h3 className="text-xl font-bold mb-3">3. Export Securely</h3>
-                <p className="text-muted-foreground">
-                  Download the finished file. Everything happens locally so your
-                  data stays private.
+                <h3 className="text-2xl font-bold mb-4 tracking-tight">
+                  3. Export Securely
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Download the finished file directly to your device. Total
+                  privacy guaranteed.
                 </p>
               </div>
             </div>
