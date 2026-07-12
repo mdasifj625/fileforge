@@ -8,6 +8,8 @@ import { db } from "@/db";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { PDFWorkspaceArea } from "./PDFWorkspaceArea";
 import { VideoWorkspaceArea } from "./VideoWorkspaceArea";
+import { AudioWorkspaceArea } from "./AudioWorkspaceArea";
+import { UtilityWorkspaceArea } from "./UtilityWorkspaceArea";
 
 export function CanvasArea() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -892,6 +894,8 @@ export function CanvasArea() {
         <PDFWorkspaceArea />
       )}
       {activeTool?.startsWith("video-") && <VideoWorkspaceArea />}
+      {activeTool?.startsWith("audio-") && <AudioWorkspaceArea />}
+      {activeTool?.startsWith("utility-") && <UtilityWorkspaceArea />}
     </div>
   );
 }

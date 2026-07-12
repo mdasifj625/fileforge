@@ -10,6 +10,14 @@ const VALID_TOOLS: Record<string, { title: string; description: string }> = {
     title: "QR Scanner",
     description: "Scan QR codes from images or webcam.",
   },
+  zip: {
+    title: "ZIP Files",
+    description: "Compress multiple files into a ZIP archive.",
+  },
+  unzip: {
+    title: "Unzip Files",
+    description: "Extract files from a ZIP archive.",
+  },
   "barcode-generator": {
     title: "Barcode Generator",
     description: "Generate standard barcodes.",
