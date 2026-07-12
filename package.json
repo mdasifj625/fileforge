@@ -31,6 +31,7 @@
     "mongodb": "^7.5.0",
     "mongoose": "^9.7.4",
     "next": "16.2.10",
+    "onnxruntime-web": "1.21.0",
     "pdf-lib": "^1.17.1",
     "pixi.js": "^8.19.0",
     "react": "19.2.4",
