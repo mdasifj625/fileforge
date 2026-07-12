@@ -400,6 +400,7 @@ export function CanvasArea() {
 
     if (
       (!activeTool?.startsWith("image-") &&
+        !activeTool?.startsWith("ai-") &&
         activeTool !== "select" &&
         activeTool !== "crop") ||
       !activeLayerId ||
@@ -882,7 +883,9 @@ export function CanvasArea() {
         </div>
       )}
 
-      {activeTool?.startsWith("pdf-") && <PDFWorkspaceArea />}
+      {(activeTool?.startsWith("pdf-") || activeTool?.startsWith("ai-")) && (
+        <PDFWorkspaceArea />
+      )}
     </div>
   );
 }

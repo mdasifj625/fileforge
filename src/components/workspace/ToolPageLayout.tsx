@@ -67,7 +67,11 @@ export function ToolPageLayout({
       title: "AI",
       items: [
         { name: "Remove Background", href: "/ai/remove-background" },
+        { name: "Image Upscale", href: "/ai/image-upscale" },
+        { name: "Magic Eraser", href: "/ai/magic-eraser" },
         { name: "Extract Text (OCR)", href: "/ai/ocr" },
+        { name: "Summarize PDF", href: "/ai/summarize-pdf" },
+        { name: "Translate Document", href: "/ai/translate-document" },
       ],
     },
   ];
