@@ -52,7 +52,7 @@ export function WorkspaceLayout({ children }: { children?: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex flex-col md:flex-row h-screen w-screen overflow-hidden bg-background text-foreground">
+    <div className="flex flex-col md:flex-row h-[70vh] min-h-[600px] w-full max-w-[1600px] mx-auto overflow-hidden bg-background text-foreground border border-panel-border md:rounded-2xl shadow-2xl">
       {/* Left Toolbar / Navigation */}
       <div className="order-3 md:order-1 shrink-0 z-20">
         <Toolbar />
