@@ -6,6 +6,7 @@ import { useDropzone } from "react-dropzone";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@/db";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { PDFWorkspaceArea } from "./PDFWorkspaceArea";
 
 export function CanvasArea() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -398,7 +399,9 @@ export function CanvasArea() {
     overlay.removeChildren();
 
     if (
-      (activeTool !== "select" && activeTool !== "crop") ||
+      (!activeTool?.startsWith("image-") &&
+        activeTool !== "select" &&
+        activeTool !== "crop") ||
       !activeLayerId ||
       !spritesRef.current[activeLayerId]
     )
@@ -812,8 +815,6 @@ export function CanvasArea() {
           originalHeight: 0,
         });
       }
-
-      useWorkspaceStore.getState().setActiveTool("select");
     },
     [addLayer],
   );
@@ -880,6 +881,8 @@ export function CanvasArea() {
           </button>
         </div>
       )}
+
+      {activeTool?.startsWith("pdf-") && <PDFWorkspaceArea />}
     </div>
   );
 }
