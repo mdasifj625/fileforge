@@ -21,25 +21,26 @@ export function generateStaticParams() {
   return Object.keys(VALID_TOOLS).map((tool) => ({ tool }));
 }
 
-export default function AudioToolPage({
+export default async function AudioToolPage({
   params,
 }: {
-  params: { tool: string };
+  params: Promise<{ tool: string }>;
 }) {
-  const toolData = VALID_TOOLS[params.tool];
+  const resolvedParams = await params;
+  const toolData = VALID_TOOLS[resolvedParams.tool];
 
   if (!toolData) {
     notFound();
   }
 
   const relatedTools = Object.keys(VALID_TOOLS)
-    .filter((k) => k !== params.tool)
+    .filter((k) => k !== resolvedParams.tool)
     .slice(0, 5)
     .map((k) => ({ title: VALID_TOOLS[k].title, href: `/audio/${k}` }));
 
   return (
     <ToolPageLayout
-      toolId={`audio-${params.tool}`}
+      toolId={`audio-${resolvedParams.tool}`}
       title={toolData.title}
       description={toolData.description}
       category="audio"

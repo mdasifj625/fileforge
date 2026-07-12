@@ -40,25 +40,26 @@ export function generateStaticParams() {
   return Object.keys(VALID_TOOLS).map((tool) => ({ tool }));
 }
 
-export default function ImageToolPage({
+export default async function ImageToolPage({
   params,
 }: {
-  params: { tool: string };
+  params: Promise<{ tool: string }>;
 }) {
-  const toolData = VALID_TOOLS[params.tool];
+  const resolvedParams = await params;
+  const toolData = VALID_TOOLS[resolvedParams.tool];
 
   if (!toolData) {
     notFound();
   }
 
   const relatedTools = Object.keys(VALID_TOOLS)
-    .filter((k) => k !== params.tool)
+    .filter((k) => k !== resolvedParams.tool)
     .slice(0, 5)
     .map((k) => ({ title: VALID_TOOLS[k].title, href: `/image/${k}` }));
 
   return (
     <ToolPageLayout
-      toolId={params.tool}
+      toolId={resolvedParams.tool}
       title={toolData.title}
       description={toolData.description}
       category="image"

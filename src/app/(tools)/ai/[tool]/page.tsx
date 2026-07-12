@@ -32,21 +32,26 @@ export function generateStaticParams() {
   return Object.keys(VALID_TOOLS).map((tool) => ({ tool }));
 }
 
-export default function AIToolPage({ params }: { params: { tool: string } }) {
-  const toolData = VALID_TOOLS[params.tool];
+export default async function AIToolPage({
+  params,
+}: {
+  params: Promise<{ tool: string }>;
+}) {
+  const resolvedParams = await params;
+  const toolData = VALID_TOOLS[resolvedParams.tool];
 
   if (!toolData) {
     notFound();
   }
 
   const relatedTools = Object.keys(VALID_TOOLS)
-    .filter((k) => k !== params.tool)
+    .filter((k) => k !== resolvedParams.tool)
     .slice(0, 5)
     .map((k) => ({ title: VALID_TOOLS[k].title, href: `/ai/${k}` }));
 
   return (
     <ToolPageLayout
-      toolId={`ai-${params.tool}`}
+      toolId={`ai-${resolvedParams.tool}`}
       title={toolData.title}
       description={toolData.description}
       category="ai"
