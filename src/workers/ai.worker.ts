@@ -7,6 +7,7 @@ import {
   PreTrainedModel,
   Processor,
 } from "@huggingface/transformers";
+import { createWorker } from "tesseract.js";
 
 // Disable local models, since we will download from huggingface hub
 env.allowLocalModels = false;
@@ -111,6 +112,27 @@ class RMBGProcessor {
           "image/png", // MUST be png to support transparency
         );
       });
+    } finally {
+      URL.revokeObjectURL(imageURL);
+    }
+  }
+
+  async extractText(
+    imageBlob: Blob,
+    onProgress?: (progress: number) => void,
+  ): Promise<string> {
+    const imageURL = URL.createObjectURL(imageBlob);
+    try {
+      const worker = await createWorker("eng", 1, {
+        logger: (m) => {
+          if (m.status === "recognizing text" && onProgress) {
+            onProgress(m.progress * 100);
+          }
+        },
+      });
+      const ret = await worker.recognize(imageURL);
+      await worker.terminate();
+      return ret.data.text;
     } finally {
       URL.revokeObjectURL(imageURL);
     }

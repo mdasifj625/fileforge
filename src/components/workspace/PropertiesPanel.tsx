@@ -18,6 +18,7 @@ export function PropertiesPanel() {
 
   const [isFiltering, setIsFiltering] = useState(false);
   const [aiProgress, setAiProgress] = useState<number | null>(null);
+  const [ocrText, setOcrText] = useState<string | null>(null);
 
   const activeLayer = layers.find((l) => l.id === activeLayerId);
 
@@ -128,6 +129,41 @@ export function PropertiesPanel() {
       setAiProgress(null);
     }
   }, [activeLayer, isFiltering, replaceLayer]);
+
+  const applyOCR = useCallback(async () => {
+    if (!activeLayer || isFiltering) return;
+
+    setIsFiltering(true);
+    setAiProgress(0);
+    setOcrText(null);
+    try {
+      const fileRecord = await db.files.get(activeLayer.fileId);
+      if (!fileRecord) throw new Error("File not found in DB");
+
+      const worker = new Worker(
+        new URL("@/workers/ai.worker", import.meta.url),
+        { type: "module" },
+      );
+      const api = Comlink.wrap<AIProcessor>(worker);
+
+      const text = await api.extractText(
+        fileRecord.blob,
+        Comlink.proxy((progress: number) => {
+          setAiProgress(progress);
+        }),
+      );
+
+      setOcrText(text);
+
+      worker.terminate();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to extract text.");
+    } finally {
+      setIsFiltering(false);
+      setAiProgress(null);
+    }
+  }, [activeLayer, isFiltering]);
 
   const restoreOriginal = () => {
     if (!activeLayer || !activeLayer.originalFileId) return;
@@ -552,6 +588,58 @@ export function PropertiesPanel() {
                     background.
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* OCR */}
+            {activeTool === "ai-ocr" && (
+              <div>
+                <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">
+                  <span>Extract Text (OCR)</span>
+                  {isFiltering && (
+                    <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <button
+                    onClick={applyOCR}
+                    disabled={isFiltering}
+                    className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
+                  >
+                    {isFiltering
+                      ? aiProgress !== null
+                        ? `Extracting... ${Math.round(aiProgress)}%`
+                        : "Extracting Text..."
+                      : "Extract Text"}
+                  </button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Uses local Tesseract.js model to extract text.
+                  </p>
+                </div>
+
+                {ocrText && (
+                  <div className="mt-6 flex flex-col gap-2 animate-in fade-in zoom-in duration-300">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                        Extracted Text
+                      </label>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(ocrText);
+                          alert("Copied to clipboard!");
+                        }}
+                        className="text-xs text-primary font-bold hover:underline"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                    <textarea
+                      readOnly
+                      value={ocrText}
+                      className="w-full h-40 bg-panel border border-panel-border rounded-lg p-3 text-xs text-foreground focus:outline-none focus:border-primary transition-all font-mono resize-none"
+                    />
+                  </div>
+                )}
               </div>
             )}
 
