@@ -833,6 +833,8 @@ export function CanvasArea() {
       "application/pdf": [],
       "video/*": [],
       "audio/*": [],
+      "application/zip": [".zip"],
+      "application/x-zip-compressed": [".zip"],
     },
   });
 
