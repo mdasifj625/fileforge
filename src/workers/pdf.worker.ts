@@ -1,5 +1,5 @@
 import * as Comlink from "comlink";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, rgb, degrees } from "pdf-lib";
 
 const pdfProcessor = {
   async ping() {
@@ -85,6 +85,41 @@ const pdfProcessor = {
         width: image.width,
         height: image.height,
       });
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    return new Blob([pdfBytes as unknown as BlobPart], {
+      type: "application/pdf",
+    });
+  },
+
+  async watermarkPdf(
+    fileBlob: Blob,
+    watermarkText: string,
+    pageOrder?: number[],
+  ): Promise<Blob> {
+    console.log("Worker: Watermarking PDF...");
+    const arrayBuffer = await fileBlob.arrayBuffer();
+    const pdfDoc = await PDFDocument.load(arrayBuffer);
+
+    const pages = pdfDoc.getPages();
+    const pageIndices = pageOrder
+      ? pageOrder.map((num) => num - 1)
+      : pdfDoc.getPageIndices();
+
+    for (const index of pageIndices) {
+      if (index >= 0 && index < pages.length) {
+        const page = pages[index];
+        const { width, height } = page.getSize();
+        page.drawText(watermarkText, {
+          x: width / 4,
+          y: height / 2,
+          size: 40,
+          color: rgb(0.7, 0.7, 0.7),
+          opacity: 0.5,
+          rotate: degrees(-45),
+        });
+      }
     }
 
     const pdfBytes = await pdfDoc.save();

@@ -11,6 +11,10 @@ const VALID_TOOLS: Record<string, { title: string; description: string }> = {
     description:
       "Separate one page or a whole set for easy conversion into independent PDF files.",
   },
+  watermark: {
+    title: "Watermark PDF",
+    description: "Stamp an image or text over your PDF in seconds.",
+  },
   compress: {
     title: "Compress PDF",
     description: "Reduce file size while optimizing for maximal PDF quality.",

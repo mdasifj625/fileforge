@@ -96,6 +96,18 @@ export function PDFWorkspaceArea() {
             const imageBlobs = pdfLayers.map((layer) => blobs[layer.fileId]);
             finalBlob = await api.imagesToPdf(imageBlobs);
             filename = `images-to-pdf-forge-${Date.now()}.pdf`;
+          } else if (activeTool === "pdf-watermark") {
+            const layer = pdfLayers[0];
+            const text =
+              layer.watermarkText ||
+              prompt("Enter Watermark Text:") ||
+              "CONFIDENTIAL";
+            finalBlob = await api.watermarkPdf(
+              blobs[layer.fileId],
+              text,
+              layer.pageOrder,
+            );
+            filename = `watermarked-file-forge-${Date.now()}.pdf`;
           } else {
             worker.terminate();
             setIsMerging(false);

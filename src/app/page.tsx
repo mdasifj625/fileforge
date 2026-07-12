@@ -35,6 +35,7 @@ export default function Home() {
         { name: "Split", href: "/pdf/split" },
         { name: "Images to PDF", href: "/pdf/images-to-pdf" },
         { name: "Extract Pages", href: "/pdf/extract-pages" },
+        { name: "Watermark", href: "/pdf/watermark" },
       ],
     },
     {

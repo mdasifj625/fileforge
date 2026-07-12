@@ -15,6 +15,7 @@ export interface FileLayer {
   originalWidth: number;
   originalHeight: number;
   pageOrder?: number[]; // For reordering pages within a PDF layer
+  watermarkText?: string; // For adding text watermark to a PDF layer
   cropRect?: { x: number; y: number; width: number; height: number };
   cropAspectRatio?: number | "original" | "free" | null;
   opacity?: number;
