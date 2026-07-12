@@ -31,6 +31,13 @@ export function PDFWorkspaceArea() {
           if (fileRecord && fileRecord.type === "application/pdf") {
             newBlobs[layer.fileId] = fileRecord.blob;
             changed = true;
+          } else if (
+            activeTool === "pdf-images-to-pdf" &&
+            fileRecord &&
+            fileRecord.type.startsWith("image/")
+          ) {
+            newBlobs[layer.fileId] = fileRecord.blob;
+            changed = true;
           }
         } else {
           newBlobs[layer.fileId] = blobs[layer.fileId];
@@ -45,7 +52,7 @@ export function PDFWorkspaceArea() {
     return () => {
       mounted = false;
     };
-  }, [layers, blobs]);
+  }, [layers, blobs, activeTool]);
 
   const pdfLayers = layers.filter((l) => blobs[l.fileId]);
 
@@ -85,6 +92,10 @@ export function PDFWorkspaceArea() {
               pdfLayers[0].pageOrder,
             );
             filename = `split-file-forge-${Date.now()}.zip`;
+          } else if (activeTool === "pdf-images-to-pdf") {
+            const imageBlobs = pdfLayers.map((layer) => blobs[layer.fileId]);
+            finalBlob = await api.imagesToPdf(imageBlobs);
+            filename = `images-to-pdf-forge-${Date.now()}.pdf`;
           } else {
             worker.terminate();
             setIsMerging(false);
@@ -128,7 +139,9 @@ export function PDFWorkspaceArea() {
             <p className="text-muted-foreground text-sm">
               {activeTool === "pdf-split"
                 ? "Remove pages you don't want. Click Export to split the remaining pages into separate PDFs."
-                : "Drag to reorder or remove pages before exporting. Click Export when done."}
+                : activeTool === "pdf-images-to-pdf"
+                  ? "Drag to reorder your images. Click Export to combine them into a single PDF."
+                  : "Drag to reorder or remove pages before exporting. Click Export when done."}
             </p>
           </div>
         </div>
@@ -181,8 +194,17 @@ export function PDFWorkspaceArea() {
                 </svg>
               </button>
             </div>
-            <div className="p-4 bg-background/50">
-              <PDFFileViewer blob={blobs[layer.fileId]} layerId={layer.id} />
+            <div className="p-4 bg-background/50 flex justify-center">
+              {blobs[layer.fileId]?.type.startsWith("image/") ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={URL.createObjectURL(blobs[layer.fileId])}
+                  alt={layer.name}
+                  className="max-w-full max-h-[600px] object-contain rounded-md shadow-sm border border-panel-border"
+                />
+              ) : (
+                <PDFFileViewer blob={blobs[layer.fileId]} layerId={layer.id} />
+              )}
             </div>
           </div>
         ))}

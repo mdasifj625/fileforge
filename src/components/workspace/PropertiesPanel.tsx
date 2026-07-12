@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { db } from "@/db";
 import * as Comlink from "comlink";
 import { FilterType, ImageProcessor } from "@/workers/image.worker";
+import type { AIProcessor } from "@/workers/ai.worker";
 
 export function PropertiesPanel() {
   const {
@@ -16,6 +17,7 @@ export function PropertiesPanel() {
   } = useWorkspaceStore();
 
   const [isFiltering, setIsFiltering] = useState(false);
+  const [aiProgress, setAiProgress] = useState<number | null>(null);
 
   const activeLayer = layers.find((l) => l.id === activeLayerId);
 
@@ -27,35 +29,89 @@ export function PropertiesPanel() {
     }
   };
 
-  const applyFilter = async (filterType: FilterType) => {
+  const applyFilter = useCallback(
+    async (filterType: FilterType) => {
+      if (!activeLayer || isFiltering) return;
+
+      setIsFiltering(true);
+      try {
+        const fileRecord = await db.files.get(activeLayer.fileId);
+        if (!fileRecord) throw new Error("File not found in DB");
+
+        const worker = new Worker(
+          new URL("@/workers/image.worker", import.meta.url),
+          { type: "module" },
+        );
+        const api = Comlink.wrap<ImageProcessor>(worker);
+
+        const newBlob = await api.processImage(fileRecord.blob, filterType);
+
+        // Save new blob
+        const newFileId = crypto.randomUUID();
+        await db.files.put({
+          id: newFileId,
+          blob: newBlob,
+          name: `${filterType}-${fileRecord.name}`,
+          type: fileRecord.type,
+          size: newBlob.size,
+
+          createdAt: Date.now(),
+        });
+
+        // Replace layer to force Canvas to re-init texture
+        const newLayerId = crypto.randomUUID();
+        replaceLayer(activeLayer.id, {
+          ...activeLayer,
+          id: newLayerId,
+          fileId: newFileId,
+        });
+
+        worker.terminate();
+      } catch (e) {
+        console.error(e);
+        alert("Failed to apply filter.");
+      } finally {
+        setIsFiltering(false);
+      }
+    },
+    [activeLayer, isFiltering, replaceLayer],
+  );
+
+  const applyAIBackgroundRemoval = useCallback(async () => {
     if (!activeLayer || isFiltering) return;
 
     setIsFiltering(true);
+    setAiProgress(0);
     try {
       const fileRecord = await db.files.get(activeLayer.fileId);
       if (!fileRecord) throw new Error("File not found in DB");
 
       const worker = new Worker(
-        new URL("@/workers/image.worker", import.meta.url),
+        new URL("@/workers/ai.worker", import.meta.url),
         { type: "module" },
       );
-      const api = Comlink.wrap<ImageProcessor>(worker);
+      const api = Comlink.wrap<AIProcessor>(worker);
 
-      const newBlob = await api.processImage(fileRecord.blob, filterType);
+      await api.loadModel(
+        Comlink.proxy((progress: number) => {
+          setAiProgress(progress);
+        }),
+      );
+
+      const newBlob = await api.removeBackground(fileRecord.blob);
 
       // Save new blob
       const newFileId = crypto.randomUUID();
       await db.files.put({
         id: newFileId,
         blob: newBlob,
-        name: `${filterType}-${fileRecord.name}`,
-        type: fileRecord.type,
+        name: `nobg-${fileRecord.name}`,
+        type: "image/png",
         size: newBlob.size,
-
         createdAt: Date.now(),
       });
 
-      // Replace layer to force Canvas to re-init texture
+      // Replace layer
       const newLayerId = crypto.randomUUID();
       replaceLayer(activeLayer.id, {
         ...activeLayer,
@@ -66,11 +122,12 @@ export function PropertiesPanel() {
       worker.terminate();
     } catch (e) {
       console.error(e);
-      alert("Failed to apply filter.");
+      alert("Failed to remove background.");
     } finally {
       setIsFiltering(false);
+      setAiProgress(null);
     }
-  };
+  }, [activeLayer, isFiltering, replaceLayer]);
 
   const restoreOriginal = () => {
     if (!activeLayer || !activeLayer.originalFileId) return;
@@ -470,7 +527,7 @@ export function PropertiesPanel() {
             )}
 
             {/* Remove Background */}
-            {activeTool === "remove-background" && (
+            {activeTool === "ai-remove-background" && (
               <div>
                 <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">
                   <span>Background</span>
@@ -480,15 +537,15 @@ export function PropertiesPanel() {
                 </h3>
                 <div className="grid grid-cols-1 gap-4">
                   <button
-                    onClick={() =>
-                      alert(
-                        "Background removal is an advanced feature coming soon!",
-                      )
-                    }
+                    onClick={applyAIBackgroundRemoval}
                     disabled={isFiltering}
                     className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
                   >
-                    Remove Background (AI)
+                    {isFiltering
+                      ? aiProgress !== null && aiProgress < 100
+                        ? `Loading Model... ${Math.round(aiProgress)}%`
+                        : "Removing Background..."
+                      : "Remove Background (AI)"}
                   </button>
                   <p className="text-xs text-muted-foreground text-center">
                     Uses local AI models to segment and remove the image

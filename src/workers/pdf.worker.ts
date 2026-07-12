@@ -31,8 +31,9 @@ const pdfProcessor = {
     }
 
     const mergedPdfBytes = await mergedPdf.save();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new Blob([mergedPdfBytes as any], { type: "application/pdf" });
+    return new Blob([mergedPdfBytes as unknown as BlobPart], {
+      type: "application/pdf",
+    });
   },
 
   async splitPdf(fileBlob: Blob, pageOrder?: number[]): Promise<Blob> {
@@ -59,6 +60,37 @@ const pdfProcessor = {
 
     const zipBlob = await zip.generateAsync({ type: "blob" });
     return zipBlob;
+  },
+
+  async imagesToPdf(imageBlobs: Blob[]): Promise<Blob> {
+    console.log("Worker: Converting Images to PDF...");
+    const pdfDoc = await PDFDocument.create();
+
+    for (const blob of imageBlobs) {
+      const arrayBuffer = await blob.arrayBuffer();
+      let image;
+
+      // Basic check for jpeg/png based on type or magic bytes. pdf-lib supports JPG and PNG.
+      if (blob.type === "image/jpeg" || blob.type === "image/jpg") {
+        image = await pdfDoc.embedJpg(arrayBuffer);
+      } else {
+        // Assume PNG for others, might fail if not actually PNG (e.g. webp)
+        image = await pdfDoc.embedPng(arrayBuffer);
+      }
+
+      const page = pdfDoc.addPage([image.width, image.height]);
+      page.drawImage(image, {
+        x: 0,
+        y: 0,
+        width: image.width,
+        height: image.height,
+      });
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    return new Blob([pdfBytes as unknown as BlobPart], {
+      type: "application/pdf",
+    });
   },
 };
 
