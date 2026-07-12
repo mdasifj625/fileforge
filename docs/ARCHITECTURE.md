@@ -61,7 +61,7 @@ This document provides a high-level overview of the systems and architecture dri
 
 ## 8. Document & PDF Processing
 
-- **PDF Generation & Manipulation**: Utilizes `pdf-lib` via a dedicated `pdf.worker.ts` to merge, split, and construct PDF files from raw images.
+- **PDF Generation & Manipulation**: Utilizes `pdf-lib` via a dedicated `pdf.worker.ts` to merge, split, watermark, and construct PDF files from raw images.
 - **Viewer Component**: Uses `react-pdf` to render a fully native React component thumbnail grid, allowing drag-and-drop array reordering for multi-page documents seamlessly within the workspace layout.
 
 ## 9. Media Heavyweight (Video & Audio)
@@ -80,3 +80,9 @@ This document provides a high-level overview of the systems and architecture dri
 
 - **Archive Tools**: Natively packs and extracts `.zip` archives into the browser's IndexedDB using `jszip`, bypassing OS file explorers entirely.
 - **Cryptographic & Encoders**: Securely generates UUIDs via the native `crypto.randomUUID()` Web Crypto API and processes gigabyte-scale files into Base64 using chunked `ArrayBuffer` iterators to prevent JavaScript engine call stack limitations.
+
+## 12. Backend Architecture (Phase 6)
+
+- **Database Engine**: Powered by MongoDB (Mongoose) with a globally cached connection system in `src/lib/mongodb.ts` for optimized serverless execution.
+- **Data Models**: Fully typed and strictly schema-enforced models for `User`, `Subscription`, and `Workspace` configs.
+- **Authentication**: Built with `@supabase/auth-helpers-nextjs` to provide seamless, scalable JWT-based email/password authentication via `src/lib/supabase.ts`, effectively bridging standard MongoDB data layers with secure external Supabase identity providers.

@@ -36,4 +36,9 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 - **FFmpeg & Shared Memory**: When using `@ffmpeg/ffmpeg`, the worker utilizes `SharedArrayBuffer`. When casting FFmpeg outputs (which are `Uint8Array<ArrayBufferLike>`) to standard Blobs, ALWAYS explicitly cast to `Uint8Array<ArrayBuffer>` (e.g., `new Blob([data as unknown as Uint8Array<ArrayBuffer>])`) to satisfy strict TypeScript `BlobPart` constraints without using `any`.
 - **AI Models (Transformers.js)**: Transformers.js and the `AutoProcessor` library occasionally reference DOM globals like `document` which do not exist in Web Workers, causing `ReferenceError` crashes. NEVER remove the `import "./polyfill"` line at the top of AI workers, as it safely mocks these globals.
 
+### 5. Backend & Database Architecture
+
+- **Mongoose Caching**: Due to Next.js API hot-reloading and serverless environments, ALWAYS use the globally cached mongoose connection method defined in `src/lib/mongodb.ts`. Never establish rogue inline `mongoose.connect()` calls in random files, as this exhausts connection pools rapidly.
+- **Dual Support (Supabase + MongoDB)**: The identity layer runs on `@supabase/auth-helpers-nextjs`, but all physical user state (Subscriptions, Workspace Configs) is retained inside MongoDB. Do not write direct SQL to Supabase. Always link the Supabase `authProviderId` strictly back to the Mongoose `User` model.
+
 <!-- END:file-forge-agent-rules -->
