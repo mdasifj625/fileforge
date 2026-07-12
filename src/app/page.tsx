@@ -32,22 +32,34 @@ export default function Home() {
             </div>
             File Forge
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 hidden md:flex">
             <Link
-              href="/image/crop"
+              href="/image/compress"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Image Tools
+              Image
             </Link>
             <Link
               href="/pdf/merge"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              PDF Tools
+              PDF
             </Link>
             <Link
-              href="/image/crop"
-              className="px-4 py-2 bg-foreground text-background text-sm font-bold rounded-full hover:bg-foreground/90 transition-all shadow-md"
+              href="/video/compress"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Video
+            </Link>
+            <Link
+              href="/ai/remove-background"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              AI Tools
+            </Link>
+            <Link
+              href="/image/compress"
+              className="ml-4 px-4 py-2 bg-foreground text-background text-sm font-bold rounded-full hover:bg-foreground/90 transition-all shadow-md"
             >
               Launch App
             </Link>
@@ -80,7 +92,7 @@ export default function Home() {
 
         <div className="flex items-center gap-4">
           <Link
-            href="/image/crop"
+            href="/image/compress"
             className="px-8 py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:-translate-y-0.5 transition-all shadow-xl shadow-primary/20 flex items-center gap-2 text-lg"
           >
             Start Editing Free <ArrowRight size={20} />
@@ -93,24 +105,24 @@ export default function Home() {
         <h2 className="text-3xl font-bold text-center mb-12">
           Professional Tools. Zero Friction.
         </h2>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Link
-            href="/image/crop"
+            href="/image/compress"
             className="group block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
           >
-            <div className="bg-panel h-full rounded-xl p-8 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
+            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
               <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center mb-6">
                 <ImageIcon size={24} />
               </div>
-              <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors">
-                Image Editor
+              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+                Image Suite
               </h3>
-              <p className="text-muted-foreground mb-6">
-                Non-destructive cropping, WebGL hardware-accelerated filters,
-                and Photoshop-style blend modes.
+              <p className="text-muted-foreground mb-6 text-sm">
+                Compress, crop, resize, and convert images instantly in your
+                browser.
               </p>
               <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
-                Try Image Tools <ArrowRight size={16} />
+                Explore <ArrowRight size={16} />
               </span>
             </div>
           </Link>
@@ -119,19 +131,71 @@ export default function Home() {
             href="/pdf/merge"
             className="group block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
           >
-            <div className="bg-panel h-full rounded-xl p-8 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
+            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
               <div className="w-12 h-12 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center mb-6">
                 <FileText size={24} />
               </div>
-              <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors">
-                PDF Studio (Beta)
+              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+                PDF Tools
               </h3>
-              <p className="text-muted-foreground mb-6">
-                Merge, split, and manipulate massive PDF documents securely on
-                your local machine using WASM.
+              <p className="text-muted-foreground mb-6 text-sm">
+                Merge, split, and manipulate PDF documents securely locally.
               </p>
               <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
-                Try PDF Tools <ArrowRight size={16} />
+                Explore <ArrowRight size={16} />
+              </span>
+            </div>
+          </Link>
+
+          <Link
+            href="/video/compress"
+            className="group block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
+          >
+            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
+              <div className="w-12 h-12 bg-purple-500/10 text-purple-500 rounded-xl flex items-center justify-center mb-6">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+                Video Tools
+              </h3>
+              <p className="text-muted-foreground mb-6 text-sm">
+                Trim, compress, and convert videos locally with WASM encoding.
+              </p>
+              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+                Explore <ArrowRight size={16} />
+              </span>
+            </div>
+          </Link>
+
+          <Link
+            href="/ai/remove-background"
+            className="group block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
+          >
+            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
+              <div className="w-12 h-12 bg-green-500/10 text-green-500 rounded-xl flex items-center justify-center mb-6">
+                <Zap size={24} />
+              </div>
+              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+                AI Magic
+              </h3>
+              <p className="text-muted-foreground mb-6 text-sm">
+                Remove backgrounds and upscale images using client-side AI
+                models.
+              </p>
+              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+                Explore <ArrowRight size={16} />
               </span>
             </div>
           </Link>
