@@ -368,25 +368,103 @@ export function PropertiesPanel() {
                     </div>
                   </div>
                 </div>
-
                 <hr className="border-panel-border" />
               </>
             )}
 
-            {/* Compress Settings */}
-            {activeTool === "compress" && (
+            {/* Resize Settings */}
+            {activeTool === "resize" && activeLayer.originalWidth > 0 && (
               <div>
                 <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
-                  Compression Settings
+                  Resize Image
+                </h3>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                      Width (px)
+                    </label>
+                    <input
+                      type="number"
+                      value={Math.round(
+                        activeLayer.originalWidth *
+                          Math.abs(activeLayer.scaleX),
+                      )}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        if (!isNaN(val) && val > 0) {
+                          const newScale = val / activeLayer.originalWidth;
+                          // Preserve sign
+                          const sign = activeLayer.scaleX < 0 ? -1 : 1;
+                          updateLayerTransform(activeLayer.id, {
+                            scaleX: newScale * sign,
+                          });
+                        }
+                      }}
+                      className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                      Height (px)
+                    </label>
+                    <input
+                      type="number"
+                      value={Math.round(
+                        activeLayer.originalHeight *
+                          Math.abs(activeLayer.scaleY),
+                      )}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        if (!isNaN(val) && val > 0) {
+                          const newScale = val / activeLayer.originalHeight;
+                          const sign = activeLayer.scaleY < 0 ? -1 : 1;
+                          updateLayerTransform(activeLayer.id, {
+                            scaleY: newScale * sign,
+                          });
+                        }
+                      }}
+                      className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="lockRatio"
+                    className="accent-primary"
+                    checked={true}
+                    onChange={() =>
+                      alert("Aspect ratio locking is coming soon!")
+                    }
+                  />
+                  <label
+                    htmlFor="lockRatio"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Lock aspect ratio
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Compress Settings */}
+            {(activeTool === "compress" || activeTool === "convert") && (
+              <div>
+                <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
+                  {activeTool === "compress" ? "Compression" : "Format"}{" "}
+                  Settings
                 </h3>
                 <p className="text-xs text-muted-foreground mb-4">
                   Adjust format and quality settings before exporting. Click
                   Export in the top bar to apply.
                 </p>
-                {/* Note: The actual format/quality settings are handled by the ExportModal when Export is clicked. */}
                 <div className="bg-primary/10 border border-primary/20 text-primary text-xs p-3 rounded-lg">
                   Click the <strong>Export</strong> button in the top bar to
-                  compress and save this image.
+                  {activeTool === "compress" ? " compress" : " convert"} and
+                  save this image.
                 </div>
               </div>
             )}
