@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { db } from "@/db";
 import * as Comlink from "comlink";
+import NextImage from "next/image";
 import { ImageProcessor } from "@/workers/image.worker";
 
 export function ExportModal() {
@@ -160,14 +161,18 @@ export function ExportModal() {
               </div>
             )}
             {previewUrl && (
-              <img
-                src={previewUrl}
-                alt="Export Preview"
-                className="max-w-full max-h-full object-contain shadow-md rounded-md"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E")`,
-                }}
-              />
+              <div className="relative w-full h-full flex items-center justify-center">
+                <NextImage
+                  src={previewUrl}
+                  alt="Export Preview"
+                  unoptimized
+                  fill
+                  className="object-contain shadow-md rounded-md"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E")`,
+                  }}
+                />
+              </div>
             )}
           </div>
         </div>

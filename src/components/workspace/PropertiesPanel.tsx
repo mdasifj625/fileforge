@@ -4,8 +4,8 @@ import React, { useState, useCallback } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { db } from "@/db";
 import * as Comlink from "comlink";
-import { FilterType, ImageProcessor } from "@/workers/image.worker";
-import type { AIProcessor } from "@/workers/ai.worker";
+import { ImageProcessor } from "@/workers/image.worker";
+import type { AIProcessor } from "@/workers/rmbg.worker";
 
 export function PropertiesPanel() {
   const {
@@ -30,54 +30,6 @@ export function PropertiesPanel() {
     }
   };
 
-  const applyFilter = useCallback(
-    async (filterType: FilterType) => {
-      if (!activeLayer || isFiltering) return;
-
-      setIsFiltering(true);
-      try {
-        const fileRecord = await db.files.get(activeLayer.fileId);
-        if (!fileRecord) throw new Error("File not found in DB");
-
-        const worker = new Worker(
-          new URL("@/workers/image.worker", import.meta.url),
-          { type: "module" },
-        );
-        const api = Comlink.wrap<ImageProcessor>(worker);
-
-        const newBlob = await api.processImage(fileRecord.blob, filterType);
-
-        // Save new blob
-        const newFileId = crypto.randomUUID();
-        await db.files.put({
-          id: newFileId,
-          blob: newBlob,
-          name: `${filterType}-${fileRecord.name}`,
-          type: fileRecord.type,
-          size: newBlob.size,
-
-          createdAt: Date.now(),
-        });
-
-        // Replace layer to force Canvas to re-init texture
-        const newLayerId = crypto.randomUUID();
-        replaceLayer(activeLayer.id, {
-          ...activeLayer,
-          id: newLayerId,
-          fileId: newFileId,
-        });
-
-        worker.terminate();
-      } catch (e) {
-        console.error(e);
-        alert("Failed to apply filter.");
-      } finally {
-        setIsFiltering(false);
-      }
-    },
-    [activeLayer, isFiltering, replaceLayer],
-  );
-
   const applyAIBackgroundRemoval = useCallback(async () => {
     if (!activeLayer || isFiltering) return;
 
@@ -88,7 +40,7 @@ export function PropertiesPanel() {
       if (!fileRecord) throw new Error("File not found in DB");
 
       const worker = new Worker(
-        new URL("@/workers/ai.worker", import.meta.url),
+        new URL("@/workers/rmbg.worker.entry", import.meta.url),
         { type: "module" },
       );
       const api = Comlink.wrap<AIProcessor>(worker);
@@ -141,7 +93,7 @@ export function PropertiesPanel() {
       if (!fileRecord) throw new Error("File not found in DB");
 
       const worker = new Worker(
-        new URL("@/workers/ai.worker", import.meta.url),
+        new URL("@/workers/rmbg.worker.entry", import.meta.url),
         { type: "module" },
       );
       const api = Comlink.wrap<AIProcessor>(worker);
@@ -205,18 +157,6 @@ export function PropertiesPanel() {
       setIsFiltering(false);
     }
   }, [activeLayer, isFiltering, replaceLayer]);
-
-  const restoreOriginal = () => {
-    if (!activeLayer || !activeLayer.originalFileId) return;
-    if (activeLayer.fileId === activeLayer.originalFileId) return; // Already original
-
-    const newLayerId = crypto.randomUUID();
-    replaceLayer(activeLayer.id, {
-      ...activeLayer,
-      id: newLayerId,
-      fileId: activeLayer.originalFileId,
-    });
-  };
 
   return (
     <aside className="w-full h-auto md:h-full md:w-80 shrink-0 bg-background flex flex-col z-20 border-t md:border-t-0 md:border-l border-panel-border transition-all duration-300">
@@ -584,11 +524,16 @@ export function PropertiesPanel() {
               </div>
             )}
 
-            {/* Compress Settings */}
-            {(activeTool === "compress" || activeTool === "convert") && (
+            {/* Compress/Convert Settings */}
+            {(activeTool === "compress" ||
+              activeTool === "convert" ||
+              activeTool === "video-compress" ||
+              activeTool === "video-convert") && (
               <div>
                 <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
-                  {activeTool === "compress" ? "Compression" : "Format"}{" "}
+                  {activeTool === "compress" || activeTool === "video-compress"
+                    ? "Compression"
+                    : "Format"}{" "}
                   Settings
                 </h3>
                 <p className="text-xs text-muted-foreground mb-4">
@@ -597,8 +542,28 @@ export function PropertiesPanel() {
                 </p>
                 <div className="bg-primary/10 border border-primary/20 text-primary text-xs p-3 rounded-lg">
                   Click the <strong>Export</strong> button in the top bar to
-                  {activeTool === "compress" ? " compress" : " convert"} and
-                  save this image.
+                  {activeTool === "compress" || activeTool === "video-compress"
+                    ? " compress"
+                    : " convert"}{" "}
+                  and save this file.
+                </div>
+              </div>
+            )}
+
+            {/* Video Trim Settings */}
+            {activeTool === "video-trim" && (
+              <div>
+                <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
+                  Trim Settings
+                </h3>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Click Export in the top bar to apply trim. Note: For the demo,
+                  trim cuts exactly from 0s to 5s. Full interactive timeline
+                  coming soon!
+                </p>
+                <div className="bg-primary/10 border border-primary/20 text-primary text-xs p-3 rounded-lg">
+                  Click the <strong>Export</strong> button in the top bar to
+                  save this video.
                 </div>
               </div>
             )}

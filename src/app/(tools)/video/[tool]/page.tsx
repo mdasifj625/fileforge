@@ -3,22 +3,16 @@ import { notFound } from "next/navigation";
 
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
   compress: {
-    title: "Compress Video",
-    description: "Reduce video file size without losing quality.",
+    title: "Video Compressor",
+    description: "Compress video files without losing quality using WASM.",
   },
-  trim: { title: "Trim Video", description: "Cut and trim video length." },
+  trim: {
+    title: "Trim Video",
+    description: "Cut and trim video files locally in your browser.",
+  },
   convert: {
-    title: "Convert Video",
-    description: "Convert video to MP4, WebM, and more.",
-  },
-  crop: {
-    title: "Crop Video",
-    description: "Crop video dimensions and aspect ratio.",
-  },
-  resize: { title: "Resize Video", description: "Change video resolution." },
-  gif: {
-    title: "Video to GIF",
-    description: "Convert video clips to animated GIFs.",
+    title: "Video Converter",
+    description: "Convert videos to MP4, WebM, or GIF format instantly.",
   },
 };
 

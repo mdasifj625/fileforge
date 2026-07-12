@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "@/db";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { PDFWorkspaceArea } from "./PDFWorkspaceArea";
+import { VideoWorkspaceArea } from "./VideoWorkspaceArea";
 
 export function CanvasArea() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -17,6 +18,7 @@ export function CanvasArea() {
   const transformOverlayRef = useRef<PIXI.Container>(null);
   const gridRef = useRef<PIXI.Graphics>(null);
   const [spriteUpdateTick, setSpriteUpdateTick] = useState(0);
+  const [isPixiReady, setIsPixiReady] = useState(false);
 
   const addLayer = useWorkspaceStore((state) => state.addLayer);
   const layers = useWorkspaceStore((state) => state.layers);
@@ -49,7 +51,7 @@ export function CanvasArea() {
         app.renderer.render(app.stage); // Render again to restore UI
       }, "image/png");
     }
-  }, [exportTrigger]);
+  }, [exportTrigger, activeTool]);
 
   // PIXI Initialization
   useEffect(() => {
@@ -90,6 +92,7 @@ export function CanvasArea() {
 
       app.stage.sortableChildren = true;
       appRef.current = app;
+      setIsPixiReady(true);
     };
 
     initPixi();
@@ -106,7 +109,7 @@ export function CanvasArea() {
   useEffect(() => {
     const renderLayers = async () => {
       const app = appRef.current;
-      if (!app) return;
+      if (!app || !isPixiReady) return;
 
       // Clean up deleted layers
       const currentLayerIds = new Set(layers.map((l) => l.id));
@@ -388,7 +391,7 @@ export function CanvasArea() {
     };
 
     renderLayers();
-  }, [layers]); // Deliberately removed activeLayerId so it doesn't re-render sprites just on selection change
+  }, [layers, isPixiReady]); // Re-render when layers change or Pixi becomes ready
 
   // Draw and Manage the Transform Overlay for the Active Layer
   useEffect(() => {
@@ -883,9 +886,12 @@ export function CanvasArea() {
         </div>
       )}
 
-      {(activeTool?.startsWith("pdf-") || activeTool?.startsWith("ai-")) && (
+      {(activeTool?.startsWith("pdf-") ||
+        activeTool?.startsWith("ai-summarize-pdf") ||
+        activeTool?.startsWith("ai-translate-document")) && (
         <PDFWorkspaceArea />
       )}
+      {activeTool?.startsWith("video-") && <VideoWorkspaceArea />}
     </div>
   );
 }

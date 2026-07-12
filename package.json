@@ -10,6 +10,8 @@
     "prepare": "node scripts/prepare.mjs"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@hello-pangea/dnd": "^18.0.1",
     "@huggingface/transformers": "^4.2.0",
     "@react-pdf-viewer/core": "^3.12.0",
