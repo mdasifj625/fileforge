@@ -56,22 +56,29 @@ export function ToolPageLayout({
       ],
     },
     {
-      title: "Video",
+      title: "Video & Audio",
       items: [
-        { name: "Compress", href: "/video/compress" },
-        { name: "Trim", href: "/video/trim" },
-        { name: "Convert", href: "/video/convert" },
+        { name: "Trim Video", href: "/video/trim" },
+        { name: "Convert Video", href: "/video/convert" },
+        { name: "Trim Audio", href: "/audio/trim" },
+        { name: "Merge Audio", href: "/audio/merge" },
+        { name: "Convert Audio", href: "/audio/convert" },
       ],
     },
     {
       title: "AI",
       items: [
         { name: "Remove Background", href: "/ai/remove-background" },
-        { name: "Image Upscale", href: "/ai/image-upscale" },
-        { name: "Magic Eraser", href: "/ai/magic-eraser" },
         { name: "Extract Text (OCR)", href: "/ai/ocr" },
-        { name: "Summarize PDF", href: "/ai/summarize-pdf" },
-        { name: "Translate Document", href: "/ai/translate-document" },
+      ],
+    },
+    {
+      title: "Utility",
+      items: [
+        { name: "ZIP Files", href: "/utility/zip" },
+        { name: "Unzip Files", href: "/utility/unzip" },
+        { name: "Base64 Encoder", href: "/utility/base64" },
+        { name: "UUID Generator", href: "/utility/uuid" },
       ],
     },
   ];
