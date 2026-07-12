@@ -165,6 +165,47 @@ export function PropertiesPanel() {
     }
   }, [activeLayer, isFiltering]);
 
+  const applySmartCrop = useCallback(async () => {
+    if (!activeLayer || isFiltering) return;
+    setIsFiltering(true);
+    try {
+      const fileRecord = await db.files.get(activeLayer.fileId);
+      if (!fileRecord) throw new Error("File not found in DB");
+
+      const worker = new Worker(
+        new URL("@/workers/image.worker", import.meta.url),
+        { type: "module" },
+      );
+      const api = Comlink.wrap<ImageProcessor>(worker);
+
+      const newBlob = await api.smartCrop(fileRecord.blob);
+
+      const newFileId = crypto.randomUUID();
+      await db.files.put({
+        id: newFileId,
+        blob: newBlob,
+        name: `smartcrop-${fileRecord.name}`,
+        type: fileRecord.type,
+        size: newBlob.size,
+        createdAt: Date.now(),
+      });
+
+      const newLayerId = crypto.randomUUID();
+      replaceLayer(activeLayer.id, {
+        ...activeLayer,
+        id: newLayerId,
+        fileId: newFileId,
+      });
+
+      worker.terminate();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to apply smart crop.");
+    } finally {
+      setIsFiltering(false);
+    }
+  }, [activeLayer, isFiltering, replaceLayer]);
+
   const restoreOriginal = () => {
     if (!activeLayer || !activeLayer.originalFileId) return;
     if (activeLayer.fileId === activeLayer.originalFileId) return; // Already original
@@ -640,6 +681,31 @@ export function PropertiesPanel() {
                     />
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Smart Crop */}
+            {activeTool === "smart-crop" && (
+              <div>
+                <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">
+                  <span>Smart Crop</span>
+                  {isFiltering && (
+                    <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <button
+                    onClick={applySmartCrop}
+                    disabled={isFiltering}
+                    className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
+                  >
+                    {isFiltering ? "Cropping..." : "Apply Smart Crop"}
+                  </button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Automatically scans the image and trims away empty or
+                    transparent borders.
+                  </p>
+                </div>
               </div>
             )}
 

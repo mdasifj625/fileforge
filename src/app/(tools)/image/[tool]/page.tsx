@@ -12,6 +12,10 @@ const VALID_TOOLS: Record<string, { title: string; description: string }> = {
     title: "Crop Image",
     description: "Crop and extract parts of an image.",
   },
+  "smart-crop": {
+    title: "Smart Crop",
+    description: "Automatically trim transparent or empty borders from images.",
+  },
   rotate: { title: "Rotate Image", description: "Rotate or flip images." },
   convert: {
     title: "Convert Image",

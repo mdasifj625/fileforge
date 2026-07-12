@@ -24,6 +24,7 @@ export default function Home() {
         { name: "Compress", href: "/image/compress" },
         { name: "Resize", href: "/image/resize" },
         { name: "Crop", href: "/image/crop" },
+        { name: "Smart Crop", href: "/image/smart-crop" },
         { name: "Convert", href: "/image/convert" },
       ],
     },
