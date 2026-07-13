@@ -15,7 +15,8 @@ export interface FileLayer {
   originalWidth: number;
   originalHeight: number;
   pageOrder?: number[]; // For reordering pages within a PDF layer
-  watermarkText?: string; // For adding text watermark to a PDF layer
+  watermarkText?: string | null;
+  maskFileId?: string;
   cropRect?: { x: number; y: number; width: number; height: number };
   cropAspectRatio?: number | "original" | "free" | null;
   opacity?: number;
@@ -60,6 +61,10 @@ export interface WorkspaceState {
   setActiveLayerId: (id: string | null) => void;
   triggerExport: () => void;
   setExportImageBlob: (blob: Blob | null) => void;
+  brushMode: "none" | "restore" | "erase";
+  setBrushMode: (mode: "none" | "restore" | "erase") => void;
+  brushSize: number;
+  setBrushSize: (size: number) => void;
   undo: () => void;
   redo: () => void;
 }
@@ -82,7 +87,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   activeLayerId: null,
   exportTrigger: 0,
   exportImageBlob: null,
+  brushMode: "none",
+  brushSize: 20,
 
+  setBrushMode: (mode) => set({ brushMode: mode }),
+  setBrushSize: (size) => set({ brushSize: size }),
   triggerExport: () =>
     set((state) => ({ exportTrigger: state.exportTrigger + 1 })),
   setExportImageBlob: (blob) => set({ exportImageBlob: blob }),

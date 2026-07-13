@@ -6,6 +6,7 @@ import { db } from "@/db";
 import * as Comlink from "comlink";
 import { ImageProcessor } from "@/workers/image.worker";
 import type { AIProcessor } from "@/workers/rmbg.worker";
+import { BackgroundRemovalSettings } from "./tools/BackgroundRemovalSettings";
 
 export function PropertiesPanel() {
   const {
@@ -587,64 +588,11 @@ export function PropertiesPanel() {
 
             {/* Remove Background */}
             {activeTool === "ai-remove-background" && (
-              <div>
-                <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">
-                  <span>Background</span>
-                  {isFiltering && (
-                    <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                  )}
-                </h3>
-                <div className="grid grid-cols-1 gap-4">
-                  <button
-                    onClick={applyAIBackgroundRemoval}
-                    disabled={isFiltering}
-                    className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
-                  >
-                    {isFiltering
-                      ? aiProgress !== null && aiProgress < 100
-                        ? `Loading Model... ${Math.round(aiProgress)}%`
-                        : "Removing Background..."
-                      : "Remove Background (AI)"}
-                  </button>
-                  <p className="text-xs text-muted-foreground text-center">
-                    Uses local AI models to segment and remove the image
-                    background.
-                  </p>
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-panel-border">
-                  <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
-                    Composition
-                  </h3>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                      Background Color
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={activeLayer.backgroundColor || "#000000"}
-                        onChange={(e) =>
-                          updateLayerTransform(activeLayer.id, {
-                            backgroundColor: e.target.value,
-                          })
-                        }
-                        className="w-10 h-10 rounded-lg cursor-pointer border border-panel-border"
-                      />
-                      <button
-                        onClick={() =>
-                          updateLayerTransform(activeLayer.id, {
-                            backgroundColor: null,
-                          })
-                        }
-                        className="flex-1 bg-panel hover:bg-muted text-foreground text-xs py-2 px-4 rounded-lg transition-all border border-panel-border"
-                      >
-                        Transparent
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <BackgroundRemovalSettings
+                isFiltering={isFiltering}
+                aiProgress={aiProgress}
+                onApply={applyAIBackgroundRemoval}
+              />
             )}
 
             {/* OCR */}

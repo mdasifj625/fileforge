@@ -10,16 +10,21 @@ import { PDFWorkspaceArea } from "./PDFWorkspaceArea";
 import { VideoWorkspaceArea } from "./VideoWorkspaceArea";
 import { AudioWorkspaceArea } from "./AudioWorkspaceArea";
 import { UtilityWorkspaceArea } from "./UtilityWorkspaceArea";
+import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
 
 export function CanvasArea() {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application>(null);
+  const brushControllerRef = useRef<MaskBrushController | null>(null);
   const spritesRef = useRef<
     Record<string, PIXI.Sprite & { isBeingManipulated?: boolean }>
   >({});
   const transformOverlayRef = useRef<PIXI.Container>(null);
   const gridRef = useRef<PIXI.Graphics>(null);
   const bgSpritesRef = useRef<Record<string, PIXI.Graphics>>({});
+  const maskSpritesRef = useRef<
+    Record<string, PIXI.Sprite & { renderTexture?: PIXI.RenderTexture }>
+  >({});
   const [spriteUpdateTick, setSpriteUpdateTick] = useState(0);
   const [isPixiReady, setIsPixiReady] = useState(false);
 
@@ -95,6 +100,9 @@ export function CanvasArea() {
 
       app.stage.sortableChildren = true;
       appRef.current = app;
+
+      brushControllerRef.current = new MaskBrushController(app);
+
       setIsPixiReady(true);
     };
 
@@ -129,6 +137,15 @@ export function CanvasArea() {
             bgSprite.destroy();
             delete bgSpritesRef.current[id];
           }
+
+          const maskSprite = maskSpritesRef.current[id];
+          if (maskSprite) {
+            app.stage.removeChild(maskSprite);
+            maskSprite.destroy({ texture: true });
+            if (maskSprite.renderTexture)
+              maskSprite.renderTexture.destroy(true);
+            delete maskSpritesRef.current[id];
+          }
         }
       }
 
@@ -162,6 +179,14 @@ export function CanvasArea() {
             sprite.alpha = layer.opacity ?? 1;
             sprite.blendMode = (layer.blendMode ||
               "normal") as PIXI.BLEND_MODES;
+
+            if (maskSpritesRef.current[layer.id]) {
+              const maskS = maskSpritesRef.current[layer.id];
+              maskS.x = sprite.x;
+              maskS.y = sprite.y;
+              maskS.scale.set(sprite.scale.x, sprite.scale.y);
+              maskS.rotation = sprite.rotation;
+            }
 
             // Apply non-destructive crop via texture frame
             if (layer.cropRect && layer.originalWidth > 0) {
@@ -376,10 +401,14 @@ export function CanvasArea() {
                   y: sprite.y,
                 });
               }
-              // Immediately sync background
+              // Immediately sync background and mask
               if (bgSpritesRef.current[layer.id]) {
                 bgSpritesRef.current[layer.id].x = sprite.x;
                 bgSpritesRef.current[layer.id].y = sprite.y;
+              }
+              if (maskSpritesRef.current[layer.id]) {
+                maskSpritesRef.current[layer.id].x = sprite.x;
+                maskSpritesRef.current[layer.id].y = sprite.y;
               }
             }
           };
@@ -458,11 +487,92 @@ export function CanvasArea() {
                   }
                 }
               }
+              if (maskSpritesRef.current[layer.id]) {
+                const maskS = maskSpritesRef.current[layer.id];
+                maskS.x = sprite.x;
+                maskS.y = sprite.y;
+                maskS.scale.set(sprite.scale.x, sprite.scale.y);
+                if (store.activeTool === "crop") {
+                  maskS.texture = new PIXI.Texture({
+                    source: maskS.texture.source,
+                    frame: sprite.texture.frame.clone(),
+                  });
+                }
+              }
             }
           });
 
           app.stage.addChild(sprite);
           spritesRef.current[layer.id] = sprite;
+
+          if (layer.maskFileId && !maskSpritesRef.current[layer.id]) {
+            const maskData = await db.files.get(layer.maskFileId);
+            if (maskData) {
+              const maskBitmap = await window.createImageBitmap(maskData.blob);
+              const baseMaskTexture = PIXI.Texture.from(maskBitmap);
+
+              const renderTexture = PIXI.RenderTexture.create({
+                width: layer.originalWidth,
+                height: layer.originalHeight,
+              });
+
+              const tempSprite = new PIXI.Sprite(baseMaskTexture);
+              app.renderer.render({
+                container: tempSprite,
+                target: renderTexture,
+              });
+              tempSprite.destroy();
+
+              let finalTexture: PIXI.Texture = renderTexture;
+              if (layer.cropRect) {
+                const cx = Math.max(0, layer.cropRect.x);
+                const cy = Math.max(0, layer.cropRect.y);
+                const cw = Math.min(
+                  layer.originalWidth - cx,
+                  layer.cropRect.width,
+                );
+                const ch = Math.min(
+                  layer.originalHeight - cy,
+                  layer.cropRect.height,
+                );
+                if (cw > 0 && ch > 0) {
+                  finalTexture = new PIXI.Texture({
+                    source: renderTexture.source,
+                    frame: new PIXI.Rectangle(cx, cy, cw, ch),
+                  });
+                }
+              } else {
+                finalTexture = new PIXI.Texture({
+                  source: renderTexture.source,
+                  frame: new PIXI.Rectangle(
+                    0,
+                    0,
+                    layer.originalWidth,
+                    layer.originalHeight,
+                  ),
+                });
+              }
+
+              const maskSprite = new PIXI.Sprite(
+                finalTexture,
+              ) as PIXI.Sprite & { renderTexture?: PIXI.RenderTexture };
+              maskSprite.renderTexture = renderTexture;
+              maskSprite.anchor.set(0.5);
+              maskSprite.x = sprite.x;
+              maskSprite.y = sprite.y;
+              maskSprite.scale.set(sprite.scale.x, sprite.scale.y);
+              maskSprite.rotation = sprite.rotation;
+
+              app.stage.addChild(maskSprite);
+              maskSpritesRef.current[layer.id] = maskSprite;
+              sprite.mask = maskSprite;
+
+              if (activeTool === "ai-remove-background") {
+                brushControllerRef.current?.setup(sprite, renderTexture);
+              }
+            }
+          }
+
           setSpriteUpdateTick((t) => t + 1); // Trigger overlay update
 
           if (layer.x === 0 && layer.y === 0) {
@@ -491,11 +601,28 @@ export function CanvasArea() {
     };
 
     renderLayers();
-  }, [layers, isPixiReady]); // Re-render when layers change or Pixi becomes ready
+  }, [layers, isPixiReady, activeTool]); // Re-render when layers change or Pixi becomes ready
 
   // Draw and Manage the Transform Overlay for the Active Layer
   useEffect(() => {
     const app = appRef.current;
+
+    // Also attach mask brush controller if tool changed and we have a mask
+    if (activeTool === "ai-remove-background" && activeLayerId) {
+      const sprite = spritesRef.current[activeLayerId];
+      const maskS = maskSpritesRef.current[activeLayerId];
+      if (
+        sprite &&
+        maskS &&
+        maskS.renderTexture &&
+        brushControllerRef.current
+      ) {
+        brushControllerRef.current.setup(sprite, maskS.renderTexture);
+      }
+    } else {
+      brushControllerRef.current?.cleanup();
+    }
+
     const overlay = transformOverlayRef.current;
     if (!app || !overlay) return;
 
@@ -649,6 +776,12 @@ export function CanvasArea() {
             bg.x = activeSprite.x;
             bg.y = activeSprite.y;
             bg.scale.set(activeSprite.scale.x, activeSprite.scale.y);
+          }
+          if (maskSpritesRef.current[activeLayerId]) {
+            const maskS = maskSpritesRef.current[activeLayerId];
+            maskS.x = activeSprite.x;
+            maskS.y = activeSprite.y;
+            maskS.scale.set(activeSprite.scale.x, activeSprite.scale.y);
           }
         }
       };
@@ -830,6 +963,19 @@ export function CanvasArea() {
                 );
                 bg.endFill();
               }
+            }
+          }
+
+          if (maskSpritesRef.current[activeLayerId]) {
+            const maskS = maskSpritesRef.current[activeLayerId];
+            maskS.x = activeSprite.x;
+            maskS.y = activeSprite.y;
+            maskS.scale.set(activeSprite.scale.x, activeSprite.scale.y);
+            if (isCropMode) {
+              maskS.texture = new PIXI.Texture({
+                source: maskS.texture.source,
+                frame: activeSprite.texture.frame.clone(),
+              });
             }
           }
         }
