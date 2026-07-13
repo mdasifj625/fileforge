@@ -7,7 +7,7 @@ File Forge is a local-first, privacy-focused file processing workspace. It allow
 - **100% Local Processing:** Powered by WASM and Web Workers.
 - **Non-Destructive Editing:** A Figma-like canvas where operations act as layers. Features a robust image cropping engine with aspect-ratio locking and mask panning.
 - **Image Processing Filters:** Apply pixel-level filters (Grayscale, Vintage, Sepia, etc.) processed securely via background Web Workers.
-- **AI & Advanced Tools:** Local background removal (RMBG via Transformers.js), Smart Crop, and OCR (Tesseract.js).
+- **AI & Advanced Tools:** Local background removal (BEN2 via Transformers.js pipeline), Smart Crop, and OCR (Tesseract.js).
 - **Media Heavyweight:** Full client-side video and audio processing (Trim, Merge, Convert, Compress) using FFmpeg.wasm with SharedArrayBuffer.
 - **Document Workspaces:** Fast PDF processing, merging, splitting, watermarking, and rendering via `pdf-lib` and `react-pdf`.
 - **Developer Utilities:** In-browser ZIP/Unzip, Base64 encoding/decoding, and UUID generation without API calls.

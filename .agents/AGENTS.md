@@ -35,6 +35,7 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 
 - **FFmpeg & Shared Memory**: When using `@ffmpeg/ffmpeg`, the worker utilizes `SharedArrayBuffer`. When casting FFmpeg outputs (which are `Uint8Array<ArrayBufferLike>`) to standard Blobs, ALWAYS explicitly cast to `Uint8Array<ArrayBuffer>` (e.g., `new Blob([data as unknown as Uint8Array<ArrayBuffer>])`) to satisfy strict TypeScript `BlobPart` constraints without using `any`.
 - **AI Models (Transformers.js)**: Transformers.js and the `AutoProcessor` library occasionally reference DOM globals like `document` which do not exist in Web Workers, causing `ReferenceError` crashes. NEVER remove the `import "./polyfill"` line at the top of AI workers, as it safely mocks these globals.
+- **AI Background Removal**: Always use `onnx-community/BEN2-ONNX` via the standard pipeline over `briaai/RMBG-1.4`. BEN2 natively handles alpha matting and provides superior edge refinement without manual CPU-heavy tensor manipulation.
 
 ### 5. Backend & Database Architecture
 

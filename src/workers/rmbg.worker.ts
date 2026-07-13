@@ -1,30 +1,92 @@
 import * as Comlink from "comlink";
-import { removeBackground } from "@imgly/background-removal";
+import { env, pipeline, RawImage } from "@huggingface/transformers";
 import { createWorker } from "tesseract.js";
 
+// Disable local models, since we will download from huggingface hub
+env.allowLocalModels = false;
+env.useBrowserCache = true;
+if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
+  env.backends.onnx.wasm.numThreads = 1;
+}
+
 class RMBGProcessor {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private segmenter: any = null;
+
+  async loadModel(onProgress?: (progress: number) => void) {
+    if (this.segmenter) return;
+
+    this.segmenter = await pipeline(
+      "image-segmentation",
+      "onnx-community/BEN2-ONNX",
+      {
+        device: "wasm",
+        progress_callback: (data: { status: string; progress?: number }) => {
+          if (
+            data.status === "progress" &&
+            data.progress !== undefined &&
+            onProgress
+          ) {
+            onProgress(Math.round(data.progress));
+          }
+        },
+      },
+    );
+  }
+
   async removeBackground(
     imageBlob: Blob,
     onProgress?: (progress: number) => void,
   ): Promise<Blob> {
-    try {
-      const finalBlob = await removeBackground(imageBlob, {
-        progress: (key: string, current: number, total: number) => {
-          if (onProgress && total > 0) {
-            onProgress(Math.round((current / total) * 100));
-          }
-        },
-      });
-      return finalBlob;
-    } catch (e) {
-      console.error("Failed to remove background:", e);
-      throw e;
-    }
-  }
+    await this.loadModel(onProgress);
+    const imageURL = URL.createObjectURL(imageBlob);
 
-  async loadModel(onProgress?: (progress: number) => void) {
-    // Kept for backward compatibility with UI
-    if (onProgress) onProgress(100);
+    try {
+      // 1. Load image using Transformers.js native RawImage
+      const img = await RawImage.fromURL(imageURL);
+
+      // 2. Run the official BEN2 segmentation pipeline
+      // BEN2 (Background Erase Network) natively handles alpha matting and edge refinement
+      const results = await this.segmenter(img);
+
+      // Extract the output mask RawImage
+      let mask: RawImage;
+      if (Array.isArray(results)) {
+        mask = results[0].mask;
+      } else {
+        mask = results;
+      }
+
+      // 3. Optional: Mathematical Mask Refinement (Noise Floor)
+      for (let i = 0; i < mask.data.length; i++) {
+        if (mask.data[i] < 30) {
+          mask.data[i] = 0; // Crush absolute minimum noise, leaving BEN2's natural alpha matte intact
+        }
+      }
+
+      // 4. Inject the precise mask directly into the original image's alpha channel
+      const transparentImg = img.putAlpha(mask);
+
+      // 5. Render to an OffscreenCanvas
+      const finalCanvas = new OffscreenCanvas(
+        transparentImg.width,
+        transparentImg.height,
+      );
+      const finalCtx = finalCanvas.getContext("2d");
+      if (!finalCtx) throw new Error("Failed to get 2d context for final");
+
+      const imgData = new ImageData(
+        new Uint8ClampedArray(transparentImg.data),
+        transparentImg.width,
+        transparentImg.height,
+      );
+      finalCtx.putImageData(imgData, 0, 0);
+
+      // 6. Export pristine PNG
+      return await finalCanvas.convertToBlob({ type: "image/png" });
+    } finally {
+      URL.revokeObjectURL(imageURL);
+    }
   }
 
   async extractText(
