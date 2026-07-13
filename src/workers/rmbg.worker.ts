@@ -1,6 +1,8 @@
 import * as Comlink from "comlink";
-import { env, pipeline, RawImage } from "@huggingface/transformers";
+import { env, RawImage } from "@huggingface/transformers";
 import { createWorker } from "tesseract.js";
+import { PipelinePlugin } from "./plugins/PipelinePlugin";
+import { Ben2Plugin } from "./plugins/Ben2Plugin";
 
 // Disable local models, since we will download from huggingface hub
 env.allowLocalModels = false;
@@ -10,28 +12,15 @@ if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
 }
 
 class RMBGProcessor {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private segmenter: any = null;
+  private activePlugin: PipelinePlugin;
+
+  constructor() {
+    // We can easily swap this out for Rmbg14Plugin or a future model
+    this.activePlugin = new Ben2Plugin();
+  }
 
   async loadModel(onProgress?: (progress: number) => void) {
-    if (this.segmenter) return;
-
-    this.segmenter = await pipeline(
-      "image-segmentation",
-      "onnx-community/BEN2-ONNX",
-      {
-        device: "wasm",
-        progress_callback: (data: { status: string; progress?: number }) => {
-          if (
-            data.status === "progress" &&
-            data.progress !== undefined &&
-            onProgress
-          ) {
-            onProgress(Math.round(data.progress));
-          }
-        },
-      },
-    );
+    await this.activePlugin.loadModel(onProgress);
   }
 
   async removeBackgroundGetMask(
@@ -43,18 +32,10 @@ class RMBGProcessor {
 
     try {
       const img = await RawImage.fromURL(imageURL);
-      const results = await this.segmenter(img);
-      let mask: RawImage;
-      if (Array.isArray(results)) {
-        mask = results[0].mask;
-      } else {
-        mask = results;
-      }
+      const mask = await this.activePlugin.predict(img);
 
-      for (let i = 0; i < mask.data.length; i++) {
-        if (mask.data[i] < 30) {
-          mask.data[i] = 0;
-        }
+      if (this.activePlugin.postProcess) {
+        this.activePlugin.postProcess(mask);
       }
 
       const maskCanvas = new OffscreenCanvas(mask.width, mask.height);
@@ -89,23 +70,12 @@ class RMBGProcessor {
       // 1. Load image using Transformers.js native RawImage
       const img = await RawImage.fromURL(imageURL);
 
-      // 2. Run the official BEN2 segmentation pipeline
-      // BEN2 (Background Erase Network) natively handles alpha matting and edge refinement
-      const results = await this.segmenter(img);
-
-      // Extract the output mask RawImage
-      let mask: RawImage;
-      if (Array.isArray(results)) {
-        mask = results[0].mask;
-      } else {
-        mask = results;
-      }
+      // 2. Run the official segmentation pipeline via the plugin
+      const mask = await this.activePlugin.predict(img);
 
       // 3. Optional: Mathematical Mask Refinement (Noise Floor)
-      for (let i = 0; i < mask.data.length; i++) {
-        if (mask.data[i] < 30) {
-          mask.data[i] = 0; // Crush absolute minimum noise, leaving BEN2's natural alpha matte intact
-        }
+      if (this.activePlugin.postProcess) {
+        this.activePlugin.postProcess(mask);
       }
 
       // 4. Inject the precise mask directly into the original image's alpha channel
