@@ -14,6 +14,8 @@ export class MaskBrushController {
   }
 
   public setup(sprite: PIXI.Sprite, renderTexture: PIXI.RenderTexture) {
+    this.cleanup(); // Prevent duplicate listeners
+
     this.sprite = sprite;
     this.renderTexture = renderTexture;
 
@@ -57,15 +59,17 @@ export class MaskBrushController {
   };
 
   private draw(e: PIXI.FederatedPointerEvent) {
-    if (!this.renderTexture || !this.sprite) return;
+    if (!this.renderTexture || this.renderTexture.destroyed || !this.sprite)
+      return;
     const store = useWorkspaceStore.getState();
 
     // Calculate local position relative to the unscaled texture
     const localPos = this.sprite.toLocal(e.global);
 
-    // The mask texture might be cropped, so we need to offset by the crop frame
-    const frameX = this.sprite.texture.frame.x;
-    const frameY = this.sprite.texture.frame.y;
+    // Map from center-anchor coordinates to top-left coordinates of the texture frame
+    const frame = this.sprite.texture.frame;
+    const xInRenderTexture = localPos.x + frame.width / 2 + frame.x;
+    const yInRenderTexture = localPos.y + frame.height / 2 + frame.y;
 
     const brushSize = store.brushSize || 20;
     const mode = store.brushMode || "restore"; // "restore" or "erase"
@@ -81,15 +85,19 @@ export class MaskBrushController {
     }
 
     this.brush.drawCircle(
-      localPos.x + frameX,
-      localPos.y + frameY,
+      xInRenderTexture,
+      yInRenderTexture,
       brushSize / Math.abs(this.sprite.scale.x),
     );
     this.brush.endFill();
 
     // Render brush to the render texture
+    // Wrapping in a container ensures the blendMode of the Graphics child is respected by the renderer
+    const tempContainer = new PIXI.Container();
+    tempContainer.addChild(this.brush);
+
     this.app.renderer.render({
-      container: this.brush,
+      container: tempContainer,
       target: this.renderTexture,
       clear: false,
     });
