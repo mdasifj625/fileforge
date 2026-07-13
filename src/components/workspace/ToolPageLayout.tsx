@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { WorkspaceLayout } from "./WorkspaceLayout";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { TOOL_MENUS } from "@/config/tools";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -34,55 +35,6 @@ export function ToolPageLayout({
 }: ToolPageLayoutProps) {
   const setActiveTool = useWorkspaceStore((state) => state.setActiveTool);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const TOOL_MENUS = [
-    {
-      title: "Image",
-      items: [
-        { name: "Compress", href: "/image/compress" },
-        { name: "Resize", href: "/image/resize" },
-        { name: "Crop", href: "/image/crop" },
-        { name: "Smart Crop", href: "/image/smart-crop" },
-        { name: "Convert", href: "/image/convert" },
-      ],
-    },
-    {
-      title: "PDF",
-      items: [
-        { name: "Merge", href: "/pdf/merge" },
-        { name: "Split", href: "/pdf/split" },
-        { name: "Images to PDF", href: "/pdf/images-to-pdf" },
-        { name: "Extract Pages", href: "/pdf/extract-pages" },
-        { name: "Watermark", href: "/pdf/watermark" },
-      ],
-    },
-    {
-      title: "Video & Audio",
-      items: [
-        { name: "Trim Video", href: "/video/trim" },
-        { name: "Convert Video", href: "/video/convert" },
-        { name: "Trim Audio", href: "/audio/trim" },
-        { name: "Merge Audio", href: "/audio/merge" },
-        { name: "Convert Audio", href: "/audio/convert" },
-      ],
-    },
-    {
-      title: "AI",
-      items: [
-        { name: "Remove Background", href: "/ai/remove-background" },
-        { name: "Extract Text (OCR)", href: "/ai/ocr" },
-      ],
-    },
-    {
-      title: "Utility",
-      items: [
-        { name: "ZIP Files", href: "/utility/zip" },
-        { name: "Unzip Files", href: "/utility/unzip" },
-        { name: "Base64 Encoder", href: "/utility/base64" },
-        { name: "UUID Generator", href: "/utility/uuid" },
-      ],
-    },
-  ];
 
   useEffect(() => {
     setActiveTool(toolId);
