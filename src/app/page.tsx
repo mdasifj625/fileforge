@@ -17,6 +17,9 @@ import {
   Music,
   RefreshCw,
   Wrench,
+  UploadCloud,
+  Settings,
+  Download,
   Cpu,
   WifiOff,
   Unlock,
@@ -138,6 +141,50 @@ export default function Home() {
           >
             Start Editing Free <ArrowRight size={20} />
           </Link>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="max-w-7xl mx-auto px-6 py-20 border-t border-panel-border">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold mb-4">How File Forge Works</h2>
+          <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
+            A seamless, zero-upload workflow designed for speed and security.
+          </p>
+        </div>
+        <div className="grid md:grid-cols-3 gap-8 relative">
+          <div className="hidden md:block absolute top-12 left-1/6 right-1/6 h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent -z-10"></div>
+          <div className="flex flex-col items-center text-center gap-4 relative">
+            <div className="w-16 h-16 bg-panel border-4 border-background text-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/10">
+              <UploadCloud size={28} />
+            </div>
+            <h3 className="text-xl font-bold">1. Select Your File</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Drag and drop any image, video, audio, or PDF file directly into
+              your browser. The file is loaded entirely into local memory.
+            </p>
+          </div>
+          <div className="flex flex-col items-center text-center gap-4 relative">
+            <div className="w-16 h-16 bg-panel border-4 border-background text-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/10">
+              <Settings size={28} />
+            </div>
+            <h3 className="text-xl font-bold">2. Process Locally</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Our WebAssembly engine and client-side AI models process your data
+              using your own CPU and GPU. No data is sent over the network.
+            </p>
+          </div>
+          <div className="flex flex-col items-center text-center gap-4 relative">
+            <div className="w-16 h-16 bg-panel border-4 border-background text-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/10">
+              <Download size={28} />
+            </div>
+            <h3 className="text-xl font-bold">3. Instant Export</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Download your converted, compressed, or edited files instantly.
+              Everything is rendered immediately without waiting in a server
+              queue.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -386,68 +433,68 @@ export default function Home() {
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="p-8 bg-panel border border-panel-border rounded-3xl">
+          <div className="p-8 bg-panel border border-panel-border rounded-3xl transition-all hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5">
             <h3 className="text-2xl font-bold mb-4">Designers & Creators</h3>
             <p className="text-muted-foreground mb-6">
               Instantly remove backgrounds, convert formats, and compress assets
               for web deployment. The infinite PixiJS canvas gives you a
               familiar workspace without the bloat of heavy design apps.
             </p>
-            <ul className="space-y-2 text-sm text-foreground/80 font-medium">
-              <li className="flex items-center gap-2">
-                <ArrowRight size={14} className="text-primary" /> Client-side AI
+            <ul className="space-y-3 text-sm text-foreground/80 font-medium">
+              <li className="flex items-center gap-3">
+                <ArrowRight size={16} className="text-primary" /> Client-side AI
                 masking
               </li>
-              <li className="flex items-center gap-2">
-                <ArrowRight size={14} className="text-primary" /> Batch image
+              <li className="flex items-center gap-3">
+                <ArrowRight size={16} className="text-primary" /> Batch image
                 compression
               </li>
-              <li className="flex items-center gap-2">
-                <ArrowRight size={14} className="text-primary" /> WebP & AVIF
+              <li className="flex items-center gap-3">
+                <ArrowRight size={16} className="text-primary" /> WebP & AVIF
                 conversion
               </li>
             </ul>
           </div>
-          <div className="p-8 bg-panel border border-panel-border rounded-3xl">
+          <div className="p-8 bg-panel border border-panel-border rounded-3xl transition-all hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5">
             <h3 className="text-2xl font-bold mb-4">Privacy Professionals</h3>
             <p className="text-muted-foreground mb-6">
               Working with sensitive legal, medical, or financial documents?
               Never upload them to a remote server again. Every single byte is
               processed securely within your browser sandbox.
             </p>
-            <ul className="space-y-2 text-sm text-foreground/80 font-medium">
-              <li className="flex items-center gap-2">
-                <ArrowRight size={14} className="text-primary" /> Merge & split
+            <ul className="space-y-3 text-sm text-foreground/80 font-medium">
+              <li className="flex items-center gap-3">
+                <ArrowRight size={16} className="text-primary" /> Merge & split
                 PDFs locally
               </li>
-              <li className="flex items-center gap-2">
-                <ArrowRight size={14} className="text-primary" /> Redact
+              <li className="flex items-center gap-3">
+                <ArrowRight size={16} className="text-primary" /> Redact
                 sensitive information
               </li>
-              <li className="flex items-center gap-2">
-                <ArrowRight size={14} className="text-primary" />{" "}
+              <li className="flex items-center gap-3">
+                <ArrowRight size={16} className="text-primary" />{" "}
                 Offline-capable operations
               </li>
             </ul>
           </div>
-          <div className="p-8 bg-panel border border-panel-border rounded-3xl">
+          <div className="p-8 bg-panel border border-panel-border rounded-3xl transition-all hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5">
             <h3 className="text-2xl font-bold mb-4">Video Editors</h3>
             <p className="text-muted-foreground mb-6">
               Cut, trim, and compress raw video files quickly before sharing
               them online. File Forge uses ffmpeg.wasm to encode massive files
               right on your GPU, saving you hours of upload time.
             </p>
-            <ul className="space-y-2 text-sm text-foreground/80 font-medium">
-              <li className="flex items-center gap-2">
-                <ArrowRight size={14} className="text-primary" /> WASM
+            <ul className="space-y-3 text-sm text-foreground/80 font-medium">
+              <li className="flex items-center gap-3">
+                <ArrowRight size={16} className="text-primary" /> WASM
                 accelerated encoding
               </li>
-              <li className="flex items-center gap-2">
-                <ArrowRight size={14} className="text-primary" /> MP4 to GIF
+              <li className="flex items-center gap-3">
+                <ArrowRight size={16} className="text-primary" /> MP4 to GIF
                 creation
               </li>
-              <li className="flex items-center gap-2">
-                <ArrowRight size={14} className="text-primary" /> Audio track
+              <li className="flex items-center gap-3">
+                <ArrowRight size={16} className="text-primary" /> Audio track
                 extraction
               </li>
             </ul>
@@ -561,6 +608,25 @@ export default function Home() {
           </div>
         </div>
       </section>
+      {/* CTA Section */}
+      <section className="bg-primary text-primary-foreground py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent"></div>
+        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+          <h2 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">
+            Ready to Drop the Cloud?
+          </h2>
+          <p className="text-xl md:text-2xl mb-10 text-primary-foreground/90 font-medium">
+            Join the revolution of zero-upload, local-first file processing.
+          </p>
+          <Link
+            href="#tools"
+            className="inline-flex items-center gap-3 px-10 py-5 bg-background text-foreground font-bold rounded-2xl hover:bg-background/90 hover:scale-105 transition-all shadow-2xl text-lg"
+          >
+            Start Editing Now <ArrowRight size={24} />
+          </Link>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-panel-border py-12 text-center text-muted-foreground">
         <p className="text-sm">
