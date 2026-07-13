@@ -36,6 +36,7 @@ export interface FileLayer {
     | "saturation"
     | "color"
     | "luminosity";
+  backgroundColor?: string | null;
 }
 
 export interface WorkspaceState {

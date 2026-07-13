@@ -19,6 +19,7 @@ export function CanvasArea() {
   >({});
   const transformOverlayRef = useRef<PIXI.Container>(null);
   const gridRef = useRef<PIXI.Graphics>(null);
+  const bgSpritesRef = useRef<Record<string, PIXI.Graphics>>({});
   const [spriteUpdateTick, setSpriteUpdateTick] = useState(0);
   const [isPixiReady, setIsPixiReady] = useState(false);
 
@@ -121,6 +122,13 @@ export function CanvasArea() {
           app.stage.removeChild(sprite);
           sprite.destroy({ texture: true });
           delete spritesRef.current[id];
+
+          const bgSprite = bgSpritesRef.current[id];
+          if (bgSprite) {
+            app.stage.removeChild(bgSprite);
+            bgSprite.destroy();
+            delete bgSpritesRef.current[id];
+          }
         }
       }
 
@@ -130,7 +138,16 @@ export function CanvasArea() {
         if (spritesRef.current[layer.id]) {
           const sprite = spritesRef.current[layer.id];
           sprite.visible = layer.visible;
-          sprite.zIndex = layers.length - i;
+          sprite.zIndex = (layers.length - i) * 2;
+
+          let bgSprite = bgSpritesRef.current[layer.id];
+          if (!bgSprite) {
+            bgSprite = new PIXI.Graphics();
+            app.stage.addChild(bgSprite);
+            bgSpritesRef.current[layer.id] = bgSprite;
+          }
+          bgSprite.visible = layer.visible;
+          bgSprite.zIndex = (layers.length - i) * 2 - 1;
 
           // Apply transforms from store if not currently being actively dragged/scaled
           // (To prevent jitter, we only force sync if we aren't the ones changing it)
@@ -179,6 +196,27 @@ export function CanvasArea() {
                 ),
               });
             }
+          }
+
+          // Update background rect
+          bgSprite.clear();
+          if (layer.backgroundColor) {
+            const colorNumber = parseInt(
+              layer.backgroundColor.replace("#", "0x"),
+              16,
+            );
+            bgSprite.beginFill(colorNumber);
+            bgSprite.drawRect(
+              -sprite.texture.width / 2,
+              -sprite.texture.height / 2,
+              sprite.texture.width,
+              sprite.texture.height,
+            );
+            bgSprite.endFill();
+            bgSprite.x = sprite.x;
+            bgSprite.y = sprite.y;
+            bgSprite.scale.set(sprite.scale.x, sprite.scale.y);
+            bgSprite.rotation = sprite.rotation;
           }
 
           continue;
@@ -251,9 +289,39 @@ export function CanvasArea() {
 
           sprite.scale.set(layer.scaleX !== 1 ? layer.scaleX : defaultScale);
 
-          sprite.zIndex = layers.length - i;
+          sprite.zIndex = (layers.length - i) * 2;
           sprite.eventMode = "static";
           sprite.cursor = "pointer";
+
+          let bgSprite = bgSpritesRef.current[layer.id];
+          if (!bgSprite) {
+            bgSprite = new PIXI.Graphics();
+            app.stage.addChild(bgSprite);
+            bgSpritesRef.current[layer.id] = bgSprite;
+          }
+          bgSprite.visible = layer.visible;
+          bgSprite.zIndex = (layers.length - i) * 2 - 1;
+
+          // Initial bg rect setup
+          bgSprite.clear();
+          if (layer.backgroundColor) {
+            const colorNumber = parseInt(
+              layer.backgroundColor.replace("#", "0x"),
+              16,
+            );
+            bgSprite.beginFill(colorNumber);
+            bgSprite.drawRect(
+              -sprite.texture.width / 2,
+              -sprite.texture.height / 2,
+              sprite.texture.width,
+              sprite.texture.height,
+            );
+            bgSprite.endFill();
+            bgSprite.x = sprite.x;
+            bgSprite.y = sprite.y;
+            bgSprite.scale.set(sprite.scale.x, sprite.scale.y);
+            bgSprite.rotation = sprite.rotation;
+          }
 
           let dragging = false;
           let dragData: PIXI.FederatedPointerEvent | null = null;
@@ -308,6 +376,11 @@ export function CanvasArea() {
                   y: sprite.y,
                 });
               }
+              // Immediately sync background
+              if (bgSpritesRef.current[layer.id]) {
+                bgSpritesRef.current[layer.id].x = sprite.x;
+                bgSpritesRef.current[layer.id].y = sprite.y;
+              }
             }
           };
 
@@ -359,6 +432,31 @@ export function CanvasArea() {
               } else {
                 sprite.x = localPos.x + offset.x;
                 sprite.y = localPos.y + offset.y;
+              }
+
+              // Instantly update background graphics while manipulating
+              if (bgSpritesRef.current[layer.id]) {
+                const bg = bgSpritesRef.current[layer.id];
+                bg.x = sprite.x;
+                bg.y = sprite.y;
+                bg.scale.set(sprite.scale.x, sprite.scale.y);
+                if (store.activeTool === "crop") {
+                  bg.clear();
+                  if (layer.backgroundColor) {
+                    const colorNumber = parseInt(
+                      layer.backgroundColor.replace("#", "0x"),
+                      16,
+                    );
+                    bg.beginFill(colorNumber);
+                    bg.drawRect(
+                      -sprite.texture.width / 2,
+                      -sprite.texture.height / 2,
+                      sprite.texture.width,
+                      sprite.texture.height,
+                    );
+                    bg.endFill();
+                  }
+                }
               }
             }
           });
@@ -546,6 +644,12 @@ export function CanvasArea() {
               y: activeSprite.y,
             });
           }
+          if (bgSpritesRef.current[activeLayerId]) {
+            const bg = bgSpritesRef.current[activeLayerId];
+            bg.x = activeSprite.x;
+            bg.y = activeSprite.y;
+            bg.scale.set(activeSprite.scale.x, activeSprite.scale.y);
+          }
         }
       };
 
@@ -700,6 +804,33 @@ export function CanvasArea() {
             if (newScaleY < 0.05) newScaleY = 0.05;
 
             activeSprite.scale.set(newScaleX, newScaleY);
+          }
+
+          if (bgSpritesRef.current[activeLayerId]) {
+            const bg = bgSpritesRef.current[activeLayerId];
+            bg.x = activeSprite.x;
+            bg.y = activeSprite.y;
+            bg.scale.set(activeSprite.scale.x, activeSprite.scale.y);
+            if (isCropMode) {
+              const layer = useWorkspaceStore
+                .getState()
+                .layers.find((l) => l.id === activeLayerId);
+              bg.clear();
+              if (layer?.backgroundColor) {
+                const colorNumber = parseInt(
+                  layer.backgroundColor.replace("#", "0x"),
+                  16,
+                );
+                bg.beginFill(colorNumber);
+                bg.drawRect(
+                  -activeSprite.texture.width / 2,
+                  -activeSprite.texture.height / 2,
+                  activeSprite.texture.width,
+                  activeSprite.texture.height,
+                );
+                bg.endFill();
+              }
+            }
           }
         }
       });

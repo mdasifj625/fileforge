@@ -611,6 +611,39 @@ export function PropertiesPanel() {
                     background.
                   </p>
                 </div>
+
+                <div className="mt-6 pt-6 border-t border-panel-border">
+                  <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
+                    Composition
+                  </h3>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                      Background Color
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={activeLayer.backgroundColor || "#000000"}
+                        onChange={(e) =>
+                          updateLayerTransform(activeLayer.id, {
+                            backgroundColor: e.target.value,
+                          })
+                        }
+                        className="w-10 h-10 rounded-lg cursor-pointer border border-panel-border"
+                      />
+                      <button
+                        onClick={() =>
+                          updateLayerTransform(activeLayer.id, {
+                            backgroundColor: null,
+                          })
+                        }
+                        className="flex-1 bg-panel hover:bg-muted text-foreground text-xs py-2 px-4 rounded-lg transition-all border border-panel-border"
+                      >
+                        Transparent
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
