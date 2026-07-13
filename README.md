@@ -5,6 +5,7 @@ File Forge is a local-first, privacy-focused file processing workspace. It allow
 ## Core Features
 
 - **100% Local Processing:** Powered by WASM and Web Workers.
+- **Modular Architecture:** A cleanly separated UI and logical hook structure using Next.js App Router for maintainable, scalable tool development.
 - **Non-Destructive Editing:** A Figma-like canvas where operations act as layers. Features a robust image cropping engine with aspect-ratio locking and mask panning.
 - **Image Processing Filters:** Apply pixel-level filters (Grayscale, Vintage, Sepia, etc.) processed securely via background Web Workers.
 - **AI & Advanced Tools:** Local background removal (BEN2 via Transformers.js pipeline), Smart Crop, and OCR (Tesseract.js).

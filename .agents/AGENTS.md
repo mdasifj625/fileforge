@@ -43,4 +43,10 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 - **Mongoose Caching**: Due to Next.js API hot-reloading and serverless environments, ALWAYS use the globally cached mongoose connection method defined in `src/lib/mongodb.ts`. Never establish rogue inline `mongoose.connect()` calls in random files, as this exhausts connection pools rapidly.
 - **Dual Support (Supabase + MongoDB)**: The identity layer runs on `@supabase/auth-helpers-nextjs`, but all physical user state (Subscriptions, Workspace Configs) is retained inside MongoDB. Do not write direct SQL to Supabase. Always link the Supabase `authProviderId` strictly back to the Mongoose `User` model.
 
+### 6. Code Architecture & Component Modularization
+
+- **No Monolithic Components**: Complex components (like `CanvasArea.tsx` or `PropertiesPanel.tsx`) must NOT exceed a few hundred lines.
+- **Logic / UI Split**: Always extract heavy logical operations (`useEffect` hooks, Web Worker bindings) into custom files inside a `hooks/` subdirectory (e.g., `usePixiApp.ts`, `useBackgroundRemoval.ts`). Extract pure UI blocks into their own files within a `components/` subdirectory.
+- **Orchestrator Pattern**: Main component files should act purely as lightweight orchestrators that stitch together custom logic hooks and UI sub-components.
+
 <!-- END:file-forge-agent-rules -->
