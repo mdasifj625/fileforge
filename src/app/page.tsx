@@ -14,6 +14,9 @@ import {
   ChevronDown,
   Menu,
   X,
+  Music,
+  RefreshCw,
+  Wrench,
 } from "lucide-react";
 
 export default function Home() {
@@ -127,7 +130,7 @@ export default function Home() {
 
         <div className="flex items-center gap-4">
           <Link
-            href="/image/compress"
+            href="#tools"
             className="px-8 py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:-translate-y-0.5 transition-all shadow-xl shadow-primary/20 flex items-center gap-2 text-lg"
           >
             Start Editing Free <ArrowRight size={20} />
@@ -136,11 +139,11 @@ export default function Home() {
       </section>
 
       {/* Tools Showcase */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
+      <section id="tools" className="max-w-7xl mx-auto px-6 py-20 scroll-mt-20">
         <h2 className="text-3xl font-bold text-center mb-12">
           Professional Tools. Zero Friction.
         </h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <Link
             href="/image/compress"
             className="group block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
@@ -234,6 +237,68 @@ export default function Home() {
               </span>
             </div>
           </Link>
+
+          <Link
+            href="/audio/compress"
+            className="group block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
+          >
+            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
+              <div className="w-12 h-12 bg-pink-500/10 text-pink-500 rounded-xl flex items-center justify-center mb-6">
+                <Music size={24} />
+              </div>
+              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+                Audio Suite
+              </h3>
+              <p className="text-muted-foreground mb-6 text-sm">
+                Compress, trim, and convert audio formats without losing
+                quality.
+              </p>
+              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+                Explore <ArrowRight size={16} />
+              </span>
+            </div>
+          </Link>
+
+          <Link
+            href="/convert/image-to-pdf"
+            className="group block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
+          >
+            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
+              <div className="w-12 h-12 bg-orange-500/10 text-orange-500 rounded-xl flex items-center justify-center mb-6">
+                <RefreshCw size={24} />
+              </div>
+              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+                Format Converters
+              </h3>
+              <p className="text-muted-foreground mb-6 text-sm">
+                Convert between formats instantly. Image to PDF, MP4 to GIF, and
+                more.
+              </p>
+              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+                Explore <ArrowRight size={16} />
+              </span>
+            </div>
+          </Link>
+
+          <Link
+            href="/utility/qr-generator"
+            className="group block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
+          >
+            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
+              <div className="w-12 h-12 bg-teal-500/10 text-teal-500 rounded-xl flex items-center justify-center mb-6">
+                <Wrench size={24} />
+              </div>
+              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+                Utility Belt
+              </h3>
+              <p className="text-muted-foreground mb-6 text-sm">
+                Generate QR codes, extract EXIF data, and other essential tools.
+              </p>
+              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+                Explore <ArrowRight size={16} />
+              </span>
+            </div>
+          </Link>
         </div>
       </section>
 
@@ -272,33 +337,190 @@ export default function Home() {
           </div>
         </div>
       </section>
+      {/* Use Cases Section */}
+      <section className="max-w-7xl mx-auto px-6 py-20 border-t border-panel-border">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold mb-4">Who is File Forge For?</h2>
+          <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
+            From quick edits to professional workflows, our local-first
+            architecture scales to meet your needs without compromising privacy.
+          </p>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="p-8 bg-panel border border-panel-border rounded-3xl">
+            <h3 className="text-2xl font-bold mb-4">Designers & Creators</h3>
+            <p className="text-muted-foreground mb-6">
+              Instantly remove backgrounds, convert formats, and compress assets
+              for web deployment. The infinite PixiJS canvas gives you a
+              familiar workspace without the bloat of heavy design apps.
+            </p>
+            <ul className="space-y-2 text-sm text-foreground/80 font-medium">
+              <li className="flex items-center gap-2">
+                <ArrowRight size={14} className="text-primary" /> Client-side AI
+                masking
+              </li>
+              <li className="flex items-center gap-2">
+                <ArrowRight size={14} className="text-primary" /> Batch image
+                compression
+              </li>
+              <li className="flex items-center gap-2">
+                <ArrowRight size={14} className="text-primary" /> WebP & AVIF
+                conversion
+              </li>
+            </ul>
+          </div>
+          <div className="p-8 bg-panel border border-panel-border rounded-3xl">
+            <h3 className="text-2xl font-bold mb-4">Privacy Professionals</h3>
+            <p className="text-muted-foreground mb-6">
+              Working with sensitive legal, medical, or financial documents?
+              Never upload them to a remote server again. Every single byte is
+              processed securely within your browser sandbox.
+            </p>
+            <ul className="space-y-2 text-sm text-foreground/80 font-medium">
+              <li className="flex items-center gap-2">
+                <ArrowRight size={14} className="text-primary" /> Merge & split
+                PDFs locally
+              </li>
+              <li className="flex items-center gap-2">
+                <ArrowRight size={14} className="text-primary" /> Redact
+                sensitive information
+              </li>
+              <li className="flex items-center gap-2">
+                <ArrowRight size={14} className="text-primary" />{" "}
+                Offline-capable operations
+              </li>
+            </ul>
+          </div>
+          <div className="p-8 bg-panel border border-panel-border rounded-3xl">
+            <h3 className="text-2xl font-bold mb-4">Video Editors</h3>
+            <p className="text-muted-foreground mb-6">
+              Cut, trim, and compress raw video files quickly before sharing
+              them online. File Forge uses ffmpeg.wasm to encode massive files
+              right on your GPU, saving you hours of upload time.
+            </p>
+            <ul className="space-y-2 text-sm text-foreground/80 font-medium">
+              <li className="flex items-center gap-2">
+                <ArrowRight size={14} className="text-primary" /> WASM
+                accelerated encoding
+              </li>
+              <li className="flex items-center gap-2">
+                <ArrowRight size={14} className="text-primary" /> MP4 to GIF
+                creation
+              </li>
+              <li className="flex items-center gap-2">
+                <ArrowRight size={14} className="text-primary" /> Audio track
+                extraction
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       {/* Comprehensive SEO Content Section */}
-      <section className="max-w-4xl mx-auto px-6 py-24 prose prose-invert prose-p:text-muted-foreground prose-headings:text-foreground">
-        <h2>The Safest Way to Process Your Files</h2>
-        <p>
-          Welcome to <strong>File Forge</strong>, the ultimate privacy-first
-          workspace. Unlike traditional online converters that upload your
-          sensitive documents to remote servers, File Forge operates entirely
-          within your web browser. By leveraging powerful web technologies like
-          WebAssembly (WASM) and WebGL, we bring desktop-class computing power
-          directly to your fingertips.
-        </p>
-        <h3>Local AI Background Removal</h3>
-        <p>
-          Need to remove a background from an image? Instead of relying on
-          expensive APIs, File Forge downloads the state-of-the-art{" "}
-          <em>BEN2 ONNX</em> neural network into your browser&apos;s local
-          cache. It processes your images instantly using your own GPU, allowing
-          for real-time edge feathering and mask painting.
-        </p>
-        <h3>Client-Side Video & Audio Processing</h3>
-        <p>
-          Thanks to <code>ffmpeg.wasm</code>, you can trim, convert, and
-          compress video files securely. Since the files never leave your
-          device, you save bandwidth and protect your privacy simultaneously.
-          It&apos;s the perfect tool for creators, professionals, and anyone who
-          values data security.
-        </p>
+      <section className="bg-panel border-y border-panel-border py-24">
+        <div className="max-w-4xl mx-auto px-6 prose prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-a:text-primary">
+          <h2 className="text-3xl font-bold text-center mb-12">
+            The Next Generation of Browser-Based Processing
+          </h2>
+          <p>
+            Welcome to <strong>File Forge</strong>, the ultimate privacy-first
+            workspace. Unlike traditional online converters that upload your
+            sensitive documents to remote servers, File Forge operates entirely
+            within your web browser. By leveraging powerful web technologies
+            like WebAssembly (WASM) and WebGL, we bring desktop-class computing
+            power directly to your fingertips.
+          </p>
+          <h3>How Local Processing Changes Everything</h3>
+          <p>
+            When you use a traditional file converter, your file is uploaded
+            over your internet connection, placed into a remote server queue,
+            processed, and then downloaded back to you. This wastes bandwidth,
+            costs time, and exposes your private data to third-party data
+            breaches. File Forge flips this paradigm. By executing complex
+            algorithms directly within your browser&apos;s memory sandbox, your
+            files never traverse the network. Your data remains strictly on your
+            device.
+          </p>
+          <h3>Local AI Background Removal</h3>
+          <p>
+            Need to remove a background from an image? Instead of relying on
+            expensive cloud APIs, File Forge downloads the state-of-the-art{" "}
+            <em>BEN2 ONNX</em> neural network into your browser&apos;s local
+            cache. It processes your images instantly using your own GPU,
+            allowing for real-time edge feathering and mask painting without any
+            subscription fees or usage limits.
+          </p>
+          <h3>Client-Side Video & Audio Processing</h3>
+          <p>
+            Thanks to <code>ffmpeg.wasm</code>, you can trim, convert, and
+            compress video files securely. Whether you are generating a GIF from
+            an MP4 or extracting an audio track, the WASM engine handles it
+            efficiently. Since the files never leave your device, you save
+            bandwidth and protect your privacy simultaneously. It&apos;s the
+            perfect tool for creators, professionals, and anyone who values data
+            security.
+          </p>
+          <h3>The PixiJS Infinite Canvas</h3>
+          <p>
+            We don&apos;t just convert files; we let you edit them. The core of
+            File Forge is built on top of PixiJS, a blazing fast WebGL 2D
+            rendering engine. This provides an infinite, Figma-like canvas where
+            you can drag, drop, rotate, and layer your files non-destructively
+            before finally rendering your export.
+          </p>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="max-w-4xl mx-auto px-6 py-20">
+        <h2 className="text-3xl font-bold text-center mb-12">
+          Frequently Asked Questions
+        </h2>
+        <div className="space-y-6">
+          <div className="border border-panel-border bg-panel p-6 rounded-2xl">
+            <h3 className="font-bold text-lg mb-2">
+              Is File Forge really free?
+            </h3>
+            <p className="text-muted-foreground">
+              Yes. Because we process files using your device&apos;s hardware
+              (CPU and GPU) rather than paying for expensive cloud servers, we
+              can offer professional-grade tools without the typical
+              subscription costs or arbitrary usage limits.
+            </p>
+          </div>
+          <div className="border border-panel-border bg-panel p-6 rounded-2xl">
+            <h3 className="font-bold text-lg mb-2">
+              Can I use File Forge completely offline?
+            </h3>
+            <p className="text-muted-foreground">
+              Yes! File Forge functions as a Progressive Web App (PWA). Once you
+              load the site for the first time, all the necessary WebAssembly
+              binaries and AI models are cached in your browser. You can
+              disconnect from the internet and continue editing securely.
+            </p>
+          </div>
+          <div className="border border-panel-border bg-panel p-6 rounded-2xl">
+            <h3 className="font-bold text-lg mb-2">
+              What file formats are supported?
+            </h3>
+            <p className="text-muted-foreground">
+              We support virtually all modern formats. For images: JPG, PNG,
+              WebP, AVIF, and SVG. For video: MP4, WebM, MOV, and GIF. For
+              audio: MP3, WAV, and AAC. For documents: standard PDF
+              manipulation.
+            </p>
+          </div>
+          <div className="border border-panel-border bg-panel p-6 rounded-2xl">
+            <h3 className="font-bold text-lg mb-2">
+              Do you store any of my data?
+            </h3>
+            <p className="text-muted-foreground">
+              No. We have no servers to store your files. Your files exist only
+              in your browser&apos;s local memory (RAM) while you are editing
+              them, and are cleared the moment you close the tab.
+            </p>
+          </div>
+        </div>
       </section>
       {/* Footer */}
       <footer className="border-t border-panel-border py-12 text-center text-muted-foreground">
