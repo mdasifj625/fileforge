@@ -67,12 +67,6 @@ export default function Home() {
             >
               Log In
             </Link>
-            <Link
-              href="/image/compress"
-              className="ml-4 px-4 py-2 bg-foreground text-background text-sm font-bold rounded-full hover:bg-foreground/90 transition-all shadow-md"
-            >
-              Launch App
-            </Link>
           </div>
           <button
             className="md:hidden p-2 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-panel rounded-xl transition-colors"
@@ -105,13 +99,6 @@ export default function Home() {
               </div>
             </div>
           ))}
-          <Link
-            href="/image/compress"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="mt-4 p-4 bg-foreground text-background text-center rounded-xl font-bold transition-all"
-          >
-            Launch App
-          </Link>
         </div>
       )}
 
