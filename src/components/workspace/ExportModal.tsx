@@ -2,10 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
-import { db } from "@/db";
-import * as Comlink from "comlink";
 import NextImage from "next/image";
-import { ImageProcessor } from "@/workers/image.worker";
 
 export function ExportModal() {
   const { exportImageBlob, setExportImageBlob } = useWorkspaceStore();
@@ -15,7 +12,7 @@ export function ExportModal() {
   >("image/png");
   const [quality, setQuality] = useState(100);
   const [scale, setScale] = useState(1);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [fileSize, setFileSize] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -50,10 +47,7 @@ export function ExportModal() {
       (blob) => {
         if (!blob) return;
         setFileSize(blob.size);
-        setPreviewUrl((prev) => {
-          if (prev) URL.revokeObjectURL(prev);
-          return URL.createObjectURL(blob);
-        });
+        setPreviewBlob(blob);
         setIsProcessing(false);
       },
       format,
@@ -82,42 +76,9 @@ export function ExportModal() {
   if (!exportImageBlob) return null;
 
   const handleDownload = async () => {
+    if (!previewBlob) return;
     setIsProcessing(true);
     try {
-      const state = useWorkspaceStore.getState();
-      const activeLayer = state.layers.find(
-        (l) => l.id === state.activeLayerId,
-      );
-
-      let finalBlob = exportImageBlob;
-
-      if (activeLayer) {
-        const fileRecord = await db.files.get(activeLayer.fileId);
-        if (fileRecord) {
-          const worker = new Worker(
-            new URL("@/workers/image.worker", import.meta.url),
-            { type: "module" },
-          );
-          const api = Comlink.wrap<ImageProcessor>(worker);
-
-          const totalScaleX = activeLayer.scaleX * scale;
-          const totalScaleY = activeLayer.scaleY * scale;
-
-          finalBlob = await api.exportHighResImage(fileRecord.blob, {
-            cropRect: activeLayer.cropRect,
-            scaleX: totalScaleX,
-            scaleY: totalScaleY,
-            rotation: activeLayer.rotation || 0,
-            format,
-            quality: quality / 100,
-          });
-
-          worker.terminate();
-        }
-      }
-
-      if (!finalBlob) throw new Error("Export failed");
-
       const ext =
         format === "image/jpeg"
           ? "jpg"
@@ -126,7 +87,7 @@ export function ExportModal() {
             : "png";
 
       const a = document.createElement("a");
-      const finalUrl = URL.createObjectURL(finalBlob);
+      const finalUrl = URL.createObjectURL(previewBlob);
       a.href = finalUrl;
       a.download = `file-forge-export-${Date.now()}.${ext}`;
       a.click();
@@ -143,7 +104,7 @@ export function ExportModal() {
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-panel border border-panel-border rounded-xl shadow-2xl w-full max-w-4xl flex overflow-hidden max-h-[90vh]">
+      <div className="bg-panel border border-panel-border rounded-xl shadow-2xl w-full max-w-4xl flex flex-col md:flex-row overflow-hidden max-h-[90vh]">
         {/* Preview Panel */}
         <div className="flex-1 bg-background flex flex-col relative">
           <div className="p-4 border-b border-panel-border flex justify-between items-center">
@@ -160,10 +121,10 @@ export function ExportModal() {
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
-            {previewUrl && (
+            {previewBlob && (
               <div className="relative w-full h-full flex items-center justify-center">
                 <NextImage
-                  src={previewUrl}
+                  src={URL.createObjectURL(previewBlob)}
                   alt="Export Preview"
                   unoptimized
                   fill
@@ -178,7 +139,7 @@ export function ExportModal() {
         </div>
 
         {/* Controls Panel */}
-        <div className="w-80 border-l border-panel-border p-6 flex flex-col gap-6 overflow-y-auto">
+        <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-panel-border p-6 flex flex-col gap-6 overflow-y-auto">
           <div>
             <h2 className="text-xl font-bold text-foreground mb-1">
               Export Settings
@@ -257,7 +218,7 @@ export function ExportModal() {
           <div className="mt-auto flex flex-col gap-3 pt-6 border-t border-panel-border">
             <button
               onClick={handleDownload}
-              disabled={isProcessing || !previewUrl}
+              disabled={isProcessing || !previewBlob}
               className="w-full py-3 bg-primary hover:bg-primary-hover text-primary-foreground font-bold rounded-lg transition-colors shadow-sm disabled:opacity-50"
             >
               Download Image

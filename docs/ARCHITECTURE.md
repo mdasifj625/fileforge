@@ -10,6 +10,7 @@ This document provides a high-level overview of the systems and architecture dri
   - **Tool-Specific Pages**: Instead of a global toolbar, each tool has its own dedicated dynamic route (e.g., `/image/[tool]/page.tsx`).
   - **Center Canvas (`CanvasArea.tsx`)**: Edge-to-edge 55vh on mobile, perfectly scaled flex-1 on desktop. Now completely modularized, orchestrating logic via custom hooks (`usePixiApp`, `useCanvasRender`, `useCanvasDrop`, `useCanvasExport`) in `src/components/workspace/canvas/hooks/`.
   - **Right Properties Panel (`PropertiesPanel.tsx`)**: Responsive natural document flow on mobile and a sticky sidebar on desktop. Operates as a lightweight orchestrator importing pure UI modules (e.g., `LayerTransformSettings.tsx`, `OCRSettings.tsx`) from `src/components/workspace/properties/components/`.
+  - **Maximized Viewport**: The layout drops massive hero sections during active editing, embedding the tool title neatly into the `WorkspaceLayout` top bar, and allowing the workspace to stretch full-screen (`100vh - 64px`) for optimal UX.
 
 ## 2. Canvas Engine (PixiJS)
 
@@ -90,6 +91,12 @@ Instead of building a separate React component for every new image or video filt
 
 - **Archive Tools**: Natively packs and extracts `.zip` archives into the browser's IndexedDB using `jszip`, bypassing OS file explorers entirely.
 - **Cryptographic & Encoders**: Securely generates UUIDs via the native `crypto.randomUUID()` Web Crypto API and processes gigabyte-scale files into Base64 using chunked `ArrayBuffer` iterators to prevent JavaScript engine call stack limitations.
+
+## 12. High-Fidelity Export Engine
+
+- **WebGL Canvas Extraction**: The export pipeline (`useCanvasExport.ts`) directly extracts the specific active layer via PixiJS `app.renderer.extract.canvas()`. It seamlessly captures non-destructive GPU edits including AI background removal masks, edge feathering, scaling, and crop rectangles, while dynamically ignoring inactive layers, grid lines, and overlay controls.
+- **Accurate JPEG Transcoding**: By isolating the target layer to its exact pixel bounds before extracting, the conversion accurately handles transparency bounds without exporting the empty space of the broader application viewport.
+- **Mobile Responsive Modals**: `ExportModal` relies on flexible CSS utilities to adjust preview screens and download settings sidebars naturally across mobile and desktop.
 
 ## 12. Backend Architecture (Phase 6)
 

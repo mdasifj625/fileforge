@@ -28,8 +28,6 @@ interface ToolPageLayoutProps {
 export function ToolPageLayout({
   toolId,
   title,
-  description,
-  category,
   relatedTools,
   children,
 }: ToolPageLayoutProps) {
@@ -160,26 +158,10 @@ export function ToolPageLayout({
         </div>
       )}
 
-      <main className="flex-1 flex flex-col items-center">
-        {/* Compact Premium Hero Section */}
-        <section className="relative w-full max-w-7xl mx-auto px-6 py-12 md:py-16 text-center flex flex-col items-center">
-          {/* Background Glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-[200px] bg-primary/10 blur-[80px] rounded-full pointer-events-none -z-10"></div>
-
-          <div className="inline-flex items-center justify-center px-3 py-1 mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-primary bg-primary/10 rounded-full border border-primary/20 backdrop-blur-md">
-            {category} Studio
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-br from-foreground via-foreground to-muted-foreground leading-tight">
-            {title}
-          </h1>
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed mb-6">
-            {description}
-          </p>
-        </section>
-
-        <section className="w-full px-0 mb-0 relative z-10">
-          <div className="w-full mx-auto shadow-2xl rounded-none ring-0 border-y border-panel-border overflow-hidden bg-background">
-            <WorkspaceLayout>{children}</WorkspaceLayout>
+      <main className="flex-1 flex flex-col">
+        <section className="w-full flex-1 relative z-10 flex flex-col">
+          <div className="w-full flex-1 shadow-2xl rounded-none ring-0 border-b border-panel-border overflow-hidden bg-background">
+            <WorkspaceLayout title={title}>{children}</WorkspaceLayout>
           </div>
         </section>
 
