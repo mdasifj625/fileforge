@@ -73,7 +73,8 @@ This document provides a high-level overview of the systems and architecture dri
 ## 10. AI Processing (Machine Learning)
 
 - **ONNX & Transformers.js**: Runs true Machine Learning models locally using the browser's WASM backend.
-- **Background Removal**: Implements the advanced RMBG-1.4 model within `rmbg.worker.ts` to generate precise alpha masks and extract foreground subjects from images.
+- **Background Removal**: Implements the advanced `onnx-community/BEN2-ONNX` model within `rmbg.worker.ts` to generate precise alpha masks and extract foreground subjects from images, natively handling alpha matting.
+- **Non-Destructive Mask Engine**: The UI features an advanced WebGL pipeline leveraging a dual-texture system (`baseMaskRenderTexture`). This allows users to manually restore/erase mask edges using a customized brush, while simultaneously applying real-time, non-destructive `BlurFilter` and `ColorMatrixFilter` thresholding for feathering and edge-shifting directly on the GPU.
 - **Polyfill Overrides**: Uses a custom `polyfill.ts` injected into the worker to safely mock DOM variables (like `document`), circumventing library bugs in `AutoProcessor` and ensuring flawless background AI execution.
 
 ## 11. Local Utilities

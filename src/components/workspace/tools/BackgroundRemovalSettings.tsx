@@ -178,6 +178,66 @@ export function BackgroundRemovalSettings({
         )}
       </div>
 
+      {activeLayer.maskFileId && (
+        <div className="mb-6 pt-6 border-t border-panel-border">
+          <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
+            Edge Controls
+          </h3>
+
+          <div className="flex flex-col gap-4">
+            {/* Edge Feather */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  Feather
+                </label>
+                <span className="text-xs font-mono text-foreground">
+                  {activeLayer.edgeFeather || 0}px
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="50"
+                step="1"
+                value={activeLayer.edgeFeather || 0}
+                onChange={(e) =>
+                  updateLayerTransform(activeLayer.id, {
+                    edgeFeather: parseInt(e.target.value),
+                  })
+                }
+                className="w-full accent-primary"
+              />
+            </div>
+
+            {/* Edge Shift */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  Shift Edge
+                </label>
+                <span className="text-xs font-mono text-foreground">
+                  {activeLayer.edgeShift || 0}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="-20"
+                max="20"
+                step="1"
+                value={activeLayer.edgeShift || 0}
+                onChange={(e) =>
+                  updateLayerTransform(activeLayer.id, {
+                    edgeShift: parseInt(e.target.value),
+                  })
+                }
+                className="w-full accent-primary"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="pt-6 border-t border-panel-border">
         <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
           Composition

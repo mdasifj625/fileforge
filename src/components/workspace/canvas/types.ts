@@ -11,7 +11,13 @@ export interface CanvasRefs {
   maskSpritesRef: React.MutableRefObject<
     Record<
       string,
-      PIXI.Sprite & { renderTexture?: PIXI.RenderTexture; maskFileId?: string }
+      PIXI.Sprite & {
+        renderTexture?: PIXI.RenderTexture;
+        maskFileId?: string;
+        baseMaskTexture?: PIXI.RenderTexture;
+        currentFeather?: number;
+        currentShift?: number;
+      }
     >
   >;
   transformOverlayRef: React.MutableRefObject<PIXI.Container | null>;

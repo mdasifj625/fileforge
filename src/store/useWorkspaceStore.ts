@@ -19,6 +19,8 @@ export interface FileLayer {
   maskFileId?: string;
   cropRect?: { x: number; y: number; width: number; height: number };
   cropAspectRatio?: number | "original" | "free" | null;
+  edgeFeather?: number;
+  edgeShift?: number;
   opacity?: number;
   blendMode?:
     | "normal"

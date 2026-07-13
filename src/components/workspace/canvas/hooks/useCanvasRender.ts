@@ -105,6 +105,66 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
                 maskS.y = sprite.y;
                 maskS.scale.set(sprite.scale.x, sprite.scale.y);
                 maskS.rotation = sprite.rotation;
+
+                // Apply Edge Controls by re-rendering the mask texture if needed
+                const feather = layer.edgeFeather || 0;
+                const shift = layer.edgeShift || 0;
+
+                if (
+                  maskS.baseMaskTexture &&
+                  maskS.renderTexture &&
+                  (maskS.currentFeather !== feather ||
+                    maskS.currentShift !== shift)
+                ) {
+                  const tempSprite = new PIXI.Sprite(maskS.baseMaskTexture);
+                  const filters = [];
+
+                  if (shift !== 0) {
+                    filters.push(new PIXI.BlurFilter(Math.abs(shift)));
+                    const shiftFilter = new PIXI.ColorMatrixFilter();
+                    const threshold = 0.5 - shift / 40.0;
+                    shiftFilter.matrix = [
+                      1,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      1,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      1,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      20,
+                      -20 * threshold,
+                    ];
+                    filters.push(shiftFilter);
+                  }
+
+                  if (feather > 0) {
+                    filters.push(new PIXI.BlurFilter(feather));
+                  }
+
+                  tempSprite.filters = filters.length > 0 ? filters : null;
+
+                  app.renderer.render({
+                    container: tempSprite,
+                    target: maskS.renderTexture,
+                    clear: true,
+                  });
+
+                  tempSprite.destroy();
+
+                  maskS.currentFeather = feather;
+                  maskS.currentShift = shift;
+                }
               }
 
               // Apply non-destructive crop via texture frame
@@ -174,7 +234,19 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
                 const maskBitmap = await window.createImageBitmap(
                   maskData.blob,
                 );
-                const baseMaskTexture = PIXI.Texture.from(maskBitmap);
+                const rawMaskTexture = PIXI.Texture.from(maskBitmap);
+
+                const baseMaskTexture = PIXI.RenderTexture.create({
+                  width: layer.originalWidth,
+                  height: layer.originalHeight,
+                });
+
+                const tempS = new PIXI.Sprite(rawMaskTexture);
+                app.renderer.render({
+                  container: tempS,
+                  target: baseMaskTexture,
+                });
+                tempS.destroy();
 
                 const renderTexture = PIXI.RenderTexture.create({
                   width: layer.originalWidth,
@@ -223,9 +295,15 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
                 ) as PIXI.Sprite & {
                   renderTexture?: PIXI.RenderTexture;
                   maskFileId?: string;
+                  baseMaskTexture?: PIXI.RenderTexture;
+                  currentFeather?: number;
+                  currentShift?: number;
                 };
                 maskSprite.renderTexture = renderTexture;
                 maskSprite.maskFileId = layer.maskFileId;
+                maskSprite.baseMaskTexture = baseMaskTexture;
+                maskSprite.currentFeather = undefined;
+                maskSprite.currentShift = undefined;
                 maskSprite.anchor.set(0.5);
                 maskSprite.renderable = false;
                 maskSprite.x = sprite.x;
@@ -251,7 +329,12 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
                 }
 
                 if (activeTool === "ai-remove-background") {
-                  brushControllerRef.current?.setup(sprite, renderTexture);
+                  brushControllerRef.current?.setup(
+                    sprite,
+                    renderTexture,
+                    maskSprite.baseMaskTexture,
+                    layer.id,
+                  );
                 }
               }
             } else if (!layer.maskFileId && maskSpritesRef.current[layer.id]) {
@@ -543,7 +626,19 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
                 const maskBitmap = await window.createImageBitmap(
                   maskData.blob,
                 );
-                const baseMaskTexture = PIXI.Texture.from(maskBitmap);
+                const rawMaskTexture = PIXI.Texture.from(maskBitmap);
+
+                const baseMaskTexture = PIXI.RenderTexture.create({
+                  width: layer.originalWidth,
+                  height: layer.originalHeight,
+                });
+
+                const tempS = new PIXI.Sprite(rawMaskTexture);
+                app.renderer.render({
+                  container: tempS,
+                  target: baseMaskTexture,
+                });
+                tempS.destroy();
 
                 const renderTexture = PIXI.RenderTexture.create({
                   width: layer.originalWidth,
@@ -592,9 +687,15 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
                 ) as PIXI.Sprite & {
                   renderTexture?: PIXI.RenderTexture;
                   maskFileId?: string;
+                  baseMaskTexture?: PIXI.RenderTexture;
+                  currentFeather?: number;
+                  currentShift?: number;
                 };
                 maskSprite.renderTexture = renderTexture;
                 maskSprite.maskFileId = layer.maskFileId;
+                maskSprite.baseMaskTexture = baseMaskTexture;
+                maskSprite.currentFeather = undefined;
+                maskSprite.currentShift = undefined;
                 maskSprite.anchor.set(0.5);
                 maskSprite.renderable = false;
                 maskSprite.x = sprite.x;
@@ -620,7 +721,12 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
                 }
 
                 if (activeTool === "ai-remove-background") {
-                  brushControllerRef.current?.setup(sprite, renderTexture);
+                  brushControllerRef.current?.setup(
+                    sprite,
+                    renderTexture,
+                    maskSprite.baseMaskTexture,
+                    layer.id,
+                  );
                 }
               }
             }
@@ -675,7 +781,12 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
         maskS.renderTexture &&
         brushControllerRef.current
       ) {
-        brushControllerRef.current.setup(sprite, maskS.renderTexture);
+        brushControllerRef.current.setup(
+          sprite,
+          maskS.renderTexture,
+          maskS.baseMaskTexture,
+          activeLayerId,
+        );
       }
     } else {
       brushControllerRef.current?.cleanup();
