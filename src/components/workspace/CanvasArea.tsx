@@ -265,15 +265,6 @@ export function CanvasArea() {
               layer.maskFileId &&
               (!existingMask || existingMask.maskFileId !== layer.maskFileId)
             ) {
-              if (existingMask) {
-                sprite.mask = null;
-                app.stage.removeChild(existingMask);
-                if (existingMask.renderTexture) {
-                  existingMask.renderTexture.destroy(true);
-                }
-                existingMask.destroy();
-                delete maskSpritesRef.current[layer.id];
-              }
               const maskData = await db.files.get(layer.maskFileId);
               if (maskData) {
                 const maskBitmap = await window.createImageBitmap(
@@ -341,6 +332,19 @@ export function CanvasArea() {
                 app.stage.addChild(maskSprite);
                 maskSpritesRef.current[layer.id] = maskSprite;
                 sprite.mask = maskSprite;
+
+                // Safely destroy the old mask ONLY after the new one is fully bound to avoid rendering pipeline crashes
+                if (existingMask) {
+                  app.stage.removeChild(existingMask);
+                  if (existingMask.renderTexture) {
+                    // Execute destruction after 100ms so PixiJS can complete its frame render and clear its BindGroups
+                    setTimeout(() => {
+                      if (existingMask.renderTexture)
+                        existingMask.renderTexture.destroy(true);
+                    }, 100);
+                  }
+                  existingMask.destroy();
+                }
 
                 if (activeTool === "ai-remove-background") {
                   brushControllerRef.current?.setup(sprite, renderTexture);
@@ -630,15 +634,6 @@ export function CanvasArea() {
               layer.maskFileId &&
               (!existingMask || existingMask.maskFileId !== layer.maskFileId)
             ) {
-              if (existingMask) {
-                sprite.mask = null;
-                app.stage.removeChild(existingMask);
-                if (existingMask.renderTexture) {
-                  existingMask.renderTexture.destroy(true);
-                }
-                existingMask.destroy();
-                delete maskSpritesRef.current[layer.id];
-              }
               const maskData = await db.files.get(layer.maskFileId);
               if (maskData) {
                 const maskBitmap = await window.createImageBitmap(
@@ -706,6 +701,19 @@ export function CanvasArea() {
                 app.stage.addChild(maskSprite);
                 maskSpritesRef.current[layer.id] = maskSprite;
                 sprite.mask = maskSprite;
+
+                // Safely destroy the old mask ONLY after the new one is fully bound to avoid rendering pipeline crashes
+                if (existingMask) {
+                  app.stage.removeChild(existingMask);
+                  if (existingMask.renderTexture) {
+                    // Execute destruction after 100ms so PixiJS can complete its frame render and clear its BindGroups
+                    setTimeout(() => {
+                      if (existingMask.renderTexture)
+                        existingMask.renderTexture.destroy(true);
+                    }, 100);
+                  }
+                  existingMask.destroy();
+                }
 
                 if (activeTool === "ai-remove-background") {
                   brushControllerRef.current?.setup(sprite, renderTexture);

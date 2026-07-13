@@ -24,6 +24,7 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 - **Canvas Background**: The PixiJS application is initialized with `backgroundAlpha: 0`. This is intentional! It allows the CSS-based Light/Dark themes (`bg-panel`) to visually pass through the WebGL canvas. Do not hardcode black or white backgrounds in PixiJS.
 - **Interactivity**: When dragging or scaling objects, always use `app.stage.on('globalpointermove')` combined with `app.stage.toLocal(event.global)` instead of attaching listeners directly to small sprites. This prevents the mouse from outrunning the bounding box.
 - **Cropping (PixiJS v8)**: `texture.frame` is read-only in v8. To implement non-destructive cropping, you MUST instantiate a new `PIXI.Texture` sharing the same `source` but with the updated `frame` rectangle: `new PIXI.Texture({ source: sprite.texture.source, frame: new PIXI.Rectangle(...) })`.
+- **Mask Swapping & GPU Memory**: In PixiJS v8, `AlphaMaskPipe` heavily caches render instructions. If you swap a sprite's mask and immediately call `renderTexture.destroy(true)` synchronously, the renderer will crash with `Cannot read properties of null (reading '0')` because the current frame's pipeline still attempts to execute against the now-destroyed VRAM. ALWAYS use `setTimeout(() => oldTexture.destroy(true), 100)` when hot-swapping masks to give the ticker time to rebuild its BindGroups.
 
 ### 3. File Persistence (Dexie / IndexedDB)
 
