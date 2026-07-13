@@ -244,6 +244,83 @@ export function CanvasArea() {
             bgSprite.rotation = sprite.rotation;
           }
 
+          // Handle mask updates for already loaded sprites
+          if (layer.maskFileId && !maskSpritesRef.current[layer.id]) {
+            const maskData = await db.files.get(layer.maskFileId);
+            if (maskData) {
+              const maskBitmap = await window.createImageBitmap(maskData.blob);
+              const baseMaskTexture = PIXI.Texture.from(maskBitmap);
+
+              const renderTexture = PIXI.RenderTexture.create({
+                width: layer.originalWidth,
+                height: layer.originalHeight,
+              });
+
+              const tempSprite = new PIXI.Sprite(baseMaskTexture);
+              app.renderer.render({
+                container: tempSprite,
+                target: renderTexture,
+              });
+              tempSprite.destroy();
+
+              let finalTexture: PIXI.Texture = renderTexture;
+              if (layer.cropRect) {
+                const cx = Math.max(0, layer.cropRect.x);
+                const cy = Math.max(0, layer.cropRect.y);
+                const cw = Math.min(
+                  layer.originalWidth - cx,
+                  layer.cropRect.width,
+                );
+                const ch = Math.min(
+                  layer.originalHeight - cy,
+                  layer.cropRect.height,
+                );
+                if (cw > 0 && ch > 0) {
+                  finalTexture = new PIXI.Texture({
+                    source: renderTexture.source,
+                    frame: new PIXI.Rectangle(cx, cy, cw, ch),
+                  });
+                }
+              } else {
+                finalTexture = new PIXI.Texture({
+                  source: renderTexture.source,
+                  frame: new PIXI.Rectangle(
+                    0,
+                    0,
+                    layer.originalWidth,
+                    layer.originalHeight,
+                  ),
+                });
+              }
+
+              const maskSprite = new PIXI.Sprite(
+                finalTexture,
+              ) as PIXI.Sprite & { renderTexture?: PIXI.RenderTexture };
+              maskSprite.renderTexture = renderTexture;
+              maskSprite.anchor.set(0.5);
+              maskSprite.x = sprite.x;
+              maskSprite.y = sprite.y;
+              maskSprite.scale.set(sprite.scale.x, sprite.scale.y);
+              maskSprite.rotation = sprite.rotation;
+
+              app.stage.addChild(maskSprite);
+              maskSpritesRef.current[layer.id] = maskSprite;
+              sprite.mask = maskSprite;
+
+              if (activeTool === "ai-remove-background") {
+                brushControllerRef.current?.setup(sprite, renderTexture);
+              }
+            }
+          } else if (!layer.maskFileId && maskSpritesRef.current[layer.id]) {
+            const maskSprite = maskSpritesRef.current[layer.id];
+            app.stage.removeChild(maskSprite);
+            maskSprite.destroy({ texture: true });
+            if (maskSprite.renderTexture)
+              maskSprite.renderTexture.destroy(true);
+            delete maskSpritesRef.current[layer.id];
+            sprite.mask = null;
+          }
+
           continue;
         }
 

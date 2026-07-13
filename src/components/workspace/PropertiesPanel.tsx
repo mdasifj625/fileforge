@@ -52,26 +52,21 @@ export function PropertiesPanel() {
         }),
       );
 
-      const newBlob = await api.removeBackground(fileRecord.blob);
+      const maskBlob = await api.removeBackgroundGetMask(fileRecord.blob);
 
-      // Save new blob
-      const newFileId = crypto.randomUUID();
+      // Save new mask blob
+      const maskFileId = crypto.randomUUID();
       await db.files.put({
-        id: newFileId,
-        blob: newBlob,
-        name: `nobg-${fileRecord.name}`,
+        id: maskFileId,
+        blob: maskBlob,
+        name: `mask-${fileRecord.name}`,
         type: "image/png",
-        size: newBlob.size,
+        size: maskBlob.size,
         createdAt: Date.now(),
       });
 
-      // Replace layer
-      const newLayerId = crypto.randomUUID();
-      replaceLayer(activeLayer.id, {
-        ...activeLayer,
-        id: newLayerId,
-        fileId: newFileId,
-      });
+      // Instead of replacing the layer with a new image, we apply the mask to the existing layer
+      updateLayerTransform(activeLayer.id, { maskFileId });
 
       worker.terminate();
     } catch (e) {
@@ -81,7 +76,7 @@ export function PropertiesPanel() {
       setIsFiltering(false);
       setAiProgress(null);
     }
-  }, [activeLayer, isFiltering, replaceLayer]);
+  }, [activeLayer, isFiltering, updateLayerTransform]);
 
   const applyOCR = useCallback(async () => {
     if (!activeLayer || isFiltering) return;

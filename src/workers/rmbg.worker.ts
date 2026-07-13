@@ -34,6 +34,50 @@ class RMBGProcessor {
     );
   }
 
+  async removeBackgroundGetMask(
+    imageBlob: Blob,
+    onProgress?: (progress: number) => void,
+  ): Promise<Blob> {
+    await this.loadModel(onProgress);
+    const imageURL = URL.createObjectURL(imageBlob);
+
+    try {
+      const img = await RawImage.fromURL(imageURL);
+      const results = await this.segmenter(img);
+      let mask: RawImage;
+      if (Array.isArray(results)) {
+        mask = results[0].mask;
+      } else {
+        mask = results;
+      }
+
+      for (let i = 0; i < mask.data.length; i++) {
+        if (mask.data[i] < 30) {
+          mask.data[i] = 0;
+        }
+      }
+
+      const maskCanvas = new OffscreenCanvas(mask.width, mask.height);
+      const maskCtx = maskCanvas.getContext("2d");
+      if (!maskCtx) throw new Error("Failed to get 2d context");
+
+      const maskImgData = new ImageData(mask.width, mask.height);
+      for (let i = 0; i < mask.data.length; i++) {
+        const val = mask.data[i];
+        const idx = i * 4;
+        maskImgData.data[idx] = 255;
+        maskImgData.data[idx + 1] = 255;
+        maskImgData.data[idx + 2] = 255;
+        maskImgData.data[idx + 3] = val;
+      }
+      maskCtx.putImageData(maskImgData, 0, 0);
+
+      return await maskCanvas.convertToBlob({ type: "image/png" });
+    } finally {
+      URL.revokeObjectURL(imageURL);
+    }
+  }
+
   async removeBackground(
     imageBlob: Blob,
     onProgress?: (progress: number) => void,
