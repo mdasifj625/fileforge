@@ -40,9 +40,8 @@ export default async function AudioToolPage({
 
   return (
     <ToolPageLayout
-      toolId={`audio-${resolvedParams.tool}`}
+      toolId={resolvedParams.tool}
       title={toolData.title}
-      description={toolData.description}
       category="audio"
       relatedTools={relatedTools}
     />

@@ -51,9 +51,8 @@ export default async function ConvertToolPage({
 
   return (
     <ToolPageLayout
-      toolId={`convert-${resolvedParams.tool}`}
+      toolId={resolvedParams.tool}
       title={toolData.title}
-      description={toolData.description}
       category="convert"
       relatedTools={relatedTools}
     />

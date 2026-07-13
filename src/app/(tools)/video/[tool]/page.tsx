@@ -39,9 +39,8 @@ export default async function VideoToolPage({
 
   return (
     <ToolPageLayout
-      toolId={`video-${resolvedParams.tool}`}
+      toolId={resolvedParams.tool}
       title={toolData.title}
-      description={toolData.description}
       category="video"
       relatedTools={relatedTools}
     />

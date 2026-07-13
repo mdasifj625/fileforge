@@ -1,5 +1,7 @@
 import { ToolPageLayout } from "@/components/workspace/ToolPageLayout";
 import { notFound } from "next/navigation";
+import { getToolContent } from "@/lib/contentParser";
+import { Metadata } from "next";
 
 // Define the valid tools for this category to prevent 404s
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
@@ -44,6 +46,33 @@ export function generateStaticParams() {
   return Object.keys(VALID_TOOLS).map((tool) => ({ tool }));
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ tool: string }>;
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const toolData = VALID_TOOLS[resolvedParams.tool];
+
+  if (!toolData) {
+    return {};
+  }
+
+  const contentData = getToolContent("image", resolvedParams.tool);
+  const title = contentData?.seoTitle || `${toolData.title} - File Forge`;
+  const description = contentData?.seoDescription || toolData.description;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+    },
+  };
+}
+
 export default async function ImageToolPage({
   params,
 }: {
@@ -56,6 +85,10 @@ export default async function ImageToolPage({
     notFound();
   }
 
+  const contentData = getToolContent("image", resolvedParams.tool);
+  const title = contentData?.title || toolData.title;
+  const description = contentData?.description || toolData.description;
+
   const relatedTools = Object.keys(VALID_TOOLS)
     .filter((k) => k !== resolvedParams.tool)
     .slice(0, 5)
@@ -64,9 +97,9 @@ export default async function ImageToolPage({
   return (
     <ToolPageLayout
       toolId={resolvedParams.tool}
-      title={toolData.title}
-      description={toolData.description}
+      title={title}
       category="image"
+      content={contentData?.content}
       relatedTools={relatedTools}
     />
   );

@@ -5,6 +5,7 @@ import { WorkspaceLayout } from "./WorkspaceLayout";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { TOOL_MENUS } from "@/config/tools";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 import {
   ArrowRight,
   Sparkles,
@@ -19,9 +20,9 @@ import { useState } from "react";
 interface ToolPageLayoutProps {
   toolId: string;
   title: string;
-  description: string;
   category: "image" | "pdf" | "video" | "audio" | "ai" | "convert" | "utility";
   relatedTools: { title: string; href: string }[];
+  content?: string;
   children?: React.ReactNode;
 }
 
@@ -29,6 +30,7 @@ export function ToolPageLayout({
   toolId,
   title,
   relatedTools,
+  content,
   children,
 }: ToolPageLayoutProps) {
   const setActiveTool = useWorkspaceStore((state) => state.setActiveTool);
@@ -221,6 +223,15 @@ export function ToolPageLayout({
             </div>
           </div>
         </section>
+
+        {/* SEO Content Section */}
+        {content && (
+          <section className="w-full bg-background py-24 border-y border-panel-border">
+            <div className="max-w-4xl mx-auto px-6 prose prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary-hover">
+              <ReactMarkdown>{content}</ReactMarkdown>
+            </div>
+          </section>
+        )}
 
         {/* FAQ & Related Tools */}
         <section className="w-full max-w-5xl mx-auto px-4 py-24 grid md:grid-cols-3 gap-16">

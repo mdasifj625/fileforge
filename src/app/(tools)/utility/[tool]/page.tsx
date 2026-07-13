@@ -64,9 +64,8 @@ export default async function UtilityToolPage({
 
   return (
     <ToolPageLayout
-      toolId={`utility-${resolvedParams.tool}`}
+      toolId={resolvedParams.tool}
       title={toolData.title}
-      description={toolData.description}
       category="utility"
       relatedTools={relatedTools}
     />

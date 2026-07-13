@@ -77,9 +77,8 @@ export default async function PDFToolPage({
 
   return (
     <ToolPageLayout
-      toolId={`pdf-${resolvedParams.tool}`}
+      toolId={resolvedParams.tool}
       title={toolData.title}
-      description={toolData.description}
       category="pdf"
       relatedTools={relatedTools}
     />
