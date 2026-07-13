@@ -36,7 +36,7 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 
 - **FFmpeg & Shared Memory**: When using `@ffmpeg/ffmpeg`, the worker utilizes `SharedArrayBuffer`. When casting FFmpeg outputs (which are `Uint8Array<ArrayBufferLike>`) to standard Blobs, ALWAYS explicitly cast to `Uint8Array<ArrayBuffer>` (e.g., `new Blob([data as unknown as Uint8Array<ArrayBuffer>])`) to satisfy strict TypeScript `BlobPart` constraints without using `any`.
 - **AI Models (Transformers.js)**: Transformers.js and the `AutoProcessor` library occasionally reference DOM globals like `document` which do not exist in Web Workers, causing `ReferenceError` crashes. NEVER remove the `import "./polyfill"` line at the top of AI workers, as it safely mocks these globals.
-- **AI Background Removal**: Always use `onnx-community/BEN2-ONNX` via the standard pipeline over `briaai/RMBG-1.4`. BEN2 natively handles alpha matting and provides superior edge refinement without manual CPU-heavy tensor manipulation.
+- **AI Background Removal (PipelinePlugin)**: The AI models are decoupled from the Web Worker logic via the `PipelinePlugin` interface (`src/workers/plugins/PipelinePlugin.ts`). Always use this interface to build new models (like `Ben2Plugin`) and instantiate them in the `RMBGProcessor` constructor. This future-proofs the app, meaning you NEVER hardcode model logic directly into the worker thread. We currently use `onnx-community/BEN2-ONNX` which natively handles alpha matting.
 
 ### 5. Backend & Database Architecture
 

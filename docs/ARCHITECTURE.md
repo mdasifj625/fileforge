@@ -74,6 +74,7 @@ This document provides a high-level overview of the systems and architecture dri
 
 - **ONNX & Transformers.js**: Runs true Machine Learning models locally using the browser's WASM backend.
 - **Background Removal**: Implements the advanced `onnx-community/BEN2-ONNX` model within `rmbg.worker.ts` to generate precise alpha masks and extract foreground subjects from images, natively handling alpha matting.
+- **Pipeline Plugin System**: The AI models are completely decoupled from the Web Workers via a generic `PipelinePlugin` TypeScript interface. **CRITICAL ARCHITECTURE DECISION:** This future-proofs the background removal tool, ensuring that when superior open-source models are released in the future, developers can simply swap out the ONNX file (e.g., migrating from `Rmbg1.4` to `BEN2`) without rewriting the UI, the Web Worker logic, or the post-processing filters.
 - **Non-Destructive Mask Engine**: The UI features an advanced WebGL pipeline leveraging a dual-texture system (`baseMaskRenderTexture`). This allows users to manually restore/erase mask edges using a customized brush, while simultaneously applying real-time, non-destructive `BlurFilter` and `ColorMatrixFilter` thresholding for feathering and edge-shifting directly on the GPU.
 - **Polyfill Overrides**: Uses a custom `polyfill.ts` injected into the worker to safely mock DOM variables (like `document`), circumventing library bugs in `AutoProcessor` and ensuring flawless background AI execution.
 
