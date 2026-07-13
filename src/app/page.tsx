@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { TOOL_MENUS } from "@/config/tools";
 import { useState } from "react";
 import {
@@ -24,20 +25,14 @@ export default function Home() {
       <nav className="w-full border-b border-panel-border bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                <polyline points="14 2 14 8 20 8" />
-              </svg>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-white shadow-sm shadow-primary/20">
+              <Image
+                src="/logo.jpg"
+                alt="File Forge Logo"
+                width={32}
+                height={32}
+                className="object-cover"
+              />
             </div>
             File Forge
           </div>
@@ -290,7 +285,34 @@ export default function Home() {
           </div>
         </div>
       </section>
-
+      {/* Comprehensive SEO Content Section */}
+      <section className="max-w-4xl mx-auto px-6 py-24 prose prose-invert prose-p:text-muted-foreground prose-headings:text-foreground">
+        <h2>The Safest Way to Process Your Files</h2>
+        <p>
+          Welcome to <strong>File Forge</strong>, the ultimate privacy-first
+          workspace. Unlike traditional online converters that upload your
+          sensitive documents to remote servers, File Forge operates entirely
+          within your web browser. By leveraging powerful web technologies like
+          WebAssembly (WASM) and WebGL, we bring desktop-class computing power
+          directly to your fingertips.
+        </p>
+        <h3>Local AI Background Removal</h3>
+        <p>
+          Need to remove a background from an image? Instead of relying on
+          expensive APIs, File Forge downloads the state-of-the-art{" "}
+          <em>BEN2 ONNX</em> neural network into your browser&apos;s local
+          cache. It processes your images instantly using your own GPU, allowing
+          for real-time edge feathering and mask painting.
+        </p>
+        <h3>Client-Side Video & Audio Processing</h3>
+        <p>
+          Thanks to <code>ffmpeg.wasm</code>, you can trim, convert, and
+          compress video files securely. Since the files never leave your
+          device, you save bandwidth and protect your privacy simultaneously.
+          It&apos;s the perfect tool for creators, professionals, and anyone who
+          values data security.
+        </p>
+      </section>
       {/* Footer */}
       <footer className="border-t border-panel-border py-12 text-center text-muted-foreground">
         <p className="text-sm">
