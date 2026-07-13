@@ -17,6 +17,9 @@ import {
   Music,
   RefreshCw,
   Wrench,
+  Cpu,
+  WifiOff,
+  Unlock,
 } from "lucide-react";
 
 export default function Home() {
@@ -304,35 +307,71 @@ export default function Home() {
 
       {/* Features */}
       <section className="max-w-7xl mx-auto px-6 py-20 border-t border-panel-border">
-        <div className="grid md:grid-cols-3 gap-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
           <div className="flex flex-col gap-4">
             <div className="w-12 h-12 bg-green-500/10 text-green-500 rounded-xl flex items-center justify-center">
               <ShieldCheck size={24} />
             </div>
-            <h3 className="text-xl font-bold">100% Private</h3>
+            <h3 className="text-xl font-bold">Absolute Privacy</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Your files never leave your device. Everything is processed
-              locally in your browser memory. We literally cannot see your data.
+              Zero server uploads. Your files are processed entirely within your
+              device&apos;s local memory sandbox, ensuring total data security
+              and confidentiality.
             </p>
           </div>
           <div className="flex flex-col gap-4">
             <div className="w-12 h-12 bg-yellow-500/10 text-yellow-500 rounded-xl flex items-center justify-center">
               <Zap size={24} />
             </div>
-            <h3 className="text-xl font-bold">WASM Accelerated</h3>
+            <h3 className="text-xl font-bold">WebAssembly Powered</h3>
             <p className="text-muted-foreground leading-relaxed">
-              By leveraging WebAssembly and Web Workers, File Forge bypasses
-              standard Javascript limitations for desktop-class performance.
+              Bypass traditional browser limits. We utilize compiled WASM
+              binaries to deliver desktop-grade computational performance for
+              heavy media tasks.
             </p>
           </div>
           <div className="flex flex-col gap-4">
             <div className="w-12 h-12 bg-purple-500/10 text-purple-500 rounded-xl flex items-center justify-center">
               <Layers size={24} />
             </div>
-            <h3 className="text-xl font-bold">Figma-like Canvas</h3>
+            <h3 className="text-xl font-bold">Infinite Canvas Editor</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Say goodbye to clunky form-based editors. Experience a fluid,
-              infinite canvas with non-destructive layers and history.
+              Move beyond rigid form inputs. Edit on a fluid, infinite visual
+              workspace that supports non-destructive layering and real-time
+              previews.
+            </p>
+          </div>
+          <div className="flex flex-col gap-4">
+            <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center">
+              <Cpu size={24} />
+            </div>
+            <h3 className="text-xl font-bold">Hardware Acceleration</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Utilize WebGL and your device&apos;s native GPU for blazing-fast
+              image rendering and complex AI model execution directly in the
+              browser.
+            </p>
+          </div>
+          <div className="flex flex-col gap-4">
+            <div className="w-12 h-12 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center">
+              <WifiOff size={24} />
+            </div>
+            <h3 className="text-xl font-bold">Offline Capable</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Install as a Progressive Web App (PWA). Once loaded, the core
+              engine is cached, allowing you to process files without an
+              internet connection.
+            </p>
+          </div>
+          <div className="flex flex-col gap-4">
+            <div className="w-12 h-12 bg-orange-500/10 text-orange-500 rounded-xl flex items-center justify-center">
+              <Unlock size={24} />
+            </div>
+            <h3 className="text-xl font-bold">No File Limits</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Because files are processed locally, you are completely free from
+              arbitrary server-side upload caps. Process files as large as your
+              device&apos;s RAM allows.
             </p>
           </div>
         </div>
