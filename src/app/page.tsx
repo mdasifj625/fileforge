@@ -27,35 +27,50 @@ export default function Home() {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="relative max-w-7xl mx-auto px-6 pt-32 pb-20 text-center flex flex-col items-center">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background"></div>
-
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-8 border border-primary/20">
-          <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-          100% Local Browser Processing
+      {/* Hero Section */}
+      <section className="relative min-h-[75vh] flex flex-col items-center justify-center overflow-hidden pt-24 pb-20">
+        {/* Subtle Background */}
+        <div className="absolute inset-0 -z-10 bg-background">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/10 rounded-full blur-[100px] opacity-60"></div>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight max-w-4xl mb-8 leading-[1.1]">
-          The Ultimate{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-500">
-            Privacy-First
-          </span>{" "}
-          File Workspace
-        </h1>
+        <div className="max-w-5xl mx-auto px-6 w-full flex flex-col items-center text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-8">
+            <span className="w-2 h-2 rounded-full bg-primary"></span>
+            <span className="text-sm font-semibold text-primary tracking-wide">
+              100% Local Browser Processing
+            </span>
+          </div>
 
-        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10 leading-relaxed">
-          Process images, PDFs, and media directly in your browser using
-          WebAssembly and WebGL. Zero server uploads. Infinite speed. Total
-          privacy.
-        </p>
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight max-w-4xl mb-6 leading-[1.1]">
+            Edit Everything. <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-500">
+              Upload Nothing.
+            </span>
+          </h1>
 
-        <div className="flex items-center gap-4">
-          <Link
-            href="#tools"
-            className="px-8 py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:-translate-y-0.5 transition-all shadow-xl shadow-primary/20 flex items-center gap-2 text-lg"
-          >
-            Start Editing Free <ArrowRight size={20} />
-          </Link>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10 leading-relaxed">
+            Process images, PDFs, and media directly in your browser using
+            WebAssembly and WebGL. Zero servers. Infinite speed. Absolute
+            privacy.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Link
+              href="#tools"
+              className="px-8 py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:-translate-y-0.5 transition-all shadow-lg shadow-primary/20 flex items-center gap-2 text-lg"
+            >
+              Start Editing Free <ArrowRight size={20} />
+            </Link>
+            <a
+              href="https://github.com/file-forge"
+              target="_blank"
+              rel="noreferrer"
+              className="px-8 py-4 bg-panel border border-panel-border text-foreground font-bold rounded-xl hover:bg-muted hover:-translate-y-0.5 transition-all shadow-sm flex items-center gap-2 text-lg"
+            >
+              View on GitHub
+            </a>
+          </div>
         </div>
       </section>
 
