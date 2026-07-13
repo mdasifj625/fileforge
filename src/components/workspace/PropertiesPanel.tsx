@@ -6,6 +6,7 @@ import { BackgroundRemovalSettings } from "./tools/BackgroundRemovalSettings";
 import { useBackgroundRemoval } from "./properties/hooks/useBackgroundRemoval";
 import { useOCR } from "./properties/hooks/useOCR";
 import { useSmartCrop } from "./properties/hooks/useSmartCrop";
+import { useDynamicTool } from "./properties/hooks/useDynamicTool";
 import { LayerTransformSettings } from "./properties/components/LayerTransformSettings";
 import { LayerCropSettings } from "./properties/components/LayerCropSettings";
 import { LayerAppearanceSettings } from "./properties/components/LayerAppearanceSettings";
@@ -13,6 +14,8 @@ import { LayerResizeSettings } from "./properties/components/LayerResizeSettings
 import { OCRSettings } from "./properties/components/OCRSettings";
 import { SmartCropSettings } from "./properties/components/SmartCropSettings";
 import { WatermarkSettings } from "./properties/components/WatermarkSettings";
+import { DynamicPropertiesPanel } from "./properties/components/DynamicPropertiesPanel";
+import { toolRegistry } from "@/lib/toolRegistry";
 
 export function PropertiesPanel() {
   const {
@@ -48,9 +51,18 @@ export function PropertiesPanel() {
     activeLayer,
     replaceLayer,
   );
+  const { applyDynamicTool, isProcessing: isDynamicToolProcessing } =
+    useDynamicTool(activeLayer, replaceLayer);
 
-  const isFiltering = isRmbgFiltering || isOcrFiltering || isSmartCropFiltering;
+  const isFiltering =
+    isRmbgFiltering ||
+    isOcrFiltering ||
+    isSmartCropFiltering ||
+    isDynamicToolProcessing;
   const aiProgress = rmbgProgress ?? ocrProgress;
+
+  // Check if current tool is a dynamically registered tool
+  const dynamicTool = activeTool ? toolRegistry[activeTool] : undefined;
 
   return (
     <aside className="w-full h-auto md:h-full md:w-80 shrink-0 bg-background flex flex-col z-20 border-t md:border-t-0 md:border-l border-panel-border transition-all duration-300">
@@ -189,6 +201,15 @@ export function PropertiesPanel() {
                 activeLayer={activeLayer}
                 handleTransformChange={handleTransformChange}
                 updateLayerTransform={updateLayerTransform}
+              />
+            )}
+
+            {/* Dynamic Tools (Vintage, Sepia, etc) */}
+            {dynamicTool && (
+              <DynamicPropertiesPanel
+                tool={dynamicTool}
+                isProcessing={isFiltering}
+                onApply={applyDynamicTool}
               />
             )}
           </div>

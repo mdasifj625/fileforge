@@ -47,9 +47,17 @@ This document provides a high-level overview of the systems and architecture dri
 - **Aspect Ratio Locking**: Crop boundaries dynamically calculate safe maximum extents to prevent out-of-bounds dragging, and can rigidly enforce standard aspect ratios (e.g. 1:1, 16:9).
 - **Image Panning**: By calculating relative mouse offsets and updating `sprite.texture.frame` instead of `sprite.x/y`, users can seamlessly drag the image _behind_ the stationary crop mask.
 
-## 6. Image Processing (Web Workers)
+### 9. Dynamic Tool Engine
 
-- **Destructive Workflows**: Complex pixel-level filters (Grayscale, Sepia, Invert, Vintage, Solarize) are completely offloaded to Web Workers via `image.worker.ts`.
+Instead of building a separate React component for every new image or video filter, we implemented a generic **Dynamic Tool Generation Architecture**.
+
+- `src/lib/toolRegistry.ts`: A centralized JSON registry defining all available tools, their categories, and required parameters (e.g., sliders, toggles).
+- `DynamicPropertiesPanel.tsx`: Automatically renders UI controls based on the active tool's definition in the registry.
+- `useDynamicTool.ts`: A generic hook that maps the generated parameters to the correct Web Worker (via `Comlink`), processes the Blob, and safely updates the layer state inside `Dexie` without bloating the main thread.
+
+### 10. Web Workers & WASM
+
+- **Destructive Workflows**: Complex pixel-level filters (Grayscale, Sepia, Invert, Vintage, Solarize) are completely offloaded via `image.worker.ts`.
 - **OffscreenCanvas**: The worker natively decodes image blobs using `createImageBitmap` and processes the raw `ImageData` via an `OffscreenCanvas`. This prevents heavy JavaScript loops from blocking the main UI thread.
 - **RPC & Storage**: Uses `Comlink` for type-safe RPC. When a worker completes a filter, the new resulting blob is automatically saved to IndexedDB as a new file, and the Canvas layer seamlessly hot-swaps to the new texture.
 

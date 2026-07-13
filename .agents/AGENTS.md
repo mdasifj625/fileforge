@@ -49,4 +49,9 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 - **Logic / UI Split**: Always extract heavy logical operations (`useEffect` hooks, Web Worker bindings) into custom files inside a `hooks/` subdirectory (e.g., `usePixiApp.ts`, `useBackgroundRemoval.ts`). Extract pure UI blocks into their own files within a `components/` subdirectory.
 - **Orchestrator Pattern**: Main component files should act purely as lightweight orchestrators that stitch together custom logic hooks and UI sub-components.
 
+### 7. Adding New Tools (toolRegistry)
+
+- **Do Not Write Redundant React Components**: If you are adding a basic image filter, audio effect, or video transformation that just requires simple sliders, dropdowns, or toggles, DO NOT write a custom UI component.
+- **Use the Registry**: Simply add the tool definition into `src/lib/toolRegistry.ts`. The `DynamicPropertiesPanel` will automatically render the UI, and `useDynamicTool` will route the parameters to the correct Web Worker.
+
 <!-- END:file-forge-agent-rules -->
