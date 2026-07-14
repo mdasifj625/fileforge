@@ -10,10 +10,10 @@ import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 export function WorkspaceLayout({
   children,
   title,
-}: {
+}: Readonly<{
   children?: React.ReactNode;
   title?: string;
-}) {
+}>) {
   const pastCount = useWorkspaceStore((s) => s.past?.length || 0);
   const futureCount = useWorkspaceStore((s) => s.future?.length || 0);
   const undo = useWorkspaceStore((s) => s.undo);
@@ -97,7 +97,9 @@ export function WorkspaceLayout({
               onClick={triggerExport}
               className="px-5 py-2 text-sm font-bold bg-primary hover:bg-primary-hover text-primary-foreground rounded-lg transition-colors shadow-sm shadow-primary/20"
             >
-              Export
+              {useWorkspaceStore((s) => s.activeTool) === "compress"
+                ? "Compress"
+                : "Export"}
             </button>
           </div>
         </header>

@@ -253,7 +253,7 @@ export function ToolPageLayout({
         {/* SEO Content Section */}
         {content && (
           <section className="w-full bg-background py-24 border-y border-panel-border">
-            <div className="max-w-4xl mx-auto px-6 prose prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary-hover">
+            <div className="max-w-4xl mx-auto px-6 prose dark:prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary-hover prose-strong:text-foreground">
               <ReactMarkdown>{content}</ReactMarkdown>
             </div>
           </section>

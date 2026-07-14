@@ -114,21 +114,21 @@ export function PropertiesPanel() {
               activeTool === "video-convert") && (
               <div>
                 <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
+                  Ready to{" "}
                   {activeTool === "compress" || activeTool === "video-compress"
-                    ? "Compression"
-                    : "Format"}{" "}
-                  Settings
+                    ? "Compress"
+                    : "Convert"}
                 </h3>
                 <p className="text-xs text-muted-foreground mb-4">
-                  Adjust format and quality settings before exporting. Click
-                  Export in the top bar to apply.
+                  All output settings (format, quality, resolution) are
+                  configured during the final step.
                 </p>
                 <div className="bg-primary/10 border border-primary/20 text-primary text-xs p-3 rounded-lg">
-                  Click the <strong>Export</strong> button in the top bar to
-                  {activeTool === "compress" || activeTool === "video-compress"
-                    ? " compress"
-                    : " convert"}{" "}
-                  and save this file.
+                  Click the{" "}
+                  <strong>
+                    {activeTool === "compress" ? "Compress" : "Export"}
+                  </strong>{" "}
+                  button in the top bar to adjust quality and save your file.
                 </div>
               </div>
             )}
