@@ -1,8 +1,8 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
-import NextImage from "next/image";
 import {
   ChevronDown,
   Lock,
@@ -254,7 +254,7 @@ export function ExportModal() {
             )}
             {previewBlob ? (
               <div className="relative max-w-full max-h-full rounded-md overflow-hidden shadow-sm border border-panel-border bg-background flex items-center justify-center">
-                <NextImage
+                <img
                   src={URL.createObjectURL(previewBlob)}
                   alt="Export Preview"
                   className="max-w-full max-h-full object-contain"

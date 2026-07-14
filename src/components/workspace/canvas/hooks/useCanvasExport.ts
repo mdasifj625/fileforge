@@ -89,6 +89,15 @@ export function useCanvasExport({
         height: targetHeight,
       });
 
+      // Save stage transforms
+      const origStageX = app.stage.x;
+      const origStageY = app.stage.y;
+      const origStageScaleX = app.stage.scale.x;
+      const origStageScaleY = app.stage.scale.y;
+
+      app.stage.position.set(0, 0);
+      app.stage.scale.set(1);
+
       // Render the entire stage to capture background + sprite + mask accurately
       app.renderer.render({
         container: app.stage,
@@ -100,6 +109,10 @@ export function useCanvasExport({
       const extractedCanvas = app.renderer.extract.canvas(
         renderTexture,
       ) as HTMLCanvasElement;
+
+      // Restore stage transforms immediately
+      app.stage.position.set(origStageX, origStageY);
+      app.stage.scale.set(origStageScaleX, origStageScaleY);
 
       extractedCanvas.toBlob((blob) => {
         if (blob) {
