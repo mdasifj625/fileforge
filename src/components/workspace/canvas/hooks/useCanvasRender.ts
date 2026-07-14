@@ -418,11 +418,7 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
             sprite.x = initialX;
             sprite.y = initialY;
 
-            const scaleX = (app.screen.width * 0.8) / sprite.width;
-            const scaleY = (app.screen.height * 0.8) / sprite.height;
-            const defaultScale = Math.min(scaleX, scaleY, 1);
-
-            sprite.scale.set(layer.scaleX !== 1 ? layer.scaleX : defaultScale);
+            sprite.scale.set(layer.scaleX);
 
             sprite.zIndex = (layers.length - i) * 2;
             sprite.eventMode = "static";
@@ -734,7 +730,6 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
                 }
               }
             }
-
             setSpriteUpdateTick((t) => t + 1); // Trigger overlay update
 
             if (layer.x === 0 && layer.y === 0) {
@@ -743,8 +738,6 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
                 {
                   x: sprite.x,
                   y: sprite.y,
-                  scaleX: sprite.scale.x,
-                  scaleY: sprite.scale.y,
                 },
                 false,
               );

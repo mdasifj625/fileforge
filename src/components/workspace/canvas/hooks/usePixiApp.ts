@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import * as PIXI from "pixi.js";
 import { CanvasRefs } from "../types";
 import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 export function usePixiApp({
   containerRef,
@@ -30,14 +31,36 @@ export function usePixiApp({
         containerRef.current.appendChild(app.canvas);
       }
 
-      // Center the stage dynamically on resize
+      // Center the stage dynamically and scale to fit the first image
       resizeHandler = () => {
         if (app && app.screen) {
           app.stage.position.set(app.screen.width / 2, app.screen.height / 2);
+
+          const { layers } = useWorkspaceStore.getState();
+          if (
+            layers.length > 0 &&
+            layers[0].originalWidth > 0 &&
+            layers[0].originalHeight > 0
+          ) {
+            const docWidth = layers[0].originalWidth;
+            const docHeight = layers[0].originalHeight;
+            const scaleX = (app.screen.width * 0.8) / docWidth;
+            const scaleY = (app.screen.height * 0.8) / docHeight;
+            const fitScale = Math.min(scaleX, scaleY, 1);
+            app.stage.scale.set(fitScale);
+          } else {
+            app.stage.scale.set(1);
+          }
         }
       };
 
-      window.addEventListener("resize", resizeHandler);
+      app.renderer.on("resize", resizeHandler);
+      // Subscribe to store changes so the stage scales when the first image is added
+      useWorkspaceStore.subscribe((state, prevState) => {
+        if (state.layers.length !== prevState.layers.length) {
+          resizeHandler!();
+        }
+      });
       resizeHandler(); // initial center
 
       // Initialize Transform Overlay Container (Always on top)
@@ -57,8 +80,8 @@ export function usePixiApp({
     initPixi();
 
     return () => {
-      if (resizeHandler) {
-        window.removeEventListener("resize", resizeHandler);
+      if (resizeHandler && appRef.current) {
+        appRef.current.renderer.off("resize", resizeHandler);
       }
       if (appRef.current) {
         appRef.current.destroy(true, { children: true, texture: true });
