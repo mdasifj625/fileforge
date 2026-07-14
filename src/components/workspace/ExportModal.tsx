@@ -59,6 +59,13 @@ export function ExportModal() {
   const [lockAspect, setLockAspect] = useState(true);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [fileSize, setFileSize] = useState<number | null>(null);
+
+  const formatSize = (bytes: number) => {
+    if (bytes >= 1024 * 1024) {
+      return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    }
+    return (bytes / 1024).toFixed(1) + " KB";
+  };
   const [isProcessing, setIsProcessing] = useState(false);
   const [fitMode, setFitMode] = useState<"stretch" | "contain" | "cover">(
     "stretch",
@@ -342,7 +349,7 @@ export function ExportModal() {
             </div>
             {fileSize && (
               <span className="text-xs font-mono text-primary-foreground bg-primary px-3 py-1.5 rounded-full shadow-sm">
-                {(fileSize / 1024).toFixed(1)} KB
+                {formatSize(fileSize)}
               </span>
             )}
           </div>
@@ -366,7 +373,7 @@ export function ExportModal() {
                 />
                 {fileSize && (
                   <div className="absolute bottom-2 right-2 md:hidden bg-background/80 backdrop-blur-sm text-[10px] font-mono px-2 py-1 rounded shadow-sm border border-panel-border z-10">
-                    {(fileSize / 1024).toFixed(1)} KB
+                    {formatSize(fileSize)}
                   </div>
                 )}
               </div>
