@@ -5,7 +5,6 @@ import React, { useEffect, useState, useRef } from "react";
 import UPNG from "upng-js";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import {
-  ChevronDown,
   Lock,
   Unlock,
   Download,
@@ -18,9 +17,40 @@ import {
 type Format = "image/png" | "image/jpeg" | "image/webp";
 
 export function ExportModal() {
-  const { exportImageBlob, setExportImageBlob } = useWorkspaceStore();
+  const {
+    exportImageBlob,
+    setExportImageBlob,
+    layers,
+    activeLayerId,
+    activeTool,
+  } = useWorkspaceStore();
 
   const [format, setFormat] = useState<Format>("image/png");
+
+  // Automatically select the default export format when opened
+  useEffect(() => {
+    if (exportImageBlob) {
+      const activeLayer = layers.find((l) => l.id === activeLayerId);
+      if (
+        activeLayer &&
+        activeLayer.name &&
+        activeTool !== "ai-remove-background"
+      ) {
+        const name = activeLayer.name.toLowerCase();
+        if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setFormat("image/jpeg");
+          return;
+        } else if (name.endsWith(".webp")) {
+          setFormat("image/webp");
+          return;
+        }
+      }
+
+      setFormat("image/png");
+    }
+  }, [exportImageBlob, activeLayerId, layers, activeTool]);
+
   const [quality, setQuality] = useState(100);
   const [scale, setScale] = useState(1);
   const [width, setWidth] = useState(0);
@@ -29,7 +59,6 @@ export function ExportModal() {
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [fileSize, setFileSize] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isFormatDropdownOpen, setIsFormatDropdownOpen] = useState(false);
   const [fitMode, setFitMode] = useState<"stretch" | "contain" | "cover">(
     "stretch",
   );
@@ -105,9 +134,10 @@ export function ExportModal() {
 
       if (f === "image/png" && q < 100) {
         // Use UPNG.js for lossy PNG compression (quantization)
-        // Convert quality 1-99 to number of colors 2-256
+        // Maintain a "safe area" of minimum 32 colors to prevent catastrophic quality loss
         const imgData = ctx.getImageData(0, 0, w, h);
-        const cnum = Math.max(2, Math.floor((q / 100) * 256));
+        const minColors = 32;
+        const cnum = Math.floor(minColors + ((256 - minColors) * q) / 100);
 
         // UPNG.encode takes an array of ArrayBuffers (frames)
         const arrayBuffer = UPNG.encode([imgData.data.buffer], w, h, cnum);
@@ -237,11 +267,15 @@ export function ExportModal() {
     setFitMode("stretch");
   };
 
-  const formatLabels: Record<Format, string> = {
-    "image/png": quality < 100 ? "PNG (Quantized)" : "PNG (Lossless)",
-    "image/jpeg": "JPEG (Smaller file)",
-    "image/webp": "WebP (Modern)",
-  };
+  const formatCards: { id: Format; title: string; subtitle: string }[] = [
+    {
+      id: "image/png",
+      title: "PNG",
+      subtitle: quality < 100 ? "Quantized" : "Lossless",
+    },
+    { id: "image/jpeg", title: "JPG", subtitle: "Smaller file" },
+    { id: "image/webp", title: "WebP", subtitle: "Modern web" },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
@@ -307,41 +341,31 @@ export function ExportModal() {
           </div>
 
           <div className="p-4 md:p-6 flex flex-col gap-5 overflow-y-auto flex-1 overscroll-contain">
-            {/* Format Dropdown */}
-            <div className="flex flex-col gap-2 relative">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+            {/* Format Selection Cards */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">
                 Format
               </label>
-              <button
-                onClick={() => setIsFormatDropdownOpen(!isFormatDropdownOpen)}
-                className="w-full flex items-center justify-between py-2.5 px-4 bg-background border border-panel-border rounded-lg text-sm font-medium hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <span>{formatLabels[format]}</span>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              </button>
-
-              {isFormatDropdownOpen && (
-                <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-panel border border-panel-border rounded-lg shadow-xl overflow-hidden z-20 animate-in fade-in zoom-in-95 duration-100">
-                  {(Object.entries(formatLabels) as [Format, string][]).map(
-                    ([f, label]) => (
-                      <button
-                        key={f}
-                        onClick={() => {
-                          setFormat(f);
-                          setIsFormatDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                          format === f
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "text-foreground hover:bg-muted"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ),
-                  )}
-                </div>
-              )}
+              <div className="grid grid-cols-3 gap-2">
+                {formatCards.map((card) => (
+                  <button
+                    key={card.id}
+                    onClick={() => setFormat(card.id)}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
+                      format === card.id
+                        ? "bg-primary text-primary-foreground border-primary shadow-md"
+                        : "bg-background border-panel-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
+                    }`}
+                  >
+                    <span className="text-xs font-bold">{card.title}</span>
+                    <span
+                      className={`text-[10px] mt-0.5 ${format === card.id ? "text-primary-foreground/80" : "opacity-70"}`}
+                    >
+                      {card.subtitle}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Quality Slider */}
