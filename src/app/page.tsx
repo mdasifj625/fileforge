@@ -57,10 +57,10 @@ export default function Home() {
             privacy.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
             <Link
               href="#tools"
-              className="px-8 py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:-translate-y-0.5 transition-all shadow-lg shadow-primary/20 flex items-center gap-2 text-lg"
+              className="px-8 py-4 w-full sm:w-auto bg-primary text-primary-foreground font-bold rounded-2xl hover:scale-105 hover:shadow-2xl hover:shadow-primary/30 transition-all flex justify-center items-center gap-2 text-lg"
             >
               Start Editing Free <ArrowRight size={20} />
             </Link>
@@ -68,7 +68,7 @@ export default function Home() {
               href="https://github.com/file-forge"
               target="_blank"
               rel="noreferrer"
-              className="px-8 py-4 bg-panel border border-panel-border text-foreground font-bold rounded-xl hover:bg-muted hover:-translate-y-0.5 transition-all shadow-sm flex items-center gap-2 text-lg"
+              className="px-8 py-4 w-full sm:w-auto bg-panel border border-panel-border text-foreground font-bold rounded-2xl hover:bg-muted hover:scale-105 transition-all shadow-sm flex justify-center items-center gap-2 text-lg"
             >
               View on GitHub
             </a>
@@ -85,105 +85,121 @@ export default function Home() {
       </div>
 
       {/* How It Works */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">How File Forge Works</h2>
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <div className="text-center mb-20">
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">
+            How File Forge Works
+          </h2>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
-            A seamless, zero-upload workflow designed for speed and security.
+            A seamless, zero-upload workflow designed for speed and absolute
+            security.
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-8 relative">
-          <div className="hidden md:block absolute top-12 left-1/6 right-1/6 h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent -z-10"></div>
-          <div className="flex flex-col items-center text-center gap-4 relative">
-            <div className="w-16 h-16 bg-panel border-4 border-background text-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/10">
-              <UploadCloud size={28} />
+          <div className="hidden md:block absolute top-10 left-1/6 right-1/6 h-px bg-gradient-to-r from-transparent via-panel-border to-transparent -z-10"></div>
+
+          <div className="flex flex-col items-center text-center gap-6 relative group">
+            <div className="w-20 h-20 bg-background border border-panel-border text-primary rounded-[2rem] flex items-center justify-center shadow-lg group-hover:shadow-primary/20 group-hover:border-primary/50 transition-all group-hover:scale-110">
+              <UploadCloud size={32} />
             </div>
-            <h3 className="text-xl font-bold">1. Select Your File</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Drag and drop any image, video, audio, or PDF file directly into
-              your browser. The file is loaded entirely into local memory.
-            </p>
+            <div>
+              <h3 className="text-2xl font-bold mb-3">1. Select Your File</h3>
+              <p className="text-muted-foreground leading-relaxed px-4">
+                Drag and drop any image, video, audio, or PDF. The file is
+                loaded entirely into local browser memory.
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col items-center text-center gap-4 relative">
-            <div className="w-16 h-16 bg-panel border-4 border-background text-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/10">
-              <Settings size={28} />
+
+          <div className="flex flex-col items-center text-center gap-6 relative group">
+            <div className="w-20 h-20 bg-background border border-panel-border text-primary rounded-[2rem] flex items-center justify-center shadow-lg group-hover:shadow-primary/20 group-hover:border-primary/50 transition-all group-hover:scale-110">
+              <Settings size={32} />
             </div>
-            <h3 className="text-xl font-bold">2. Process Locally</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Our WebAssembly engine and client-side AI models process your data
-              using your own CPU and GPU. No data is sent over the network.
-            </p>
+            <div>
+              <h3 className="text-2xl font-bold mb-3">2. Process Locally</h3>
+              <p className="text-muted-foreground leading-relaxed px-4">
+                Our WebAssembly engine and client-side AI process your data
+                using your own CPU and GPU.
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col items-center text-center gap-4 relative">
-            <div className="w-16 h-16 bg-panel border-4 border-background text-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/10">
-              <Download size={28} />
+
+          <div className="flex flex-col items-center text-center gap-6 relative group">
+            <div className="w-20 h-20 bg-background border border-panel-border text-primary rounded-[2rem] flex items-center justify-center shadow-lg group-hover:shadow-primary/20 group-hover:border-primary/50 transition-all group-hover:scale-110">
+              <Download size={32} />
             </div>
-            <h3 className="text-xl font-bold">3. Instant Export</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Download your converted, compressed, or edited files instantly.
-              Everything is rendered immediately without waiting in a server
-              queue.
-            </p>
+            <div>
+              <h3 className="text-2xl font-bold mb-3">3. Instant Export</h3>
+              <p className="text-muted-foreground leading-relaxed px-4">
+                Download your edited files instantly. Everything renders
+                immediately without waiting in a server queue.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Tools Showcase */}
-      <section id="tools" className="max-w-7xl mx-auto px-6 py-20 scroll-mt-20">
-        <h2 className="text-3xl font-bold text-center mb-12">
-          Professional Tools. Zero Friction.
-        </h2>
-        <div className="flex flex-wrap justify-center gap-6">
-          <Link
-            href="/image/compress"
-            className="group w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
-          >
-            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
-              <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center mb-6">
-                <ImageIcon size={24} />
+      <section
+        id="tools"
+        className="w-full bg-panel/30 border-y border-panel-border py-24 scroll-mt-20"
+      >
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">
+              Professional Tools. Zero Friction.
+            </h2>
+            <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
+              Everything you need to edit your files locally.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <Link
+              href="/image/compress"
+              className="group flex flex-col h-full bg-background border border-panel-border rounded-3xl p-6 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all"
+            >
+              <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <ImageIcon size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+              <h3 className="text-xl font-bold mb-3 text-foreground transition-colors">
                 Image Suite
               </h3>
-              <p className="text-muted-foreground mb-6 text-sm">
+              <p className="text-muted-foreground mb-8 text-sm leading-relaxed flex-1">
                 Compress, crop, resize, and convert images instantly in your
                 browser.
               </p>
-              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-primary group-hover:translate-x-1 transition-transform">
                 Explore <ArrowRight size={16} />
               </span>
-            </div>
-          </Link>
+            </Link>
 
-          <Link
-            href="/pdf/merge"
-            className="group w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
-          >
-            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
-              <div className="w-12 h-12 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center mb-6">
-                <FileText size={24} />
+            <Link
+              href="/pdf/merge"
+              className="group flex flex-col h-full bg-background border border-panel-border rounded-3xl p-6 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all"
+            >
+              <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <FileText size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+              <h3 className="text-xl font-bold mb-3 text-foreground transition-colors">
                 PDF Tools
               </h3>
-              <p className="text-muted-foreground mb-6 text-sm">
+              <p className="text-muted-foreground mb-8 text-sm leading-relaxed flex-1">
                 Merge, split, and manipulate PDF documents securely locally.
               </p>
-              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-primary group-hover:translate-x-1 transition-transform">
                 Explore <ArrowRight size={16} />
               </span>
-            </div>
-          </Link>
+            </Link>
 
-          <Link
-            href="/video/compress"
-            className="group w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
-          >
-            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
-              <div className="w-12 h-12 bg-purple-500/10 text-purple-500 rounded-xl flex items-center justify-center mb-6">
+            <Link
+              href="/video/compress"
+              className="group flex flex-col h-full bg-background border border-panel-border rounded-3xl p-6 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all"
+            >
+              <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <svg
-                  width="24"
-                  height="24"
+                  width="28"
+                  height="28"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -195,176 +211,176 @@ export default function Home() {
                   <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+              <h3 className="text-xl font-bold mb-3 text-foreground transition-colors">
                 Video Tools
               </h3>
-              <p className="text-muted-foreground mb-6 text-sm">
+              <p className="text-muted-foreground mb-8 text-sm leading-relaxed flex-1">
                 Trim, compress, and convert videos locally with WASM encoding.
               </p>
-              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-primary group-hover:translate-x-1 transition-transform">
                 Explore <ArrowRight size={16} />
               </span>
-            </div>
-          </Link>
+            </Link>
 
-          <Link
-            href="/ai/remove-background"
-            className="group w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
-          >
-            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
-              <div className="w-12 h-12 bg-green-500/10 text-green-500 rounded-xl flex items-center justify-center mb-6">
-                <Zap size={24} />
+            <Link
+              href="/ai/remove-background"
+              className="group flex flex-col h-full bg-background border border-panel-border rounded-3xl p-6 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all"
+            >
+              <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Zap size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+              <h3 className="text-xl font-bold mb-3 text-foreground transition-colors">
                 AI Magic
               </h3>
-              <p className="text-muted-foreground mb-6 text-sm">
+              <p className="text-muted-foreground mb-8 text-sm leading-relaxed flex-1">
                 Remove backgrounds and upscale images using client-side AI
                 models.
               </p>
-              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-primary group-hover:translate-x-1 transition-transform">
                 Explore <ArrowRight size={16} />
               </span>
-            </div>
-          </Link>
+            </Link>
 
-          <Link
-            href="/audio/compress"
-            className="group w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
-          >
-            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
-              <div className="w-12 h-12 bg-pink-500/10 text-pink-500 rounded-xl flex items-center justify-center mb-6">
-                <Music size={24} />
+            <Link
+              href="/audio/compress"
+              className="group flex flex-col h-full bg-background border border-panel-border rounded-3xl p-6 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all"
+            >
+              <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Music size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+              <h3 className="text-xl font-bold mb-3 text-foreground transition-colors">
                 Audio Suite
               </h3>
-              <p className="text-muted-foreground mb-6 text-sm">
+              <p className="text-muted-foreground mb-8 text-sm leading-relaxed flex-1">
                 Compress, trim, and convert audio formats without losing
                 quality.
               </p>
-              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-primary group-hover:translate-x-1 transition-transform">
                 Explore <ArrowRight size={16} />
               </span>
-            </div>
-          </Link>
+            </Link>
 
-          <Link
-            href="/convert/image-to-pdf"
-            className="group w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
-          >
-            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
-              <div className="w-12 h-12 bg-orange-500/10 text-orange-500 rounded-xl flex items-center justify-center mb-6">
-                <RefreshCw size={24} />
+            <Link
+              href="/convert/image-to-pdf"
+              className="group flex flex-col h-full bg-background border border-panel-border rounded-3xl p-6 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all"
+            >
+              <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <RefreshCw size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+              <h3 className="text-xl font-bold mb-3 text-foreground transition-colors">
                 Format Converters
               </h3>
-              <p className="text-muted-foreground mb-6 text-sm">
+              <p className="text-muted-foreground mb-8 text-sm leading-relaxed flex-1">
                 Convert between formats instantly. Image to PDF, MP4 to GIF, and
                 more.
               </p>
-              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-primary group-hover:translate-x-1 transition-transform">
                 Explore <ArrowRight size={16} />
               </span>
-            </div>
-          </Link>
+            </Link>
 
-          <Link
-            href="/utility/qr-generator"
-            className="group w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent hover:from-primary/50 transition-all"
-          >
-            <div className="bg-panel h-full rounded-xl p-6 flex flex-col items-start border border-transparent group-hover:border-primary/20 transition-all">
-              <div className="w-12 h-12 bg-teal-500/10 text-teal-500 rounded-xl flex items-center justify-center mb-6">
-                <Wrench size={24} />
+            <Link
+              href="/utility/qr-generator"
+              className="group flex flex-col h-full bg-background border border-panel-border rounded-3xl p-6 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all"
+            >
+              <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Wrench size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
+              <h3 className="text-xl font-bold mb-3 text-foreground transition-colors">
                 Utility Belt
               </h3>
-              <p className="text-muted-foreground mb-6 text-sm">
+              <p className="text-muted-foreground mb-8 text-sm leading-relaxed flex-1">
                 Generate QR codes, extract EXIF data, and other essential tools.
               </p>
-              <span className="mt-auto inline-flex items-center gap-1 text-sm font-bold text-primary">
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-primary group-hover:translate-x-1 transition-transform">
                 Explore <ArrowRight size={16} />
               </span>
-            </div>
-          </Link>
+            </Link>
 
-          {/* AdSense In-feed (Rectangle) */}
-          <div className="group w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent">
-            <GoogleAd
-              type="in-feed"
-              format="rectangle"
-              className="w-full h-full min-h-[300px] rounded-xl"
-            />
+            {/* AdSense In-feed (Rectangle) */}
+            <div className="flex flex-col h-full bg-background border border-panel-border rounded-3xl overflow-hidden">
+              <GoogleAd
+                type="in-feed"
+                format="rectangle"
+                className="w-full h-full min-h-[250px]"
+              />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="max-w-7xl mx-auto px-6 py-20 border-t border-panel-border">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">
+            Why Choose Us?
+          </h2>
+          <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
+            Built from the ground up for privacy, speed, and reliability.
+          </p>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
           <div className="flex flex-col gap-4">
-            <div className="w-12 h-12 bg-green-500/10 text-green-500 rounded-xl flex items-center justify-center">
-              <ShieldCheck size={24} />
+            <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shadow-inner">
+              <ShieldCheck size={28} />
             </div>
-            <h3 className="text-xl font-bold">Absolute Privacy</h3>
-            <p className="text-muted-foreground leading-relaxed">
+            <h3 className="text-2xl font-bold">Absolute Privacy</h3>
+            <p className="text-muted-foreground leading-relaxed text-lg">
               Zero server uploads. Your files are processed entirely within your
               device&apos;s local memory sandbox, ensuring total data security
               and confidentiality.
             </p>
           </div>
           <div className="flex flex-col gap-4">
-            <div className="w-12 h-12 bg-yellow-500/10 text-yellow-500 rounded-xl flex items-center justify-center">
-              <Zap size={24} />
+            <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shadow-inner">
+              <Zap size={28} />
             </div>
-            <h3 className="text-xl font-bold">WebAssembly Powered</h3>
-            <p className="text-muted-foreground leading-relaxed">
+            <h3 className="text-2xl font-bold">WebAssembly Powered</h3>
+            <p className="text-muted-foreground leading-relaxed text-lg">
               Bypass traditional browser limits. We utilize compiled WASM
               binaries to deliver desktop-grade computational performance for
               heavy media tasks.
             </p>
           </div>
           <div className="flex flex-col gap-4">
-            <div className="w-12 h-12 bg-purple-500/10 text-purple-500 rounded-xl flex items-center justify-center">
-              <Layers size={24} />
+            <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shadow-inner">
+              <Layers size={28} />
             </div>
-            <h3 className="text-xl font-bold">Infinite Canvas Editor</h3>
-            <p className="text-muted-foreground leading-relaxed">
+            <h3 className="text-2xl font-bold">Infinite Canvas Editor</h3>
+            <p className="text-muted-foreground leading-relaxed text-lg">
               Move beyond rigid form inputs. Edit on a fluid, infinite visual
               workspace that supports non-destructive layering and real-time
               previews.
             </p>
           </div>
           <div className="flex flex-col gap-4">
-            <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center">
-              <Cpu size={24} />
+            <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shadow-inner">
+              <Cpu size={28} />
             </div>
-            <h3 className="text-xl font-bold">Hardware Acceleration</h3>
-            <p className="text-muted-foreground leading-relaxed">
+            <h3 className="text-2xl font-bold">Hardware Acceleration</h3>
+            <p className="text-muted-foreground leading-relaxed text-lg">
               Utilize WebGL and your device&apos;s native GPU for blazing-fast
               image rendering and complex AI model execution directly in the
               browser.
             </p>
           </div>
           <div className="flex flex-col gap-4">
-            <div className="w-12 h-12 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center">
-              <WifiOff size={24} />
+            <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shadow-inner">
+              <WifiOff size={28} />
             </div>
-            <h3 className="text-xl font-bold">Offline Capable</h3>
-            <p className="text-muted-foreground leading-relaxed">
+            <h3 className="text-2xl font-bold">Offline Capable</h3>
+            <p className="text-muted-foreground leading-relaxed text-lg">
               Install as a Progressive Web App (PWA). Once loaded, the core
               engine is cached, allowing you to process files without an
               internet connection.
             </p>
           </div>
           <div className="flex flex-col gap-4">
-            <div className="w-12 h-12 bg-orange-500/10 text-orange-500 rounded-xl flex items-center justify-center">
-              <Unlock size={24} />
+            <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shadow-inner">
+              <Unlock size={28} />
             </div>
-            <h3 className="text-xl font-bold">No File Limits</h3>
-            <p className="text-muted-foreground leading-relaxed">
+            <h3 className="text-2xl font-bold">No File Limits</h3>
+            <p className="text-muted-foreground leading-relaxed text-lg">
               Because files are processed locally, you are completely free from
               arbitrary server-side upload caps. Process files as large as your
               device&apos;s RAM allows.
@@ -372,81 +388,89 @@ export default function Home() {
           </div>
         </div>
       </section>
+
       {/* Use Cases Section */}
-      <section className="max-w-7xl mx-auto px-6 py-20 border-t border-panel-border">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Who is File Forge For?</h2>
-          <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
-            From quick edits to professional workflows, our local-first
-            architecture scales to meet your needs without compromising privacy.
-          </p>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="p-8 bg-panel border border-panel-border rounded-3xl transition-all hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5">
-            <h3 className="text-2xl font-bold mb-4">Designers & Creators</h3>
-            <p className="text-muted-foreground mb-6">
-              Instantly remove backgrounds, convert formats, and compress assets
-              for web deployment. The infinite PixiJS canvas gives you a
-              familiar workspace without the bloat of heavy design apps.
+      <section className="bg-panel/50 border-t border-panel-border py-24">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">
+              Who is File Forge For?
+            </h2>
+            <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
+              From quick edits to professional workflows, our local-first
+              architecture scales to meet your needs without compromising
+              privacy.
             </p>
-            <ul className="space-y-3 text-sm text-foreground/80 font-medium">
-              <li className="flex items-center gap-3">
-                <ArrowRight size={16} className="text-primary" /> Client-side AI
-                masking
-              </li>
-              <li className="flex items-center gap-3">
-                <ArrowRight size={16} className="text-primary" /> Batch image
-                compression
-              </li>
-              <li className="flex items-center gap-3">
-                <ArrowRight size={16} className="text-primary" /> WebP & AVIF
-                conversion
-              </li>
-            </ul>
           </div>
-          <div className="p-8 bg-panel border border-panel-border rounded-3xl transition-all hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5">
-            <h3 className="text-2xl font-bold mb-4">Privacy Professionals</h3>
-            <p className="text-muted-foreground mb-6">
-              Working with sensitive legal, medical, or financial documents?
-              Never upload them to a remote server again. Every single byte is
-              processed securely within your browser sandbox.
-            </p>
-            <ul className="space-y-3 text-sm text-foreground/80 font-medium">
-              <li className="flex items-center gap-3">
-                <ArrowRight size={16} className="text-primary" /> Merge & split
-                PDFs locally
-              </li>
-              <li className="flex items-center gap-3">
-                <ArrowRight size={16} className="text-primary" /> Redact
-                sensitive information
-              </li>
-              <li className="flex items-center gap-3">
-                <ArrowRight size={16} className="text-primary" />{" "}
-                Offline-capable operations
-              </li>
-            </ul>
-          </div>
-          <div className="p-8 bg-panel border border-panel-border rounded-3xl transition-all hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5">
-            <h3 className="text-2xl font-bold mb-4">Video Editors</h3>
-            <p className="text-muted-foreground mb-6">
-              Cut, trim, and compress raw video files quickly before sharing
-              them online. File Forge uses ffmpeg.wasm to encode massive files
-              right on your GPU, saving you hours of upload time.
-            </p>
-            <ul className="space-y-3 text-sm text-foreground/80 font-medium">
-              <li className="flex items-center gap-3">
-                <ArrowRight size={16} className="text-primary" /> WASM
-                accelerated encoding
-              </li>
-              <li className="flex items-center gap-3">
-                <ArrowRight size={16} className="text-primary" /> MP4 to GIF
-                creation
-              </li>
-              <li className="flex items-center gap-3">
-                <ArrowRight size={16} className="text-primary" /> Audio track
-                extraction
-              </li>
-            </ul>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="p-10 bg-background border border-panel-border rounded-[2rem] transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10">
+              <h3 className="text-2xl font-bold mb-4">Designers & Creators</h3>
+              <p className="text-muted-foreground mb-8 leading-relaxed">
+                Instantly remove backgrounds, convert formats, and compress
+                assets for web deployment. The infinite PixiJS canvas gives you
+                a familiar workspace without the bloat of heavy design apps.
+              </p>
+              <ul className="space-y-4 text-sm text-foreground font-medium">
+                <li className="flex items-center gap-3 bg-panel p-3 rounded-xl border border-panel-border">
+                  <ArrowRight size={18} className="text-primary" /> Client-side
+                  AI masking
+                </li>
+                <li className="flex items-center gap-3 bg-panel p-3 rounded-xl border border-panel-border">
+                  <ArrowRight size={18} className="text-primary" /> Batch image
+                  compression
+                </li>
+                <li className="flex items-center gap-3 bg-panel p-3 rounded-xl border border-panel-border">
+                  <ArrowRight size={18} className="text-primary" /> WebP & AVIF
+                  conversion
+                </li>
+              </ul>
+            </div>
+
+            <div className="p-10 bg-background border border-panel-border rounded-[2rem] transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10">
+              <h3 className="text-2xl font-bold mb-4">Privacy Professionals</h3>
+              <p className="text-muted-foreground mb-8 leading-relaxed">
+                Working with sensitive legal, medical, or financial documents?
+                Never upload them to a remote server again. Every single byte is
+                processed securely within your browser sandbox.
+              </p>
+              <ul className="space-y-4 text-sm text-foreground font-medium">
+                <li className="flex items-center gap-3 bg-panel p-3 rounded-xl border border-panel-border">
+                  <ArrowRight size={18} className="text-primary" /> Merge &
+                  split PDFs locally
+                </li>
+                <li className="flex items-center gap-3 bg-panel p-3 rounded-xl border border-panel-border">
+                  <ArrowRight size={18} className="text-primary" /> Redact
+                  sensitive information
+                </li>
+                <li className="flex items-center gap-3 bg-panel p-3 rounded-xl border border-panel-border">
+                  <ArrowRight size={18} className="text-primary" />{" "}
+                  Offline-capable operations
+                </li>
+              </ul>
+            </div>
+
+            <div className="p-10 bg-background border border-panel-border rounded-[2rem] transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10">
+              <h3 className="text-2xl font-bold mb-4">Video Editors</h3>
+              <p className="text-muted-foreground mb-8 leading-relaxed">
+                Cut, trim, and compress raw video files quickly before sharing
+                them online. File Forge uses ffmpeg.wasm to encode massive files
+                right on your GPU, saving you hours of upload time.
+              </p>
+              <ul className="space-y-4 text-sm text-foreground font-medium">
+                <li className="flex items-center gap-3 bg-panel p-3 rounded-xl border border-panel-border">
+                  <ArrowRight size={18} className="text-primary" /> WASM
+                  accelerated encoding
+                </li>
+                <li className="flex items-center gap-3 bg-panel p-3 rounded-xl border border-panel-border">
+                  <ArrowRight size={18} className="text-primary" /> MP4 to GIF
+                  creation
+                </li>
+                <li className="flex items-center gap-3 bg-panel p-3 rounded-xl border border-panel-border">
+                  <ArrowRight size={18} className="text-primary" /> Audio track
+                  extraction
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
@@ -569,7 +593,7 @@ export default function Home() {
       </section>
       {/* CTA Section */}
       <section className="bg-primary text-primary-foreground py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-white/20 dark:from-black/20 via-transparent to-transparent"></div>
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <h2 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">
             Ready to Drop the Cloud?
