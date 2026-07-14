@@ -362,11 +362,26 @@ export function useLayerRenderer(
             let texture = PIXI.Texture.from(imageBitmap);
 
             if (layer.originalWidth === 0 || layer.originalHeight === 0) {
+              const maxWidth = app.screen.width * 0.8;
+              const maxHeight = app.screen.height * 0.8;
+              let initialScale = 1;
+
+              if (
+                imageBitmap.width > maxWidth ||
+                imageBitmap.height > maxHeight
+              ) {
+                const fitScaleX = maxWidth / imageBitmap.width;
+                const fitScaleY = maxHeight / imageBitmap.height;
+                initialScale = Math.min(fitScaleX, fitScaleY);
+              }
+
               useWorkspaceStore.getState().updateLayerTransform(
                 layer.id,
                 {
                   originalWidth: imageBitmap.width,
                   originalHeight: imageBitmap.height,
+                  scaleX: initialScale,
+                  scaleY: initialScale,
                 },
                 false,
               );

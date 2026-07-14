@@ -24,6 +24,7 @@ export function useTransformOverlay(
   const activeTool = useWorkspaceStore((state) => state.activeTool);
   const brushMode = useWorkspaceStore((state) => state.brushMode);
   const brushSize = useWorkspaceStore((state) => state.brushSize);
+  const theme = useWorkspaceStore((state) => state.theme);
   // We assume isPixiReady is essentially checked by appRef.current being available
   // Draw and Manage the Transform Overlay for the Active Layer
   useEffect(() => {
@@ -118,17 +119,53 @@ export function useTransformOverlay(
     const handleGraphics: PIXI.Graphics[] = [];
     const overlayColor = isCropMode ? 0x10b981 : 0x3b82f6; // Green for crop, Blue for select
 
+    const isDark = document.documentElement.classList.contains("dark");
+    const handleFillColor = isDark ? 0xffffff : 0x111111;
+    const handleStrokeColor = isDark ? 0x000000 : 0xffffff;
+    const handleStrokeAlpha = isDark ? 0.3 : 0.8;
+
     handles.forEach((pos) => {
       const handle = new PIXI.Graphics();
-      handle.beginFill(0xffffff); // White interior
-      handle.lineStyle(1.5, overlayColor, 1);
-      // Draw a crisp square like Figma (edges can be slightly thinner rectangles if desired, but squares are fine)
-      if (pos.x === 0 || pos.y === 0) {
-        handle.drawRect(-3.5, -3.5, 7, 7); // slightly smaller for edges
+      if (isCropMode) {
+        handle.lineStyle(1.5, handleStrokeColor, handleStrokeAlpha);
+        handle.beginFill(handleFillColor);
+        if (pos.x === 0 || pos.y === 0) {
+          // Edges (Pill)
+          if (pos.x === 0) {
+            const yOffset = -2.5;
+            handle.drawRoundedRect(-16, yOffset, 32, 5, 2.5);
+          } else {
+            const xOffset = -2.5;
+            handle.drawRoundedRect(xOffset, -16, 5, 32, 2.5);
+          }
+        } else {
+          // Corners (L-Shape)
+          const th = 5;
+          const len = 24;
+          // Horizontal leg
+          const hX = pos.x === -1 ? -th / 2 : -len + th / 2;
+          const hY = pos.y === -1 ? -th / 2 : -th / 2;
+          handle.drawRoundedRect(hX, hY, len, th, 2.5);
+          // Vertical leg
+          const vX = pos.x === -1 ? -th / 2 : -th / 2;
+          const vY = pos.y === -1 ? -th / 2 : -len + th / 2;
+          handle.drawRoundedRect(vX, vY, th, len, 2.5);
+        }
+        handle.endFill();
       } else {
-        handle.drawRect(-4.5, -4.5, 9, 9);
+        handle.beginFill(handleFillColor); // Interior
+        handle.lineStyle(1.5, overlayColor, 1);
+        if (pos.x === 0 || pos.y === 0) {
+          handle.drawRect(-3.5, -3.5, 7, 7); // slightly smaller for edges
+        } else {
+          handle.drawRect(-4.5, -4.5, 9, 9);
+        }
+        handle.endFill();
       }
-      handle.endFill();
+
+      // Expand hit area significantly for mobile touch targets
+      handle.hitArea = new PIXI.Rectangle(-24, -24, 48, 48);
+
       handle.eventMode = "static";
 
       if (pos.id === "tl" || pos.id === "br") handle.cursor = "nwse-resize";
@@ -321,8 +358,7 @@ export function useTransformOverlay(
               frame: new PIXI.Rectangle(newCropX, newCropY, newCropW, newCropH),
             });
 
-            // To prevent the image from visually sliding, we must calculate the exact absolute shift
-            // between the start crop center and the new crop center
+            // To prevent the image from sliding, we must calculate the exact absolute shift
             const oldCenterUnscaledX =
               startCropRect.x + startCropRect.width / 2;
             const oldCenterUnscaledY =
@@ -425,9 +461,61 @@ export function useTransformOverlay(
         activeSprite.texture.height * Math.abs(activeSprite.scale.y);
 
       boundsBox.clear();
-      boundsBox.lineStyle(2, overlayColor, 1);
-      // Draw relative to the sprite's center
+
+      const isDark = document.documentElement.classList.contains("dark");
+      const boxColor = isCropMode
+        ? isDark
+          ? 0xffffff
+          : 0x111111
+        : overlayColor;
+      const boxAlpha = isCropMode ? 0.9 : 1;
+
+      if (isCropMode) {
+        // Draw shadow/outline first for high contrast
+        boundsBox.lineStyle(
+          3.5,
+          isDark ? 0x000000 : 0xffffff,
+          isDark ? 0.3 : 0.8,
+        );
+        boundsBox.drawRect(-width / 2, -height / 2, width, height);
+      }
+
+      boundsBox.lineStyle(isCropMode ? 1.5 : 2, boxColor, boxAlpha);
       boundsBox.drawRect(-width / 2, -height / 2, width, height);
+
+      if (isCropMode) {
+        // Draw contrast shadow for Rule of Thirds Grid
+        boundsBox.lineStyle(
+          3,
+          isDark ? 0x000000 : 0xffffff,
+          isDark ? 0.2 : 0.5,
+        );
+
+        boundsBox.moveTo(-width / 2 + width / 3, -height / 2);
+        boundsBox.lineTo(-width / 2 + width / 3, height / 2);
+        boundsBox.moveTo(-width / 2 + (2 * width) / 3, -height / 2);
+        boundsBox.lineTo(-width / 2 + (2 * width) / 3, height / 2);
+
+        boundsBox.moveTo(-width / 2, -height / 2 + height / 3);
+        boundsBox.lineTo(width / 2, -height / 2 + height / 3);
+        boundsBox.moveTo(-width / 2, -height / 2 + (2 * height) / 3);
+        boundsBox.lineTo(width / 2, -height / 2 + (2 * height) / 3);
+
+        // Draw Rule of Thirds Grid
+        boundsBox.lineStyle(1, boxColor, 0.6);
+
+        // Vertical lines
+        boundsBox.moveTo(-width / 2 + width / 3, -height / 2);
+        boundsBox.lineTo(-width / 2 + width / 3, height / 2);
+        boundsBox.moveTo(-width / 2 + (2 * width) / 3, -height / 2);
+        boundsBox.lineTo(-width / 2 + (2 * width) / 3, height / 2);
+
+        // Horizontal lines
+        boundsBox.moveTo(-width / 2, -height / 2 + height / 3);
+        boundsBox.lineTo(width / 2, -height / 2 + height / 3);
+        boundsBox.moveTo(-width / 2, -height / 2 + (2 * height) / 3);
+        boundsBox.lineTo(width / 2, -height / 2 + (2 * height) / 3);
+      }
 
       boundsBox.position.set(activeSprite.x, activeSprite.y);
       boundsBox.rotation = activeSprite.rotation;
@@ -486,5 +574,5 @@ export function useTransformOverlay(
       overlay.removeChildren();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeLayerId, activeTool, spriteUpdateTick]);
+  }, [activeLayerId, activeTool, spriteUpdateTick, theme]);
 }
