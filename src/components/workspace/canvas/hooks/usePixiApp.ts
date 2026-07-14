@@ -6,7 +6,6 @@ import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
 export function usePixiApp({
   containerRef,
   appRef,
-  gridRef,
   transformOverlayRef,
   brushControllerRef,
 }: CanvasRefs) {

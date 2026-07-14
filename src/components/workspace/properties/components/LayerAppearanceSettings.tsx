@@ -4,12 +4,14 @@ import { FileLayer } from "@/store/useWorkspaceStore";
 interface Props {
   activeLayer: FileLayer;
   handleTransformChange: (key: string, value: string) => void;
+  handleTransformCommit: (key: string, value: string) => void;
   updateLayerTransform: (id: string, updates: Partial<FileLayer>) => void;
 }
 
 export function LayerAppearanceSettings({
   activeLayer,
   handleTransformChange,
+  handleTransformCommit,
   updateLayerTransform,
 }: Props) {
   return (
@@ -35,6 +37,12 @@ export function LayerAppearanceSettings({
             step="0.01"
             value={activeLayer.opacity ?? 1}
             onChange={(e) => handleTransformChange("opacity", e.target.value)}
+            onPointerUp={(e) =>
+              handleTransformCommit(
+                "opacity",
+                (e.target as HTMLInputElement).value,
+              )
+            }
             className="w-full accent-primary"
           />
         </div>

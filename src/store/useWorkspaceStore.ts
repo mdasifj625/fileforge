@@ -59,7 +59,11 @@ export interface WorkspaceState {
   addLayer: (layer: FileLayer) => void;
   removeLayer: (id: string) => void;
   replaceLayer: (id: string, newLayer: FileLayer) => void;
-  updateLayerTransform: (id: string, transform: Partial<FileLayer>) => void;
+  updateLayerTransform: (
+    id: string,
+    transform: Partial<FileLayer>,
+    saveToHistory?: boolean,
+  ) => void;
   setActiveLayerId: (id: string | null) => void;
   triggerExport: () => void;
   setExportImageBlob: (blob: Blob | null) => void;
@@ -122,15 +126,16 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
       activeLayerId:
         state.activeLayerId === id ? newLayer.id : state.activeLayerId,
     })),
-  updateLayerTransform: (id, transform) =>
-    set((state) => ({
-      ...saveHistory(
-        state,
-        state.layers.map((layer) =>
-          layer.id === id ? { ...layer, ...transform } : layer,
-        ),
-      ),
-    })),
+  updateLayerTransform: (id, transform, saveToHistory = true) =>
+    set((state) => {
+      const newLayers = state.layers.map((layer) =>
+        layer.id === id ? { ...layer, ...transform } : layer,
+      );
+      if (saveToHistory) {
+        return saveHistory(state, newLayers);
+      }
+      return { layers: newLayers };
+    }),
   setActiveLayerId: (id) => set({ activeLayerId: id }),
   undo: () =>
     set((state) => {

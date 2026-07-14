@@ -32,7 +32,15 @@ export function PropertiesPanel() {
     if (!activeLayer) return;
     const num = parseFloat(value);
     if (!isNaN(num)) {
-      updateLayerTransform(activeLayer.id, { [key]: num });
+      updateLayerTransform(activeLayer.id, { [key]: num }, false);
+    }
+  };
+
+  const handleTransformCommit = (key: string, value: string) => {
+    if (!activeLayer) return;
+    const num = parseFloat(value);
+    if (!isNaN(num)) {
+      updateLayerTransform(activeLayer.id, { [key]: num }, true);
     }
   };
 
@@ -200,6 +208,7 @@ export function PropertiesPanel() {
               <LayerAppearanceSettings
                 activeLayer={activeLayer}
                 handleTransformChange={handleTransformChange}
+                handleTransformCommit={handleTransformCommit}
                 updateLayerTransform={updateLayerTransform}
               />
             )}

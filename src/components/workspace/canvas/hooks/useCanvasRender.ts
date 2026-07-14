@@ -361,10 +361,14 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
             let texture = PIXI.Texture.from(imageBitmap);
 
             if (layer.originalWidth === 0 || layer.originalHeight === 0) {
-              useWorkspaceStore.getState().updateLayerTransform(layer.id, {
-                originalWidth: imageBitmap.width,
-                originalHeight: imageBitmap.height,
-              });
+              useWorkspaceStore.getState().updateLayerTransform(
+                layer.id,
+                {
+                  originalWidth: imageBitmap.width,
+                  originalHeight: imageBitmap.height,
+                },
+                false,
+              );
               // We exit this render cycle since the state update will immediately trigger another one
               // with the correct originalWidth/Height, avoiding layout jumping
               continue;
@@ -734,12 +738,16 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
             setSpriteUpdateTick((t) => t + 1); // Trigger overlay update
 
             if (layer.x === 0 && layer.y === 0) {
-              useWorkspaceStore.getState().updateLayerTransform(layer.id, {
-                x: sprite.x,
-                y: sprite.y,
-                scaleX: sprite.scale.x,
-                scaleY: sprite.scale.y,
-              });
+              useWorkspaceStore.getState().updateLayerTransform(
+                layer.id,
+                {
+                  x: sprite.x,
+                  y: sprite.y,
+                  scaleX: sprite.scale.x,
+                  scaleY: sprite.scale.y,
+                },
+                false,
+              );
             }
           } catch (error) {
             console.error(
