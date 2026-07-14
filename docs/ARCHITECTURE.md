@@ -45,7 +45,8 @@ This document provides a high-level overview of the systems and architecture dri
 
 - **Texture Frames**: The cropping system is entirely non-destructive. It leverages PixiJS `PIXI.Texture.frame` to crop the image on the GPU without altering the original underlying WebGL texture.
 - **Ghost Preview**: During crop operations, a low-opacity "ghost" sprite of the full original image is rendered behind the crop bounding box, providing contextual awareness.
-- **Aspect Ratio Locking**: Crop boundaries dynamically calculate safe maximum extents to prevent out-of-bounds dragging, and can rigidly enforce standard aspect ratios (e.g. 1:1, 16:9).
+- **Aspect Ratio Locking & Sync**: Crop boundaries dynamically calculate safe maximum extents to prevent out-of-bounds dragging, and can rigidly enforce standard aspect ratios (e.g. 1:1, 16:9). A single unified "Crop Area Size" master slider keeps Width and Height perfectly synced relative to the center.
+- **Premium Canvas Overlays**: Instead of standard bounding boxes, the engine dynamically draws a "Rule of Thirds" alignment grid (with opacity and contrast boundaries) and utilizes premium L-shaped corner handles and pill-shaped edge handles.
 - **Image Panning**: By calculating relative mouse offsets and updating `sprite.texture.frame` instead of `sprite.x/y`, users can seamlessly drag the image _behind_ the stationary crop mask.
 
 ### 9. Dynamic Tool Engine

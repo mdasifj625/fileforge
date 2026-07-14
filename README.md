@@ -8,14 +8,15 @@ File Forge is a local-first, privacy-focused file processing workspace. It allow
 - **Dynamic Tool Generation:** New tools (e.g., Vintage, Sepia filters) are generated dynamically via a JSON `toolRegistry` that automatically mounts UI controls and routes arguments to Web Workers. No more writing redundant React components for simple effects.
 - **AI & Advanced Tools:** Local background removal (BEN2 via Transformers.js pipeline) featuring a non-destructive GPU-accelerated editing suite (Real-time Edge Feathering, Edge Shifting, and a Manual Restore/Erase Mask Brush). **Future-Proofed Architecture:** AI models are strictly decoupled via a generic `PipelinePlugin` interface, meaning when a highly superior model drops in the future, you can swap the ONNX file without having to rewrite any of the UI or post-processing hooks. Also includes Smart Crop and OCR (Tesseract.js).
 - **High-Fidelity WebGL Export:** Accurately extracts processed canvas layers directly from the GPU, perfectly capturing non-destructive AI masks, crop rects, and edge effects while enforcing proper bounds for JPEG conversion.
-- **Maximized UX:** Edge-to-edge full-screen responsive workspace minimizing header bloat during active editing.
+- **Maximized UX & Premium Design:** Edge-to-edge full-screen responsive workspace minimizing header bloat. Features dynamic navigation titles on mobile, sleek Apple-quality light/dark modes using semantic `oklch` CSS variables, and visually stunning interactive tool layouts.
+- **Advanced Crop & Transform UI:** A truly premium photo editing experience. Features a unified 'Crop Area Size' master slider that perfectly syncs width and height relative to center, stylized L-shape and pill handles, and a dynamically rendered Rule of Thirds grid on the WebGL canvas.
 - **Media Heavyweight:** Full client-side video and audio processing (Trim, Merge, Convert, Compress) using FFmpeg.wasm with SharedArrayBuffer.
 - **Document Workspaces:** Fast PDF processing, merging, splitting, watermarking, and rendering via `pdf-lib` and `react-pdf`.
 - **Developer Utilities:** In-browser ZIP/Unzip, Base64 encoding/decoding, and UUID generation without API calls.
 - **Backend & Monetization Setup:** Prepared architecture with dual compatibility for Supabase Authentication and MongoDB/Mongoose models (`User`, `Subscription`, `Workspace`). Fully integrated with Google AdSense, featuring optimized, high-RPM placements (Responsive Leaderboards, In-feed Rectangles, Skyscrapers, and Sticky Bottom Anchors) that comply with UX best practices and policies against accidental clicks.
 - **Time Travel:** Fully integrated Undo/Redo history system that tracks complex state transformations and retains original native file references.
 - **Privacy First:** No server uploads, no data collection.
-- **Standalone Tools:** Dedicated dynamic routes (e.g., `/image/crop`, `/video/compress`) that offer focused workspaces optimized for mobile and desktop.
+- **Standalone Tools & SEO:** Dedicated dynamic routes (e.g., `/image/crop`, `/video/compress`) that offer focused workspaces optimized for mobile and desktop, featuring rich SEO content directly embedded for discoverability.
 - **Blazing Fast:** Leveraging `Comlink` for worker RPC and `PixiJS` (WebGL) for 60fps real-time previews.
 
 ## Tech Stack

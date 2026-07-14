@@ -54,4 +54,10 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 - **Do Not Write Redundant React Components**: If you are adding a basic image filter, audio effect, or video transformation that just requires simple sliders, dropdowns, or toggles, DO NOT write a custom UI component.
 - **Use the Registry**: Simply add the tool definition into `src/lib/toolRegistry.ts`. The `DynamicPropertiesPanel` will automatically render the UI, and `useDynamicTool` will route the parameters to the correct Web Worker.
 
+### 8. Premium UI & Tool Aesthetics
+
+- **Master Sliders**: When building transform or crop controls, favor unified "Master Sliders" (e.g., a single slider that scales width and height proportionally from the center) rather than multiple individual X/Y offset sliders. It yields a more professional feel.
+- **Canvas Visuals**: Features like cropping should always include premium graphical hints, such as drawing a "Rule of Thirds" grid on the PixiJS bounds box (`useTransformOverlay.ts`) and utilizing stylized handles (thick L-shapes or pills) rather than standard small squares.
+- **Responsive Layout**: If you create a new workspace tool, ensure the layout remains clean on mobile devices. Navigation bars should dynamically show the active tool on small viewports so users don't lose context.
+
 <!-- END:file-forge-agent-rules -->
