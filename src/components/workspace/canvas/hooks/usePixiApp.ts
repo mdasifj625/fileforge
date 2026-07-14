@@ -17,6 +17,8 @@ export function usePixiApp({
 
     const app = new PIXI.Application();
 
+    let resizeHandler: (() => void) | null = null;
+
     const initPixi = async () => {
       await app.init({
         resizeTo: containerRef.current!,
@@ -29,18 +31,15 @@ export function usePixiApp({
         containerRef.current.appendChild(app.canvas);
       }
 
-      // Add a simple grid background
-      const grid = new PIXI.Graphics();
-      grid.lineStyle(1, 0x888888, 0.15);
-      const gridSize = 50;
-      for (let x = 0; x < app.screen.width; x += gridSize) {
-        grid.moveTo(x, 0).lineTo(x, app.screen.height);
-      }
-      for (let y = 0; y < app.screen.height; y += gridSize) {
-        grid.moveTo(0, y).lineTo(app.screen.width, y);
-      }
-      app.stage.addChild(grid);
-      gridRef.current = grid;
+      // Center the stage dynamically on resize
+      resizeHandler = () => {
+        if (app && app.screen) {
+          app.stage.position.set(app.screen.width / 2, app.screen.height / 2);
+        }
+      };
+
+      window.addEventListener("resize", resizeHandler);
+      resizeHandler(); // initial center
 
       // Initialize Transform Overlay Container (Always on top)
       const transformOverlay = new PIXI.Container();
@@ -59,6 +58,9 @@ export function usePixiApp({
     initPixi();
 
     return () => {
+      if (resizeHandler) {
+        window.removeEventListener("resize", resizeHandler);
+      }
       if (appRef.current) {
         appRef.current.destroy(true, { children: true, texture: true });
         appRef.current = null;

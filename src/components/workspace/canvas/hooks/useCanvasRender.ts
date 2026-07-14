@@ -408,8 +408,8 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
 
             sprite.anchor.set(0.5);
 
-            const initialX = layer.x !== 0 ? layer.x : app.screen.width / 2;
-            const initialY = layer.y !== 0 ? layer.y : app.screen.height / 2;
+            const initialX = layer.x;
+            const initialY = layer.y;
 
             sprite.x = initialX;
             sprite.y = initialY;
