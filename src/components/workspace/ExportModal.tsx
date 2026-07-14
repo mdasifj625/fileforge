@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import UPNG from "upng-js";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import {
   ChevronDown,
@@ -102,16 +103,30 @@ export function ExportModal() {
         ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
       }
 
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) return;
-          setFileSize(blob.size);
-          setPreviewBlob(blob);
-          setIsProcessing(false);
-        },
-        f,
-        q / 100,
-      );
+      if (f === "image/png" && q < 100) {
+        // Use UPNG.js for lossy PNG compression (quantization)
+        // Convert quality 1-99 to number of colors 2-256
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const cnum = Math.max(2, Math.floor((q / 100) * 256));
+
+        // UPNG.encode takes an array of ArrayBuffers (frames)
+        const arrayBuffer = UPNG.encode([imgData.data.buffer], w, h, cnum);
+        const blob = new Blob([arrayBuffer], { type: "image/png" });
+        setFileSize(blob.size);
+        setPreviewBlob(blob);
+        setIsProcessing(false);
+      } else {
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return;
+            setFileSize(blob.size);
+            setPreviewBlob(blob);
+            setIsProcessing(false);
+          },
+          f,
+          q / 100,
+        );
+      }
     },
     [],
   );
@@ -223,7 +238,7 @@ export function ExportModal() {
   };
 
   const formatLabels: Record<Format, string> = {
-    "image/png": "PNG (Lossless)",
+    "image/png": quality < 100 ? "PNG (Quantized)" : "PNG (Lossless)",
     "image/jpeg": "JPEG (Smaller file)",
     "image/webp": "WebP (Modern)",
   };
@@ -330,17 +345,10 @@ export function ExportModal() {
             </div>
 
             {/* Quality Slider */}
-            <div
-              className={`flex flex-col gap-3 transition-opacity duration-300 ${format === "image/png" ? "opacity-40 pointer-events-none" : ""}`}
-            >
+            <div className="flex flex-col gap-3 transition-opacity duration-300">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  Quality{" "}
-                  {format === "image/png" && (
-                    <span className="lowercase normal-case font-normal">
-                      (N/A for PNG)
-                    </span>
-                  )}
+                  Quality
                 </label>
                 <div className="flex items-center gap-1.5">
                   <input
@@ -353,7 +361,6 @@ export function ExportModal() {
                       if (isNaN(val)) val = 100;
                       setQuality(Math.min(100, Math.max(1, val)));
                     }}
-                    disabled={format === "image/png"}
                     className="w-14 bg-background border border-panel-border rounded-md px-2 py-1 text-xs font-mono text-center focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                   <span className="text-xs font-mono text-muted-foreground">
@@ -368,7 +375,6 @@ export function ExportModal() {
                 step="1"
                 value={quality}
                 onChange={(e) => setQuality(parseInt(e.target.value))}
-                disabled={format === "image/png"}
                 className="w-full accent-primary h-2 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full cursor-pointer disabled:cursor-not-allowed"
               />
             </div>
