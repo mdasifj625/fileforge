@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { TOOL_MENUS } from "@/config/tools";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -53,19 +54,23 @@ export default function Navigation() {
                 </div>
               ))}
             </nav>
+            <ThemeToggle />
             <Link
               href="/auth"
-              className="hidden md:flex ml-4 px-4 py-2 text-foreground font-bold text-sm hover:opacity-80 transition-opacity"
+              className="hidden md:flex ml-2 px-4 py-2 bg-primary/10 text-primary rounded-lg font-bold text-sm hover:bg-primary/20 transition-colors"
             >
               Log In
             </Link>
           </div>
-          <button
-            className="md:hidden p-2 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-panel rounded-xl transition-colors"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <ThemeToggle />
+            <button
+              className="p-2 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-panel rounded-xl transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </div>
       </nav>
 
