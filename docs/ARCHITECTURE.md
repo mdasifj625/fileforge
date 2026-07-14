@@ -97,7 +97,7 @@ Instead of building a separate React component for every new image or video filt
 
 - **WebGL Canvas Extraction**: The export pipeline (`useCanvasExport.ts`) directly extracts the specific active layer via PixiJS `app.renderer.extract.canvas()`. It seamlessly captures non-destructive GPU edits including AI background removal masks, edge feathering, scaling, and crop rectangles, while dynamically ignoring inactive layers, grid lines, and overlay controls.
 - **Accurate JPEG Transcoding**: By isolating the target layer to its exact pixel bounds before extracting, the conversion accurately handles transparency bounds without exporting the empty space of the broader application viewport.
-- **Mobile Responsive Modals**: `ExportModal` relies on flexible CSS utilities to adjust preview screens and download settings sidebars naturally across mobile and desktop.
+- **Mobile Responsive Modals & Architecture Escapes**: The `ExportModal` relies on flexible CSS utilities to adjust preview screens and download settings sidebars naturally across mobile and desktop. It utilizes React's `createPortal` to render the modal directly to `document.body`, gracefully escaping local z-index constraints of the main workspace. It also intercepts the browser's `popstate` history API to ensure mobile users can close the modal using their physical/swipe back button without breaking navigation state.
 
 ## 12. Backend Architecture (Phase 6)
 

@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import UPNG from "upng-js";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import {
@@ -62,6 +63,12 @@ export function ExportModal() {
   const [fitMode, setFitMode] = useState<"stretch" | "contain" | "cover">(
     "stretch",
   );
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const originalImageRef = useRef<HTMLImageElement | null>(null);
@@ -189,18 +196,36 @@ export function ExportModal() {
     }
   }, [width, height, format, quality, fitMode, updatePreview]);
 
-  // Lock body scroll when modal is open
+  // Lock body scroll and handle history state when modal is open
   useEffect(() => {
     if (exportImageBlob) {
       const originalStyle = window.getComputedStyle(document.body).overflow;
       document.body.style.overflow = "hidden";
+
+      window.history.pushState({ modal: "export" }, "");
+
+      const handlePopState = () => {
+        setExportImageBlob(null);
+      };
+
+      window.addEventListener("popstate", handlePopState);
+
       return () => {
         document.body.style.overflow = originalStyle;
+        window.removeEventListener("popstate", handlePopState);
       };
     }
-  }, [exportImageBlob]);
+  }, [exportImageBlob, setExportImageBlob]);
 
-  if (!exportImageBlob) return null;
+  if (!mounted || !exportImageBlob) return null;
+
+  const handleClose = () => {
+    if (window.history.state?.modal === "export") {
+      window.history.back();
+    } else {
+      setExportImageBlob(null);
+    }
+  };
 
   const handleDownload = async () => {
     if (!previewBlob) return;
@@ -220,7 +245,12 @@ export function ExportModal() {
       a.click();
 
       setTimeout(() => URL.revokeObjectURL(finalUrl), 1000);
-      setExportImageBlob(null); // Close modal
+
+      if (window.history.state?.modal === "export") {
+        window.history.back();
+      } else {
+        setExportImageBlob(null); // Close modal
+      }
     } catch (e) {
       console.error(e);
       alert("Failed to export high-resolution image.");
@@ -231,6 +261,13 @@ export function ExportModal() {
 
   const handleWidthChange = (val: number) => {
     setWidth(val);
+    if (val === 0) {
+      if (lockAspect) {
+        setHeight(0);
+        setScale(0);
+      }
+      return;
+    }
     if (lockAspect && origWidthRef.current) {
       const newScale = val / origWidthRef.current;
       setScale(newScale);
@@ -242,6 +279,13 @@ export function ExportModal() {
 
   const handleHeightChange = (val: number) => {
     setHeight(val);
+    if (val === 0) {
+      if (lockAspect) {
+        setWidth(0);
+        setScale(0);
+      }
+      return;
+    }
     if (lockAspect && origHeightRef.current) {
       const newScale = val / origHeightRef.current;
       setScale(newScale);
@@ -251,6 +295,11 @@ export function ExportModal() {
 
   const handleScaleChange = (s: number) => {
     setScale(s);
+    if (s === 0) {
+      setWidth(0);
+      setHeight(0);
+      return;
+    }
     setWidth(Math.round(origWidthRef.current * s));
     setHeight(Math.round(origHeightRef.current * s));
   };
@@ -277,20 +326,20 @@ export function ExportModal() {
     { id: "image/webp", title: "WebP", subtitle: "Modern web" },
   ];
 
-  return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
       <div className="bg-panel border border-panel-border rounded-xl shadow-2xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden h-[95vh] md:h-auto md:max-h-[90vh]">
         {/* Preview Panel */}
         <div className="flex-1 bg-background flex flex-col relative min-h-0">
-          <div className="p-3 md:p-4 border-b border-panel-border flex justify-between items-center h-[50px] md:h-[60px] shrink-0">
+          <div className="hidden md:flex px-6 border-b border-panel-border justify-between items-center h-[60px] shrink-0">
             <div className="flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-              <h3 className="font-bold text-sm md:text-base text-foreground">
+              <ImageIcon className="w-5 h-5 text-primary" />
+              <h3 className="font-bold text-base text-foreground">
                 Live Preview
               </h3>
             </div>
             {fileSize && (
-              <span className="text-[10px] md:text-xs font-mono text-primary-foreground bg-primary px-2 md:px-3 py-1 md:py-1.5 rounded-full shadow-sm">
+              <span className="text-xs font-mono text-primary-foreground bg-primary px-3 py-1.5 rounded-full shadow-sm">
                 {(fileSize / 1024).toFixed(1)} KB
               </span>
             )}
@@ -324,25 +373,30 @@ export function ExportModal() {
         </div>
 
         {/* Controls Panel */}
-        <div className="h-[55vh] md:h-auto flex-none md:flex-1 w-full md:w-96 bg-panel border-t md:border-t-0 md:border-l border-panel-border flex flex-col min-h-0">
-          <div className="p-4 md:p-5 border-b border-panel-border flex justify-between items-center h-[50px] md:h-[60px] shrink-0">
+        <div className="h-[65vh] md:h-auto flex-none w-full md:w-[450px] lg:w-[500px] bg-panel border-t md:border-t-0 md:border-l border-panel-border flex flex-col min-h-0">
+          <div className="px-5 md:px-6 border-b border-panel-border flex justify-between items-center h-[50px] md:h-[60px] shrink-0">
             <div className="flex items-center gap-2">
               <Settings2 className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
               <h2 className="text-base md:text-lg font-bold text-foreground">
                 Export Settings
               </h2>
+              {fileSize && (
+                <span className="md:hidden ml-1 text-[10px] font-mono text-primary-foreground bg-primary px-2 py-1 rounded-full shadow-sm">
+                  {(fileSize / 1024).toFixed(1)} KB
+                </span>
+              )}
             </div>
             <button
-              onClick={() => setExportImageBlob(null)}
+              onClick={handleClose}
               className="p-1.5 hover:bg-muted text-muted-foreground rounded-md transition-colors"
             >
               <X className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           </div>
 
-          <div className="p-4 md:p-6 flex flex-col gap-5 overflow-y-auto flex-1 overscroll-contain">
+          <div className="px-5 md:px-6 py-6 md:py-8 flex flex-col gap-8 overflow-y-auto flex-1 overscroll-contain">
             {/* Format Selection Cards */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">
                 Format
               </label>
@@ -351,7 +405,7 @@ export function ExportModal() {
                   <button
                     key={card.id}
                     onClick={() => setFormat(card.id)}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
+                    className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all ${
                       format === card.id
                         ? "bg-primary text-primary-foreground border-primary shadow-md"
                         : "bg-background border-panel-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
@@ -369,7 +423,7 @@ export function ExportModal() {
             </div>
 
             {/* Quality Slider */}
-            <div className="flex flex-col gap-3 transition-opacity duration-300">
+            <div className="flex flex-col gap-5 transition-opacity duration-300">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   Quality
@@ -379,11 +433,15 @@ export function ExportModal() {
                     type="number"
                     min="1"
                     max="100"
-                    value={quality}
+                    value={quality || ""}
                     onChange={(e) => {
-                      let val = parseInt(e.target.value);
-                      if (isNaN(val)) val = 100;
-                      setQuality(Math.min(100, Math.max(1, val)));
+                      if (e.target.value === "") {
+                        setQuality(0);
+                      } else {
+                        const val = parseInt(e.target.value);
+                        if (!isNaN(val))
+                          setQuality(Math.min(100, Math.max(1, val)));
+                      }
                     }}
                     className="w-14 bg-background border border-panel-border rounded-md px-2 py-1 text-xs font-mono text-center focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
@@ -399,14 +457,14 @@ export function ExportModal() {
                 step="1"
                 value={quality}
                 onChange={(e) => setQuality(parseInt(e.target.value))}
-                className="w-full accent-primary h-2 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full cursor-pointer disabled:cursor-not-allowed"
+                className="w-full accent-primary h-3 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full cursor-pointer disabled:cursor-not-allowed"
               />
             </div>
 
             <div className="h-px bg-panel-border w-full"></div>
 
             {/* Dimensions */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   Dimensions
@@ -447,10 +505,14 @@ export function ExportModal() {
                   </span>
                   <input
                     type="number"
-                    value={width}
-                    onChange={(e) =>
-                      handleWidthChange(parseInt(e.target.value) || 0)
-                    }
+                    value={width || ""}
+                    onChange={(e) => {
+                      if (e.target.value === "") {
+                        handleWidthChange(0);
+                      } else {
+                        handleWidthChange(parseInt(e.target.value) || 0);
+                      }
+                    }}
                     className="w-full bg-background border border-panel-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
@@ -461,10 +523,14 @@ export function ExportModal() {
                   </span>
                   <input
                     type="number"
-                    value={height}
-                    onChange={(e) =>
-                      handleHeightChange(parseInt(e.target.value) || 0)
-                    }
+                    value={height || ""}
+                    onChange={(e) => {
+                      if (e.target.value === "") {
+                        handleHeightChange(0);
+                      } else {
+                        handleHeightChange(parseInt(e.target.value) || 0);
+                      }
+                    }}
                     className="w-full bg-background border border-panel-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
@@ -501,7 +567,7 @@ export function ExportModal() {
               )}
 
               {/* Scale Slider */}
-              <div className="flex flex-col gap-2 mt-2">
+              <div className="flex flex-col gap-4 mt-4">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                     Scale
@@ -510,14 +576,18 @@ export function ExportModal() {
                     <input
                       type="number"
                       min="1"
-                      max="400"
-                      value={Math.round(scale * 100)}
+                      max="200"
+                      value={Math.round(scale * 100) || ""}
                       onChange={(e) => {
-                        let val = parseInt(e.target.value);
-                        if (isNaN(val)) val = 100;
-                        handleScaleChange(
-                          Math.min(400, Math.max(1, val)) / 100,
-                        );
+                        if (e.target.value === "") {
+                          handleScaleChange(0);
+                        } else {
+                          const val = parseInt(e.target.value);
+                          if (!isNaN(val))
+                            handleScaleChange(
+                              Math.min(200, Math.max(1, val)) / 100,
+                            );
+                        }
                       }}
                       className="w-14 bg-background border border-panel-border rounded-md px-2 py-1 text-xs font-mono text-center focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
@@ -529,36 +599,42 @@ export function ExportModal() {
                 <input
                   type="range"
                   min="1"
-                  max="400"
+                  max="200"
                   step="1"
                   value={Math.round(scale * 100)}
                   onChange={(e) =>
                     handleScaleChange(parseInt(e.target.value) / 100)
                   }
-                  className="w-full accent-primary h-2 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full cursor-pointer"
+                  className="w-full accent-primary h-3 bg-muted rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full cursor-pointer"
                 />
               </div>
 
               {/* Presets */}
-              <div className="grid grid-cols-5 gap-1.5 mt-2">
-                {[0.25, 0.5, 1, 2, 4].map((s) => (
+              <div className="grid grid-cols-5 gap-2 mt-4">
+                {[
+                  { v: 0.25, l: "25%" },
+                  { v: 0.5, l: "50%" },
+                  { v: 0.75, l: "75%" },
+                  { v: 1, l: "Original" },
+                  { v: 2, l: "2x" },
+                ].map((s) => (
                   <button
-                    key={s}
-                    onClick={() => handlePreset(s)}
-                    className={`py-1.5 text-[11px] font-mono rounded border transition-all ${
-                      scale === s
+                    key={s.v}
+                    onClick={() => handlePreset(s.v)}
+                    className={`py-2 text-[10px] leading-tight font-mono rounded border transition-all ${
+                      scale === s.v
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-background border-panel-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
                     }`}
                   >
-                    {s}x
+                    {s.l}
                   </button>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="p-5 border-t border-panel-border bg-background/50">
+          <div className="px-5 md:px-6 py-5 border-t border-panel-border bg-background/50">
             <button
               onClick={handleDownload}
               disabled={isProcessing || !previewBlob}
@@ -570,6 +646,7 @@ export function ExportModal() {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

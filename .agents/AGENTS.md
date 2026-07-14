@@ -60,4 +60,9 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 - **Canvas Visuals**: Features like cropping should always include premium graphical hints, such as drawing a "Rule of Thirds" grid on the PixiJS bounds box (`useTransformOverlay.ts`) and utilizing stylized handles (thick L-shapes or pills) rather than standard small squares.
 - **Responsive Layout**: If you create a new workspace tool, ensure the layout remains clean on mobile devices. Navigation bars should dynamically show the active tool on small viewports so users don't lose context.
 
+### 9. Export & Modal Architecture
+
+- **React Portals for Modals**: When building global overlays like the `ExportModal`, ALWAYS use `createPortal(..., document.body)` and apply `z-[100]`. Due to the `ToolPageLayout` and `WorkspaceLayout` heavily utilizing internal `z-10` to `z-50` stacking contexts for the canvas and navigation bars, nesting a fixed modal inside the workspace DOM will cause it to be clipped or trapped behind navigation headers.
+- **Mobile History Management**: If a modal occupies the full screen on mobile devices, use the browser's `history.pushState` API upon opening and listen for `popstate` events to close the modal. This ensures that users who swipe back on their phones or press the physical back button will gracefully exit the modal rather than accidentally navigating away from the tool page and losing their work.
+
 <!-- END:file-forge-agent-rules -->

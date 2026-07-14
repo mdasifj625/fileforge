@@ -19,6 +19,8 @@ export function WorkspaceLayout({
   const undo = useWorkspaceStore((s) => s.undo);
   const redo = useWorkspaceStore((s) => s.redo);
   const triggerExport = useWorkspaceStore((s) => s.triggerExport);
+  const hasLayers = useWorkspaceStore((s) => s.layers.length > 0);
+  const activeTool = useWorkspaceStore((s) => s.activeTool);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -79,11 +81,10 @@ export function WorkspaceLayout({
           <div className="flex items-center">
             <button
               onClick={triggerExport}
-              className="px-5 py-2 text-sm font-bold bg-primary hover:bg-primary-hover text-primary-foreground rounded-lg transition-colors shadow-sm shadow-primary/20"
+              disabled={!hasLayers}
+              className="px-5 py-2 text-sm font-bold bg-primary hover:bg-primary-hover text-primary-foreground rounded-lg transition-all shadow-sm shadow-primary/20 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:bg-primary"
             >
-              {useWorkspaceStore((s) => s.activeTool) === "compress"
-                ? "Compress"
-                : "Export"}
+              {activeTool === "compress" ? "Compress" : "Export"}
             </button>
           </div>
         </header>
