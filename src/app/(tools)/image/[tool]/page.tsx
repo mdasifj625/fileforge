@@ -87,7 +87,6 @@ export default async function ImageToolPage({
 
   const contentData = getToolContent("image", resolvedParams.tool);
   const title = contentData?.title || toolData.title;
-  const description = contentData?.description || toolData.description;
 
   const relatedTools = Object.keys(VALID_TOOLS)
     .filter((k) => k !== resolvedParams.tool)
