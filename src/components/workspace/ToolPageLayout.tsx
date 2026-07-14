@@ -186,21 +186,27 @@ export function ToolPageLayout({
           <div>
             <h2 className="text-2xl font-bold mb-8">Related Tools</h2>
             <div className="flex flex-col gap-3">
-              {TOOL_MENUS.flatMap((menu) => menu.items)
-                .filter((tool) => tool.href !== `/${category}/${toolId}`)
-                .map((rt) => (
-                  <Link
-                    key={rt.href}
-                    href={rt.href}
-                    className="group flex items-center justify-between p-4 bg-panel border border-panel-border rounded-xl hover:border-primary/50 hover:bg-primary/5 transition-all"
-                  >
-                    <span className="font-medium text-sm">{rt.name}</span>
-                    <ArrowRight
-                      size={16}
-                      className="text-muted-foreground group-hover:text-primary transition-colors"
-                    />
-                  </Link>
-                ))}
+              {(
+                relatedTools ||
+                TOOL_MENUS.find((m) => m.title.toLowerCase() === category)
+                  ?.items.filter(
+                    (tool) => tool.href !== `/${category}/${toolId}`,
+                  )
+                  .map((rt) => ({ title: rt.name, href: rt.href })) ||
+                []
+              ).map((rt) => (
+                <Link
+                  key={rt.href}
+                  href={rt.href}
+                  className="group flex items-center justify-between p-4 bg-panel border border-panel-border rounded-xl hover:border-primary/50 hover:bg-primary/5 transition-all"
+                >
+                  <span className="font-medium text-sm">{rt.title}</span>
+                  <ArrowRight
+                    size={16}
+                    className="text-muted-foreground group-hover:text-primary transition-colors"
+                  />
+                </Link>
+              ))}
 
               {/* AdSense In-feed (Related Tools) */}
               <div className="mt-4">
