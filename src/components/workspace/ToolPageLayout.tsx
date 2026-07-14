@@ -59,8 +59,16 @@ export function ToolPageLayout({
               className="object-contain"
             />
           </div>
-          File Forge
+          <span className="hidden sm:inline-block">File Forge</span>
         </Link>
+
+        {/* Mobile Tool Title */}
+        <div className="md:hidden ml-3 pl-3 border-l border-panel-border">
+          <span className="text-sm font-bold text-foreground truncate max-w-[130px] block">
+            {title}
+          </span>
+        </div>
+
         <nav className="hidden md:flex ml-10 gap-6 text-sm font-medium text-muted-foreground">
           {TOOL_MENUS.map((menu) => (
             <div key={menu.title} className="relative group">
@@ -159,7 +167,7 @@ export function ToolPageLayout({
 
       <main className="flex-1 flex flex-col">
         <section className="w-full flex-1 relative z-10 flex flex-row">
-          <div className="flex-1 shadow-2xl rounded-none ring-0 border-b border-panel-border overflow-hidden bg-background flex flex-col relative min-w-0">
+          <div className="flex-1 rounded-none ring-0 border-b border-panel-border overflow-hidden bg-background flex flex-col relative min-w-0">
             <WorkspaceLayout title={title}>{children}</WorkspaceLayout>
           </div>
 

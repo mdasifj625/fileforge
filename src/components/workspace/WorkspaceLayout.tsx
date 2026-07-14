@@ -63,7 +63,7 @@ export function WorkspaceLayout({
         {/* Top bar can contain tool title, export button, undo/redo */}
         <header className="h-14 border-b border-panel-border flex items-center justify-between px-3 md:px-5 bg-background/50 backdrop-blur-md z-10 shrink-0 relative">
           {/* Left Side: Empty or Tool specific breadcrumbs later */}
-          <div className="flex items-center gap-2 w-[40px] md:w-auto">
+          <div className="hidden md:flex items-center gap-2 md:w-auto">
             {title && (
               <h1 className="text-sm font-bold text-foreground truncate max-w-[200px] md:max-w-none">
                 {title}
