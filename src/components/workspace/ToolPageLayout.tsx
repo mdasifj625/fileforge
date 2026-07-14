@@ -48,13 +48,13 @@ export function ToolPageLayout({
           href="/"
           className="flex items-center gap-2 font-bold text-lg hover:opacity-80 transition-opacity"
         >
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden bg-white shadow-sm shadow-primary/20">
+          <div className="w-8 h-8 flex items-center justify-center">
             <Image
-              src="/logo.jpg"
+              src="/logo.png"
               alt="File Forge Logo"
               width={32}
               height={32}
-              className="object-cover"
+              className="object-contain"
             />
           </div>
           File Forge
