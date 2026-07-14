@@ -96,7 +96,11 @@ export default async function ImageToolPage({
 
   return (
     <ToolPageLayout
-      toolId={resolvedParams.tool}
+      toolId={
+        resolvedParams.tool === "remove-background"
+          ? "ai-remove-background"
+          : resolvedParams.tool
+      }
       title={title}
       category="image"
       content={contentData?.content}

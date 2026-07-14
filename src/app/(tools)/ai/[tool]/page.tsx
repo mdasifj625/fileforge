@@ -51,7 +51,7 @@ export default async function AIToolPage({
 
   return (
     <ToolPageLayout
-      toolId={resolvedParams.tool}
+      toolId={`ai-${resolvedParams.tool}`}
       title={toolData.title}
       category="ai"
       relatedTools={relatedTools}
