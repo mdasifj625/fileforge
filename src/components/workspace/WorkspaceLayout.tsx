@@ -20,22 +20,6 @@ export function WorkspaceLayout({
   const redo = useWorkspaceStore((s) => s.redo);
   const triggerExport = useWorkspaceStore((s) => s.triggerExport);
 
-  const theme = useWorkspaceStore((s) => s.theme);
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(theme);
-    }
-  }, [theme]);
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
