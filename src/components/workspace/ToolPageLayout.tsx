@@ -7,6 +7,8 @@ import { TOOL_MENUS } from "@/config/tools";
 import Link from "next/link";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
+import GoogleAd from "@/components/ads/GoogleAd";
+import StickyBottomAd from "@/components/ads/StickyBottomAd";
 import {
   ArrowRight,
   Sparkles,
@@ -156,14 +158,35 @@ export function ToolPageLayout({
       )}
 
       <main className="flex-1 flex flex-col">
-        <section className="w-full flex-1 relative z-10 flex flex-col">
-          <div className="w-full flex-1 shadow-2xl rounded-none ring-0 border-b border-panel-border overflow-hidden bg-background">
+        <section className="w-full flex-1 relative z-10 flex flex-row">
+          <div className="flex-1 shadow-2xl rounded-none ring-0 border-b border-panel-border overflow-hidden bg-background flex flex-col relative min-w-0">
             <WorkspaceLayout title={title}>{children}</WorkspaceLayout>
           </div>
+
+          {/* Vertical Sticky Sidebar AdSense (Desktop Only) */}
+          <aside className="hidden xl:flex w-[160px] 2xl:w-[300px] border-l border-panel-border bg-panel flex-col items-center py-6 px-2 2xl:px-4 shrink-0">
+            <div className="sticky top-24">
+              <GoogleAd
+                type="skyscraper"
+                format="vertical"
+                className="w-[140px] 2xl:w-[268px] h-[600px] rounded-xl"
+              />
+            </div>
+          </aside>
         </section>
 
+        {/* Workspace Leaderboard AdSense */}
+        <div className="w-full max-w-7xl mx-auto px-6 py-12">
+          <GoogleAd
+            type="display"
+            format="horizontal"
+            className="w-full h-[90px] md:h-[120px] rounded-xl"
+            label="Advertisement"
+          />
+        </div>
+
         {/* How it works (Redesigned) */}
-        <section className="w-full bg-panel/50 border-y border-panel-border py-32 backdrop-blur-sm">
+        <section className="w-full bg-panel/50 border-b border-panel-border py-32 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-20">
               <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
@@ -272,6 +295,15 @@ export function ToolPageLayout({
                   />
                 </Link>
               ))}
+
+              {/* AdSense In-feed (Related Tools) */}
+              <div className="mt-4">
+                <GoogleAd
+                  type="in-feed"
+                  format="rectangle"
+                  className="w-full min-h-[250px] rounded-xl"
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -281,6 +313,8 @@ export function ToolPageLayout({
       <footer className="border-t border-panel-border py-8 text-center text-muted-foreground text-sm mt-auto">
         <p>© 2026 File Forge. All rights reserved.</p>
       </footer>
+
+      <StickyBottomAd />
     </div>
   );
 }

@@ -12,7 +12,7 @@ File Forge is a local-first, privacy-focused file processing workspace. It allow
 - **Media Heavyweight:** Full client-side video and audio processing (Trim, Merge, Convert, Compress) using FFmpeg.wasm with SharedArrayBuffer.
 - **Document Workspaces:** Fast PDF processing, merging, splitting, watermarking, and rendering via `pdf-lib` and `react-pdf`.
 - **Developer Utilities:** In-browser ZIP/Unzip, Base64 encoding/decoding, and UUID generation without API calls.
-- **Backend & Monetization Setup:** Prepared architecture with dual compatibility for Supabase Authentication and MongoDB/Mongoose models (`User`, `Subscription`, `Workspace`).
+- **Backend & Monetization Setup:** Prepared architecture with dual compatibility for Supabase Authentication and MongoDB/Mongoose models (`User`, `Subscription`, `Workspace`). Fully integrated with Google AdSense, featuring optimized, high-RPM placements (Responsive Leaderboards, In-feed Rectangles, Skyscrapers, and Sticky Bottom Anchors) that comply with UX best practices and policies against accidental clicks.
 - **Time Travel:** Fully integrated Undo/Redo history system that tracks complex state transformations and retains original native file references.
 - **Privacy First:** No server uploads, no data collection.
 - **Standalone Tools:** Dedicated dynamic routes (e.g., `/image/crop`, `/video/compress`) that offer focused workspaces optimized for mobile and desktop.

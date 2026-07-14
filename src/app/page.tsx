@@ -3,6 +3,8 @@
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import GoogleAd from "@/components/ads/GoogleAd";
+import StickyBottomAd from "@/components/ads/StickyBottomAd";
 import {
   ArrowRight,
   ShieldCheck,
@@ -74,8 +76,16 @@ export default function Home() {
         </div>
       </section>
 
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <GoogleAd
+          type="display"
+          format="horizontal"
+          className="w-full h-[100px] md:h-[120px] rounded-2xl"
+        />
+      </div>
+
       {/* How It Works */}
-      <section className="max-w-7xl mx-auto px-6 py-20 border-t border-panel-border">
+      <section className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-4">How File Forge Works</h2>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
@@ -279,6 +289,15 @@ export default function Home() {
               </span>
             </div>
           </Link>
+
+          {/* AdSense In-feed (Rectangle) */}
+          <div className="group w-full md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(25%-1.125rem)] block p-1 rounded-2xl bg-gradient-to-b from-panel-border to-transparent">
+            <GoogleAd
+              type="in-feed"
+              format="rectangle"
+              className="w-full h-full min-h-[300px] rounded-xl"
+            />
+          </div>
         </div>
       </section>
 
@@ -432,6 +451,16 @@ export default function Home() {
         </div>
       </section>
 
+      {/* In-Article AdSense */}
+      <section className="max-w-4xl mx-auto px-6 py-8">
+        <GoogleAd
+          type="in-article"
+          format="fluid"
+          layout="in-article"
+          className="w-full h-[200px] md:h-[250px] rounded-2xl"
+        />
+      </section>
+
       {/* Comprehensive SEO Content Section */}
       <section className="bg-panel border-y border-panel-border py-24">
         <div className="max-w-4xl mx-auto px-6 prose dark:prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-a:text-primary prose-strong:text-foreground prose-code:text-foreground prose-em:text-foreground prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-normal">
@@ -558,6 +587,8 @@ export default function Home() {
       </section>
 
       <Footer />
+
+      <StickyBottomAd />
     </div>
   );
 }
