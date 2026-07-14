@@ -7,12 +7,16 @@ import { Ben2Plugin } from "./plugins/Ben2Plugin";
 // Disable local models, since we will download from huggingface hub
 env.allowLocalModels = false;
 env.useBrowserCache = true;
-if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
-  env.backends.onnx.wasm.numThreads = 1;
+if (env.backends?.onnx?.wasm) {
+  // Allow multi-threading to speed up WASM execution drastically
+  env.backends.onnx.wasm.numThreads =
+    typeof navigator !== "undefined"
+      ? Math.max(1, (navigator.hardwareConcurrency || 4) - 1)
+      : 4;
 }
 
 class RMBGProcessor {
-  private activePlugin: PipelinePlugin;
+  private readonly activePlugin: PipelinePlugin;
 
   constructor() {
     // We can easily swap this out for Rmbg14Plugin or a future model
