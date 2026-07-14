@@ -1,5 +1,6 @@
-import React from "react";
+import { useState } from "react";
 import { FileLayer } from "@/store/useWorkspaceStore";
+import { Link, Unlock, RotateCcw } from "lucide-react";
 
 interface Props {
   activeLayer: FileLayer;
@@ -9,15 +10,65 @@ interface Props {
 export function LayerCropSettings({
   activeLayer,
   updateLayerTransform,
-}: Props) {
+}: Readonly<Props>) {
+  const [lockAspect, setLockAspect] = useState(false);
+
+  const currentRect = activeLayer.cropRect || {
+    x: 0,
+    y: 0,
+    width: activeLayer.originalWidth,
+    height: activeLayer.originalHeight,
+  };
+
+  const handleReset = () => {
+    updateLayerTransform(activeLayer.id, {
+      cropAspectRatio: "free",
+      cropRect: {
+        x: 0,
+        y: 0,
+        width: activeLayer.originalWidth,
+        height: activeLayer.originalHeight,
+      },
+    });
+  };
+
+  const handleWidthChange = (val: number) => {
+    let newH = currentRect.height;
+    if (lockAspect && currentRect.width > 0) {
+      newH = (val / currentRect.width) * currentRect.height;
+    }
+    updateLayerTransform(activeLayer.id, {
+      cropRect: { ...currentRect, width: val, height: newH },
+    });
+  };
+
+  const handleHeightChange = (val: number) => {
+    let newW = currentRect.width;
+    if (lockAspect && currentRect.height > 0) {
+      newW = (val / currentRect.height) * currentRect.width;
+    }
+    updateLayerTransform(activeLayer.id, {
+      cropRect: { ...currentRect, width: newW, height: val },
+    });
+  };
+
   return (
     <>
       <div>
-        <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
-          Crop
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+            Crop & Size
+          </h3>
+          <button
+            onClick={handleReset}
+            className="text-[10px] flex items-center gap-1 bg-panel border border-panel-border px-2 py-1 rounded hover:bg-muted text-muted-foreground transition-all"
+            title="Reset Crop"
+          >
+            <RotateCcw size={12} /> Reset
+          </button>
+        </div>
 
-        <div className="mb-4">
+        <div className="mb-6">
           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 block">
             Constraint
           </label>
@@ -30,12 +81,7 @@ export function LayerCropSettings({
               else if (val === "original") ratio = "original";
               else ratio = parseFloat(val);
 
-              let newCropRect = activeLayer.cropRect || {
-                x: 0,
-                y: 0,
-                width: activeLayer.originalWidth,
-                height: activeLayer.originalHeight,
-              };
+              let newCropRect = { ...currentRect };
 
               if (ratio !== "free" && ratio !== null) {
                 const targetRatio =
@@ -80,125 +126,125 @@ export function LayerCropSettings({
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          {/* Crop X */}
+        <div className="space-y-4">
+          {/* Crop Area Size Slider */}
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              Offset X
-            </label>
+            <div className="flex justify-between items-center">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Crop Area Size
+              </label>
+              <span className="text-xs font-mono">
+                {(() => {
+                  const cropRatio =
+                    currentRect.width / (currentRect.height || 1);
+                  let maxW = activeLayer.originalWidth;
+                  let maxH = activeLayer.originalWidth / cropRatio;
+                  if (maxH > activeLayer.originalHeight) {
+                    maxH = activeLayer.originalHeight;
+                    maxW = activeLayer.originalHeight * cropRatio;
+                  }
+                  return Math.round((currentRect.width / maxW) * 100);
+                })()}
+                %
+              </span>
+            </div>
             <input
-              type="number"
-              value={Math.round(activeLayer.cropRect?.x || 0)}
-              onChange={(e) => {
-                const num = parseFloat(e.target.value);
-                if (!isNaN(num)) {
-                  updateLayerTransform(activeLayer.id, {
-                    cropRect: {
-                      ...(activeLayer.cropRect || {
-                        x: 0,
-                        y: 0,
-                        width: activeLayer.originalWidth,
-                        height: activeLayer.originalHeight,
-                      }),
-                      x: num,
-                    },
-                  });
+              type="range"
+              min={1}
+              max={100}
+              value={(() => {
+                const cropRatio = currentRect.width / (currentRect.height || 1);
+                let maxW = activeLayer.originalWidth;
+                let maxH = activeLayer.originalWidth / cropRatio;
+                if (maxH > activeLayer.originalHeight) {
+                  maxH = activeLayer.originalHeight;
+                  maxW = activeLayer.originalHeight * cropRatio;
                 }
+                return Math.round((currentRect.width / maxW) * 100);
+              })()}
+              onChange={(e) => {
+                const percentage = parseFloat(e.target.value);
+                const cropRatio = currentRect.width / (currentRect.height || 1);
+                let maxW = activeLayer.originalWidth;
+                let maxH = activeLayer.originalWidth / cropRatio;
+
+                if (maxH > activeLayer.originalHeight) {
+                  maxH = activeLayer.originalHeight;
+                  maxW = activeLayer.originalHeight * cropRatio;
+                }
+
+                const newWidth = (percentage / 100) * maxW;
+                const newHeight = (percentage / 100) * maxH;
+
+                const cx = currentRect.x + currentRect.width / 2;
+                const cy = currentRect.y + currentRect.height / 2;
+
+                let newX = cx - newWidth / 2;
+                let newY = cy - newHeight / 2;
+
+                if (newX < 0) newX = 0;
+                if (newY < 0) newY = 0;
+                if (newX + newWidth > activeLayer.originalWidth)
+                  newX = activeLayer.originalWidth - newWidth;
+                if (newY + newHeight > activeLayer.originalHeight)
+                  newY = activeLayer.originalHeight - newHeight;
+
+                updateLayerTransform(activeLayer.id, {
+                  cropRect: {
+                    x: newX,
+                    y: newY,
+                    width: newWidth,
+                    height: newHeight,
+                  },
+                });
               }}
-              className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
+              className="w-full accent-primary h-2 bg-panel-border rounded-lg appearance-none cursor-pointer"
             />
           </div>
 
-          {/* Crop Y */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              Offset Y
-            </label>
-            <input
-              type="number"
-              value={Math.round(activeLayer.cropRect?.y || 0)}
-              onChange={(e) => {
-                const num = parseFloat(e.target.value);
-                if (!isNaN(num)) {
-                  updateLayerTransform(activeLayer.id, {
-                    cropRect: {
-                      ...(activeLayer.cropRect || {
-                        x: 0,
-                        y: 0,
-                        width: activeLayer.originalWidth,
-                        height: activeLayer.originalHeight,
-                      }),
-                      y: num,
-                    },
-                  });
+          <div className="flex items-center gap-2 pt-2">
+            {/* Width */}
+            <div className="flex-1 flex flex-col gap-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Crop Width
+              </label>
+              <input
+                type="number"
+                value={Math.round(currentRect.width)}
+                onChange={(e) =>
+                  handleWidthChange(parseFloat(e.target.value) || 1)
                 }
-              }}
-              className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
-            />
-          </div>
+                className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary font-mono"
+              />
+            </div>
 
-          {/* Crop Width */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              Width
-            </label>
-            <input
-              type="number"
-              value={Math.round(
-                activeLayer.cropRect?.width ?? activeLayer.originalWidth,
-              )}
-              onChange={(e) => {
-                const num = parseFloat(e.target.value);
-                if (!isNaN(num)) {
-                  updateLayerTransform(activeLayer.id, {
-                    cropRect: {
-                      ...(activeLayer.cropRect || {
-                        x: 0,
-                        y: 0,
-                        width: activeLayer.originalWidth,
-                        height: activeLayer.originalHeight,
-                      }),
-                      width: num,
-                    },
-                  });
-                }
-              }}
-              className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
-            />
-          </div>
+            {/* Aspect Lock */}
+            <button
+              onClick={() => setLockAspect(!lockAspect)}
+              className={`p-2 rounded-lg mt-5 transition-colors ${lockAspect ? "bg-primary text-primary-foreground" : "bg-panel border border-panel-border text-muted-foreground"}`}
+              title={lockAspect ? "Unlock Aspect Ratio" : "Lock Aspect Ratio"}
+            >
+              {lockAspect ? <Link size={14} /> : <Unlock size={14} />}
+            </button>
 
-          {/* Crop Height */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              Height
-            </label>
-            <input
-              type="number"
-              value={Math.round(
-                activeLayer.cropRect?.height ?? activeLayer.originalHeight,
-              )}
-              onChange={(e) => {
-                const num = parseFloat(e.target.value);
-                if (!isNaN(num)) {
-                  updateLayerTransform(activeLayer.id, {
-                    cropRect: {
-                      ...(activeLayer.cropRect || {
-                        x: 0,
-                        y: 0,
-                        width: activeLayer.originalWidth,
-                        height: activeLayer.originalHeight,
-                      }),
-                      height: num,
-                    },
-                  });
+            {/* Height */}
+            <div className="flex-1 flex flex-col gap-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Crop Height
+              </label>
+              <input
+                type="number"
+                value={Math.round(currentRect.height)}
+                onChange={(e) =>
+                  handleHeightChange(parseFloat(e.target.value) || 1)
                 }
-              }}
-              className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono"
-            />
+                className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary font-mono"
+              />
+            </div>
           </div>
         </div>
       </div>
-      <hr className="border-panel-border" />
+      <hr className="border-panel-border my-6" />
     </>
   );
 }

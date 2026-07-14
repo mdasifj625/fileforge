@@ -88,6 +88,7 @@ export function PropertiesPanel() {
               <LayerTransformSettings
                 activeLayer={activeLayer}
                 handleTransformChange={handleTransformChange}
+                updateLayerTransform={updateLayerTransform}
               />
             )}
 
