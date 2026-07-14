@@ -1,9 +1,9 @@
 ---
-title: "Free Online Image Cropper | Crop Photos Locally & Securely"
+title: "Crop Image"
 description: "Crop images online directly in your browser. Trim borders, focus on subjects, and maintain specific aspect ratios completely securely. Zero uploads required."
 ---
 
-# Free Online Image Cropper
+# Crop Image
 
 Welcome to the most secure, privacy-first image cropping tool on the web. Whether you are prepping an image for social media, cutting out unwanted background elements, or just refining your composition, File Forge's Image Cropper delivers a professional-grade experience directly in your browser.
 

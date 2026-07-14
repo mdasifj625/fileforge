@@ -3,32 +3,51 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { TOOL_MENUS } from "@/config/tools";
 import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  const currentTool = TOOL_MENUS.flatMap((m) => m.items).find(
+    (i) => i.href === pathname,
+  );
 
   return (
     <>
       <nav className="w-full border-b border-panel-border bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-2 font-bold text-xl tracking-tight"
-          >
-            <div className="w-8 h-8 flex items-center justify-center">
-              <Image
-                src="/logo.png"
-                alt="File Forge Logo"
-                width={32}
-                height={32}
-                className="object-contain"
-              />
-            </div>
-            File Forge
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="flex items-center gap-2 font-bold text-xl tracking-tight shrink-0"
+            >
+              <div className="w-8 h-8 flex items-center justify-center">
+                <Image
+                  src="/logo.png"
+                  alt="File Forge Logo"
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                />
+              </div>
+              <span className="hidden md:inline">File Forge</span>
+              {!currentTool && <span className="md:hidden">File Forge</span>}
+            </Link>
+            {currentTool && (
+              <>
+                <span className="text-muted-foreground/50 md:hidden font-light text-xl">
+                  |
+                </span>
+                <span className="md:hidden font-bold text-sm truncate max-w-[140px] text-foreground">
+                  {currentTool.name}
+                </span>
+              </>
+            )}
+          </div>
           <div className="flex items-center gap-4 hidden md:flex">
             <nav className="flex items-center gap-6 text-sm font-medium text-muted-foreground">
               {TOOL_MENUS.map((menu) => (
