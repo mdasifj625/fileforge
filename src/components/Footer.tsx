@@ -136,7 +136,6 @@ export default function Footer() {
         <div className="pt-8 border-t border-panel-border flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} File Forge. All rights reserved.
-            Engineered with Next.js, WebAssembly & PixiJS.
           </p>
           <div className="flex gap-4 text-muted-foreground text-sm font-medium">
             <span>Your files never leave your device.</span>
