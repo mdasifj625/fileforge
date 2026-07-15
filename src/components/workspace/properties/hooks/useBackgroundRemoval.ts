@@ -4,6 +4,7 @@ import { db } from "@/db";
 import * as Comlink from "comlink";
 import type { AIProcessor } from "@/workers/rmbg.worker";
 import { FileLayer } from "@/store/useWorkspaceStore";
+import { PerformanceProfiler } from "@/utils/PerformanceProfiler";
 
 export function useBackgroundRemoval(
   activeLayer: FileLayer | undefined,
@@ -21,11 +22,21 @@ export function useBackgroundRemoval(
       const fileRecord = await db.files.get(activeLayer.fileId);
       if (!fileRecord) throw new Error("File not found in DB");
 
+      const profiler = new PerformanceProfiler("AI Background Removal");
       const backends = ["webgpu", "wasm"];
       let maskBlob: Blob | null = null;
       let lastError: any = null;
 
-      for (const backend of backends) {
+      for (let i = 0; i < backends.length; i++) {
+        const backend = backends[i];
+        const nextBackend = backends[i + 1];
+
+        profiler.attempt(
+          i,
+          backends.length,
+          `Backend = ${backend.toUpperCase()}`,
+        );
+
         const worker = new Worker(
           new URL("@/workers/rmbg.worker.entry", import.meta.url),
           { type: "module" },
@@ -47,17 +58,18 @@ export function useBackgroundRemoval(
             undefined, // onProgress
             quality,
             Comlink.proxy((report: string) => {
-              // Logs to console cleanly without interrupting the UI flow
               console.log(report);
             }),
           );
 
+          profiler.succeed(`Backend ${backend.toUpperCase()}`);
           worker.terminate();
           break; // Success!
-        } catch (e) {
-          console.warn(
-            `[useBackgroundRemoval] Backend ${backend} failed, recreating worker for next attempt...`,
+        } catch (e: any) {
+          profiler.fail(
+            `Backend ${backend.toUpperCase()}`,
             e,
+            nextBackend?.toUpperCase(),
           );
           lastError = e;
           worker.terminate();

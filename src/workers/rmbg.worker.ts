@@ -79,16 +79,25 @@ class RMBGProcessor {
       await plugin.loadModel(onProgress);
       profiler.end("Fetch Model Weights & Session Init");
 
-      // Execute a tiny dummy prediction to force shader compilation and catch WebGPU crashes (e.g. Context Lost)
-      profiler.start("Warmup Inference (Shader/Graph Compilation)");
-      const dummyImage = new RawImage(
-        new Uint8ClampedArray(64 * 64 * 4),
-        64,
-        64,
-        4,
-      );
-      await plugin.predict(dummyImage);
-      profiler.end("Warmup Inference (Shader/Graph Compilation)");
+      // Warmup inference forces GPU shader/pipeline compilation and catches WebGPU context loss.
+      // WASM has no shaders — skipping warmup on CPU backends saves ~3 minutes of wasted inference.
+      const isGpuBackend =
+        backend.startsWith("webgpu") || backend.startsWith("webnn");
+      if (isGpuBackend) {
+        profiler.start("Warmup Inference (GPU Shader/Graph Compilation)");
+        const dummyImage = new RawImage(
+          new Uint8ClampedArray(64 * 64 * 4),
+          64,
+          64,
+          4,
+        );
+        await plugin.predict(dummyImage);
+        profiler.end("Warmup Inference (GPU Shader/Graph Compilation)");
+      } else {
+        profiler.succeed(
+          `Warmup skipped — ${backend.toUpperCase()} is CPU-bound, no shader compilation needed`,
+        );
+      }
 
       this.activePlugin = plugin;
     } catch (e) {
