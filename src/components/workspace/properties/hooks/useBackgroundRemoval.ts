@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useCallback } from "react";
 import { db } from "@/db";
 import * as Comlink from "comlink";
@@ -20,27 +21,48 @@ export function useBackgroundRemoval(
       const fileRecord = await db.files.get(activeLayer.fileId);
       if (!fileRecord) throw new Error("File not found in DB");
 
-      const worker = new Worker(
-        new URL("@/workers/rmbg.worker.entry", import.meta.url),
-        { type: "module" },
-      );
-      const api = Comlink.wrap<AIProcessor>(worker);
+      const backends = ["webgpu", "wasm"];
+      let maskBlob: Blob | null = null;
+      let lastError: any = null;
 
-      await api.loadModel(
-        Comlink.proxy((progress: number) => {
-          setAiProgress(progress);
-        }),
-      );
+      for (const backend of backends) {
+        const worker = new Worker(
+          new URL("@/workers/rmbg.worker.entry", import.meta.url),
+          { type: "module" },
+        );
+        const api = Comlink.wrap<AIProcessor>(worker);
 
-      const maskBlob = await api.removeBackgroundGetMask(
-        fileRecord.blob,
-        undefined, // onProgress
-        "balanced",
-        Comlink.proxy((report: string) => {
-          // Logs to console cleanly without interrupting the UI flow
-          console.log(report);
-        }),
-      );
+        try {
+          await api.loadModel(
+            Comlink.proxy((progress: number) => {
+              setAiProgress(progress);
+            }),
+            backend,
+          );
+
+          maskBlob = await api.removeBackgroundGetMask(
+            fileRecord.blob,
+            undefined, // onProgress
+            "balanced",
+            Comlink.proxy((report: string) => {
+              // Logs to console cleanly without interrupting the UI flow
+              console.log(report);
+            }),
+          );
+
+          worker.terminate();
+          break; // Success!
+        } catch (e) {
+          console.warn(
+            `[useBackgroundRemoval] Backend ${backend} failed, recreating worker for next attempt...`,
+            e,
+          );
+          lastError = e;
+          worker.terminate();
+        }
+      }
+
+      if (!maskBlob) throw lastError || new Error("All AI backends failed.");
 
       // Save new mask blob
       const maskFileId = crypto.randomUUID();
@@ -55,8 +77,6 @@ export function useBackgroundRemoval(
 
       // Instead of replacing the layer with a new image, we apply the mask to the existing layer
       updateLayerTransform(activeLayer.id, { maskFileId });
-
-      worker.terminate();
     } catch (e) {
       console.error(e);
       alert("Failed to remove background.");

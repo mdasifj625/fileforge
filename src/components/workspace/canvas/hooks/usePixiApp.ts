@@ -31,36 +31,15 @@ export function usePixiApp({
         containerRef.current.appendChild(app.canvas);
       }
 
-      // Center the stage dynamically and scale to fit the first image
+      // Center the stage dynamically. We ONLY update position on resize.
+      // We do NOT scale the stage, because individual layers already handle their own scale in useLayerRenderer.
       resizeHandler = () => {
-        if (app && app.screen) {
+        if (app?.screen) {
           app.stage.position.set(app.screen.width / 2, app.screen.height / 2);
-
-          const { layers } = useWorkspaceStore.getState();
-          if (
-            layers.length > 0 &&
-            layers[0].originalWidth > 0 &&
-            layers[0].originalHeight > 0
-          ) {
-            const docWidth = layers[0].originalWidth;
-            const docHeight = layers[0].originalHeight;
-            const scaleX = (app.screen.width * 0.8) / docWidth;
-            const scaleY = (app.screen.height * 0.8) / docHeight;
-            const fitScale = Math.min(scaleX, scaleY, 1);
-            app.stage.scale.set(fitScale);
-          } else {
-            app.stage.scale.set(1);
-          }
         }
       };
 
       app.renderer.on("resize", resizeHandler);
-      // Subscribe to store changes so the stage scales when the first image is added
-      useWorkspaceStore.subscribe((state, prevState) => {
-        if (state.layers.length !== prevState.layers.length) {
-          resizeHandler!();
-        }
-      });
       resizeHandler(); // initial center
 
       // Initialize Transform Overlay Container (Always on top)

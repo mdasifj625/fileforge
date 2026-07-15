@@ -62,52 +62,36 @@ const QualityMap: Record<QualityMode, number> = {
 class RMBGProcessor {
   private activePlugin: PipelinePlugin | null = null;
 
-  async loadModel(onProgress?: (progress: number) => void) {
+  async loadModel(
+    onProgress?: (progress: number) => void,
+    forceBackend?: string,
+  ) {
     if (this.activePlugin) return;
 
-    for (const backend of preferredBackends) {
-      let plugin: Ben2Plugin | null = null;
-      try {
-        plugin = new Ben2Plugin(backend);
-        await plugin.loadModel(onProgress);
+    const backend = forceBackend || preferredBackends[0];
 
-        // Execute a tiny dummy prediction to force shader compilation and catch WebGPU crashes (e.g. Context Lost)
-        // Some mobile devices successfully "load" WebGPU but crash hard during the actual compute pipeline creation
-        console.log(
-          `[RMBGProcessor] Running warmup inference for ${backend}...`,
-        );
-        const dummyImage = new RawImage(
-          new Uint8ClampedArray(64 * 64 * 4),
-          64,
-          64,
-          4,
-        );
-        await plugin.predict(dummyImage);
+    try {
+      const plugin = new Ben2Plugin(backend);
+      await plugin.loadModel(onProgress);
 
-        this.activePlugin = plugin;
-        console.log(
-          `[RMBGProcessor] Successfully initialized pipeline with backend: ${backend}`,
-        );
-        return;
-      } catch (e) {
-        console.warn(
-          `[RMBGProcessor] Backend '${backend}' failed, falling back...`,
-          e,
-        );
-        if (plugin?.dispose) {
-          try {
-            await plugin.dispose();
-          } catch (disposeErr) {
-            console.error(
-              `[RMBGProcessor] Failed to dispose plugin:`,
-              disposeErr,
-            );
-          }
-        }
-      }
+      // Execute a tiny dummy prediction to force shader compilation and catch WebGPU crashes (e.g. Context Lost)
+      console.log(`[RMBGProcessor] Running warmup inference for ${backend}...`);
+      const dummyImage = new RawImage(
+        new Uint8ClampedArray(64 * 64 * 4),
+        64,
+        64,
+        4,
+      );
+      await plugin.predict(dummyImage);
+
+      this.activePlugin = plugin;
+      console.log(
+        `[RMBGProcessor] Successfully initialized pipeline with backend: ${backend}`,
+      );
+    } catch (e) {
+      console.warn(`[RMBGProcessor] Backend '${backend}' failed`, e);
+      throw e;
     }
-
-    throw new Error("Failed to load AI model on all available backends.");
   }
 
   private resizeImage(image: RawImage, maxDim: number): RawImage {
