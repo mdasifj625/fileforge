@@ -58,6 +58,37 @@ export class PerformanceProfiler {
     );
   }
 
+  /** Log detailed GPU adapter limits and info — critical for diagnosing mobile WebGPU failures */
+  static logGPUAdapter(info: {
+    vendor: string;
+    architecture: string;
+    description: string;
+    maxBufferSize: number;
+    maxStorageBufferBindingSize: number;
+    features: string[];
+  }) {
+    const ts = () => new Date().toISOString().split("T")[1].replace("Z", "");
+    const mb = (n: number) => `${(n / 1024 / 1024).toFixed(0)} MB`;
+    console.log(
+      `[${ts()}] ════════════════════════════════════════════\n` +
+        `[${ts()}] 🎮 GPU ADAPTER INFO\n` +
+        `[${ts()}] ════════════════════════════════════════════\n` +
+        `[${ts()}]   Vendor:                        ${info.vendor}\n` +
+        `[${ts()}]   Architecture:                  ${info.architecture}\n` +
+        `[${ts()}]   Description:                   ${info.description}\n` +
+        `[${ts()}]   maxBufferSize:                 ${mb(info.maxBufferSize)}\n` +
+        `[${ts()}]   maxStorageBufferBindingSize:   ${mb(info.maxStorageBufferBindingSize)}\n` +
+        `[${ts()}]   Features:                      ${info.features.slice(0, 6).join(", ") || "none"}\n` +
+        `[${ts()}] ════════════════════════════════════════════`,
+    );
+  }
+
+  /** Log a plain informational message with a timestamp */
+  static logInfo(message: string) {
+    const ts = new Date().toISOString().split("T")[1].replace("Z", "");
+    console.log(`[${ts}] ℹ️  ${message}`);
+  }
+
   // ─── Private helpers ────────────────────────────────────────────────────
 
   private ts(): string {

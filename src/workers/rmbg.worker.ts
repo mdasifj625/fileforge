@@ -19,18 +19,55 @@ if (env.backends?.onnx?.wasm) {
   env.backends.onnx.wasm.simd = true;
 }
 
-// Check what backends are available and preferred in order of performance
-const getAvailableBackends = (): string[] => {
+// BEN2 transformer requires substantial GPU buffer capacity.
+// Devices that expose WebGPU but have tiny limits will crash at shader compilation.
+// Minimum limits required to attempt WebGPU inference with BEN2:
+const WEBGPU_MIN_BUFFER_SIZE = 256 * 1024 * 1024; // 256 MB
+
+async function probeBackends(): Promise<string[]> {
   const backends: string[] = [];
-  if (typeof navigator !== "undefined") {
-    if ((navigator as any).gpu) backends.push("webgpu");
-    if ((navigator as any).ml) backends.push("webnn-npu", "webnn-gpu", "webnn");
+
+  if (typeof navigator !== "undefined" && (navigator as any).gpu) {
+    try {
+      const adapter = await (navigator as any).gpu.requestAdapter();
+      if (adapter) {
+        const bufferSize = adapter.limits?.maxBufferSize ?? 0;
+        const storageSize = adapter.limits?.maxStorageBufferBindingSize ?? 0;
+
+        // Log full adapter info so we can diagnose problematic GPU models
+        PerformanceProfiler.logGPUAdapter({
+          vendor: adapter.info?.vendor ?? "unknown",
+          architecture: adapter.info?.architecture ?? "unknown",
+          description: adapter.info?.description ?? "unknown",
+          maxBufferSize: bufferSize,
+          maxStorageBufferBindingSize: storageSize,
+          features: [...(adapter.features ?? [])],
+        });
+
+        if (bufferSize >= WEBGPU_MIN_BUFFER_SIZE) {
+          backends.push("webgpu");
+        } else {
+          PerformanceProfiler.logInfo(
+            `WebGPU skipped — maxBufferSize ${(bufferSize / 1024 / 1024).toFixed(0)} MB is below required ${WEBGPU_MIN_BUFFER_SIZE / 1024 / 1024} MB for BEN2`,
+          );
+        }
+      }
+    } catch (e) {
+      PerformanceProfiler.logInfo(
+        `WebGPU adapter probe failed: ${(e as any)?.message ?? e}`,
+      );
+    }
   }
+
+  if (typeof navigator !== "undefined" && (navigator as any).ml) {
+    backends.push("webnn-npu", "webnn-gpu", "webnn");
+  }
+
   backends.push("wasm");
   return Array.from(new Set(backends));
-};
+}
 
-const preferredBackends = getAvailableBackends();
+const preferredBackends: string[] = await probeBackends();
 
 // Log structured environment info via the profiler
 PerformanceProfiler.logEnvironment();
