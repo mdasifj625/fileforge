@@ -40,10 +40,12 @@ export function useBackgroundRemoval(
             backend,
           );
 
+          const quality = backend === "wasm" ? "fast" : "balanced";
+
           maskBlob = await api.removeBackgroundGetMask(
             fileRecord.blob,
             undefined, // onProgress
-            "balanced",
+            quality,
             Comlink.proxy((report: string) => {
               // Logs to console cleanly without interrupting the UI flow
               console.log(report);

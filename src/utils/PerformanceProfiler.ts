@@ -20,6 +20,7 @@ export class PerformanceProfiler {
 
   start(step: string) {
     if (!this.enabled) return;
+    console.log(`▶ [${this.name}] Starting: ${step}...`);
     this.timings.set(step, { start: performance.now() });
   }
 
@@ -29,6 +30,9 @@ export class PerformanceProfiler {
     if (timing && !timing.end) {
       timing.end = performance.now();
       timing.duration = timing.end - timing.start;
+      console.log(
+        `✔ [${this.name}] Finished: ${step} in ${this.formatTime(timing.duration)}`,
+      );
     }
   }
 
@@ -47,7 +51,7 @@ export class PerformanceProfiler {
     let out = "";
 
     out += `====================================\n`;
-    out += `${this.name.toUpperCase()} PROFILING\n`;
+    out += `${this.name.toUpperCase()} PROFILING SUMMARY\n`;
     out += `====================================\n`;
 
     if (Object.keys(this.metadata).length > 0) {
@@ -74,7 +78,6 @@ export class PerformanceProfiler {
     out += `TOTAL TIME: ${this.formatTime(totalTime)}\n`;
     out += `====================================\n`;
 
-    console.log(out);
     return out;
   }
 }
