@@ -26,30 +26,13 @@ export function BackgroundRemovalSettings({
   return (
     <div>
       <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">
-        <span>Background</span>
+        <span>Background Removal</span>
         {isFiltering && (
           <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
         )}
       </h3>
 
-      <div className="grid grid-cols-1 gap-4 mb-6">
-        <button
-          onClick={onApply}
-          disabled={isFiltering}
-          className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
-        >
-          {isFiltering
-            ? aiProgress !== null && aiProgress < 100
-              ? `Loading Model... ${Math.round(aiProgress)}%`
-              : "Removing Background..."
-            : "Remove Background (AI)"}
-        </button>
-        <p className="text-xs text-muted-foreground text-center">
-          Uses local AI models to segment and remove the image background.
-        </p>
-      </div>
-
-      <div className="mb-6 pt-6 border-t border-panel-border">
+      <div className="mb-6">
         <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
           Manual Brush
         </h3>
@@ -176,6 +159,25 @@ export function BackgroundRemovalSettings({
             />
           </div>
         )}
+      </div>
+
+      <div className="pt-6 border-t border-panel-border">
+        <div className="grid grid-cols-1 gap-4">
+          <button
+            onClick={onApply}
+            disabled={isFiltering}
+            className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
+          >
+            {isFiltering
+              ? aiProgress !== null && aiProgress < 100
+                ? `Loading Model... ${Math.round(aiProgress)}%`
+                : "Removing Background..."
+              : "Remove Background"}
+          </button>
+          <p className="text-xs text-muted-foreground text-center">
+            Uses local AI models to segment and remove the image background.
+          </p>
+        </div>
       </div>
     </div>
   );
