@@ -48,6 +48,13 @@ export class Ben2Plugin implements PipelinePlugin {
     return mask;
   }
 
+  async dispose(): Promise<void> {
+    if (this.segmenter && typeof this.segmenter.dispose === "function") {
+      await this.segmenter.dispose();
+    }
+    this.segmenter = null;
+  }
+
   postProcess(mask: RawImage): void {
     // Crush absolute minimum noise, leaving BEN2's natural alpha matte intact
     for (let i = 0; i < mask.data.length; i++) {

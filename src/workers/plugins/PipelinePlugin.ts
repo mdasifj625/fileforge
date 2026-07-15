@@ -29,4 +29,9 @@ export interface PipelinePlugin {
    * @param mask The raw mask returned by predict().
    */
   postProcess?(mask: RawImage): void;
+
+  /**
+   * Releases resources associated with the plugin.
+   */
+  dispose?(): Promise<void>;
 }

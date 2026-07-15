@@ -3,6 +3,8 @@ import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  // Allow hot-reloading (HMR) from mobile hotspot IPs
+  allowedDevOrigins: [],
   async headers() {
     return [
       {

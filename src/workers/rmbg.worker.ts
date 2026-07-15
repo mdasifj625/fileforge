@@ -8,7 +8,8 @@ import { PerformanceProfiler } from "../utils/PerformanceProfiler";
 
 // Phase 6: ONNX Runtime Optimization & Phase 5: Backend Detection
 env.allowLocalModels = false;
-env.useBrowserCache = true;
+// When testing over a local network IP (HTTP), caches will be undefined.
+env.useBrowserCache = typeof caches !== "undefined";
 if (env.backends?.onnx?.wasm) {
   // Allow multi-threading to speed up WASM execution drastically
   env.backends.onnx.wasm.numThreads =
@@ -65,8 +66,9 @@ class RMBGProcessor {
     if (this.activePlugin) return;
 
     for (const backend of preferredBackends) {
+      let plugin: Ben2Plugin | null = null;
       try {
-        const plugin = new Ben2Plugin(backend);
+        plugin = new Ben2Plugin(backend);
         await plugin.loadModel(onProgress);
 
         // Execute a tiny dummy prediction to force shader compilation and catch WebGPU crashes (e.g. Context Lost)
@@ -92,6 +94,16 @@ class RMBGProcessor {
           `[RMBGProcessor] Backend '${backend}' failed, falling back...`,
           e,
         );
+        if (plugin?.dispose) {
+          try {
+            await plugin.dispose();
+          } catch (disposeErr) {
+            console.error(
+              `[RMBGProcessor] Failed to dispose plugin:`,
+              disposeErr,
+            );
+          }
+        }
       }
     }
 
