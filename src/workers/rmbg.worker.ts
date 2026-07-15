@@ -251,7 +251,9 @@ class RMBGProcessor {
 
       profiler.start("Resize");
       const maxDim = QualityMap[quality];
-      const resizedImg = this.resizeImage(img, maxDim);
+      const shouldResize =
+        maxDim > 0 && (img.width > maxDim || img.height > maxDim);
+      const resizedImg = shouldResize ? this.resizeImage(img, maxDim) : img;
       profiler.end("Resize");
 
       profiler.start("Model Inference");
@@ -323,7 +325,9 @@ class RMBGProcessor {
 
       profiler.start("Resize");
       const maxDim = QualityMap[quality];
-      const resizedImg = this.resizeImage(img, maxDim);
+      const shouldResize =
+        maxDim > 0 && (img.width > maxDim || img.height > maxDim);
+      const resizedImg = shouldResize ? this.resizeImage(img, maxDim) : img;
       profiler.end("Resize");
 
       profiler.setMetadata("Inference Width", resizedImg.width);
