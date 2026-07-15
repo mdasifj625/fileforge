@@ -7,7 +7,6 @@ export interface CanvasRefs {
   spritesRef: React.MutableRefObject<
     Record<string, PIXI.Sprite & { isBeingManipulated?: boolean }>
   >;
-  bgSpritesRef: React.MutableRefObject<Record<string, PIXI.Graphics>>;
   maskSpritesRef: React.MutableRefObject<
     Record<
       string,
@@ -15,8 +14,6 @@ export interface CanvasRefs {
         renderTexture?: PIXI.RenderTexture;
         maskFileId?: string;
         baseMaskTexture?: PIXI.RenderTexture;
-        currentFeather?: number;
-        currentShift?: number;
       }
     >
   >;

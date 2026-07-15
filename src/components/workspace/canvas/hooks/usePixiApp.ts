@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import * as PIXI from "pixi.js";
 import { CanvasRefs } from "../types";
 import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 export function usePixiApp({
   containerRef,

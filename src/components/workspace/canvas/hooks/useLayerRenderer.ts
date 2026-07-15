@@ -16,17 +16,9 @@ export function useLayerRenderer(
   isPixiReady: boolean,
   setSpriteUpdateTick: React.Dispatch<React.SetStateAction<number>>,
 ) {
-  const {
-    appRef,
-    spritesRef,
-    bgSpritesRef,
-    maskSpritesRef,
-    transformOverlayRef,
-    brushControllerRef,
-  } = refs;
+  const { appRef, spritesRef, maskSpritesRef, brushControllerRef } = refs;
 
   const layers = useWorkspaceStore((state) => state.layers);
-  const activeLayerId = useWorkspaceStore((state) => state.activeLayerId);
   const activeTool = useWorkspaceStore((state) => state.activeTool);
   const brushMode = useWorkspaceStore((state) => state.brushMode);
   const brushSize = useWorkspaceStore((state) => state.brushSize);
@@ -45,13 +37,6 @@ export function useLayerRenderer(
           app.stage.removeChild(sprite);
           sprite.destroy({ texture: true });
           delete spritesRef.current[id];
-
-          const bgSprite = bgSpritesRef.current[id];
-          if (bgSprite) {
-            app.stage.removeChild(bgSprite);
-            bgSprite.destroy();
-            delete bgSpritesRef.current[id];
-          }
 
           const maskSprite = maskSpritesRef.current[id];
           if (maskSprite) {
@@ -77,15 +62,6 @@ export function useLayerRenderer(
                 ? getBrushCursor(brushSize || 20)
                 : "pointer";
 
-            let bgSprite = bgSpritesRef.current[layer.id];
-            if (!bgSprite) {
-              bgSprite = new PIXI.Graphics();
-              app.stage.addChild(bgSprite);
-              bgSpritesRef.current[layer.id] = bgSprite;
-            }
-            bgSprite.visible = layer.visible;
-            bgSprite.zIndex = (layers.length - i) * 2 - 1;
-
             // Apply transforms from store if not currently being actively dragged/scaled
             // (To prevent jitter, we only force sync if we aren't the ones changing it)
             if (!sprite.isBeingManipulated) {
@@ -106,66 +82,6 @@ export function useLayerRenderer(
                 maskS.y = sprite.y;
                 maskS.scale.set(sprite.scale.x, sprite.scale.y);
                 maskS.rotation = sprite.rotation;
-
-                // Apply Edge Controls by re-rendering the mask texture if needed
-                const feather = layer.edgeFeather || 0;
-                const shift = layer.edgeShift || 0;
-
-                if (
-                  maskS.baseMaskTexture &&
-                  maskS.renderTexture &&
-                  (maskS.currentFeather !== feather ||
-                    maskS.currentShift !== shift)
-                ) {
-                  const tempSprite = new PIXI.Sprite(maskS.baseMaskTexture);
-                  const filters = [];
-
-                  if (shift !== 0) {
-                    filters.push(new PIXI.BlurFilter(Math.abs(shift)));
-                    const shiftFilter = new PIXI.ColorMatrixFilter();
-                    const threshold = 0.5 - shift / 40.0;
-                    shiftFilter.matrix = [
-                      1,
-                      0,
-                      0,
-                      0,
-                      0,
-                      0,
-                      1,
-                      0,
-                      0,
-                      0,
-                      0,
-                      0,
-                      1,
-                      0,
-                      0,
-                      0,
-                      0,
-                      0,
-                      20,
-                      -20 * threshold,
-                    ];
-                    filters.push(shiftFilter);
-                  }
-
-                  if (feather > 0) {
-                    filters.push(new PIXI.BlurFilter(feather));
-                  }
-
-                  tempSprite.filters = filters.length > 0 ? filters : null;
-
-                  app.renderer.render({
-                    container: tempSprite,
-                    target: maskS.renderTexture,
-                    clear: true,
-                  });
-
-                  tempSprite.destroy();
-
-                  maskS.currentFeather = feather;
-                  maskS.currentShift = shift;
-                }
               }
 
               // Apply non-destructive crop via texture frame
@@ -201,26 +117,6 @@ export function useLayerRenderer(
                   ),
                 });
               }
-            }
-
-            // Update background rect
-            bgSprite.clear();
-            if (layer.backgroundColor) {
-              const colorNumber = parseInt(
-                layer.backgroundColor.replace("#", "0x"),
-                16,
-              );
-              bgSprite.rect(
-                -sprite.texture.width / 2,
-                -sprite.texture.height / 2,
-                sprite.texture.width,
-                sprite.texture.height,
-              );
-              bgSprite.fill({ color: colorNumber });
-              bgSprite.x = sprite.x;
-              bgSprite.y = sprite.y;
-              bgSprite.scale.set(sprite.scale.x, sprite.scale.y);
-              bgSprite.rotation = sprite.rotation;
             }
 
             // Handle mask updates for already loaded sprites
@@ -296,14 +192,10 @@ export function useLayerRenderer(
                   renderTexture?: PIXI.RenderTexture;
                   maskFileId?: string;
                   baseMaskTexture?: PIXI.RenderTexture;
-                  currentFeather?: number;
-                  currentShift?: number;
                 };
                 maskSprite.renderTexture = renderTexture;
                 maskSprite.maskFileId = layer.maskFileId;
                 maskSprite.baseMaskTexture = baseMaskTexture;
-                maskSprite.currentFeather = undefined;
-                maskSprite.currentShift = undefined;
                 maskSprite.anchor.set(0.5);
                 maskSprite.renderable = false;
                 maskSprite.x = sprite.x;
@@ -442,35 +334,6 @@ export function useLayerRenderer(
                 ? getBrushCursor(brushSize || 20)
                 : "pointer";
 
-            let bgSprite = bgSpritesRef.current[layer.id];
-            if (!bgSprite) {
-              bgSprite = new PIXI.Graphics();
-              app.stage.addChild(bgSprite);
-              bgSpritesRef.current[layer.id] = bgSprite;
-            }
-            bgSprite.visible = layer.visible;
-            bgSprite.zIndex = (layers.length - i) * 2 - 1;
-
-            // Initial bg rect setup
-            bgSprite.clear();
-            if (layer.backgroundColor) {
-              const colorNumber = parseInt(
-                layer.backgroundColor.replace("#", "0x"),
-                16,
-              );
-              bgSprite.rect(
-                -sprite.texture.width / 2,
-                -sprite.texture.height / 2,
-                sprite.texture.width,
-                sprite.texture.height,
-              );
-              bgSprite.fill({ color: colorNumber });
-              bgSprite.x = sprite.x;
-              bgSprite.y = sprite.y;
-              bgSprite.scale.set(sprite.scale.x, sprite.scale.y);
-              bgSprite.rotation = sprite.rotation;
-            }
-
             let dragging = false;
             let dragData: PIXI.FederatedPointerEvent | null = null;
             const offset = { x: 0, y: 0 };
@@ -525,10 +388,6 @@ export function useLayerRenderer(
                   });
                 }
                 // Immediately sync background and mask
-                if (bgSpritesRef.current[layer.id]) {
-                  bgSpritesRef.current[layer.id].x = sprite.x;
-                  bgSpritesRef.current[layer.id].y = sprite.y;
-                }
                 if (maskSpritesRef.current[layer.id]) {
                   maskSpritesRef.current[layer.id].x = sprite.x;
                   maskSpritesRef.current[layer.id].y = sprite.y;
@@ -588,29 +447,6 @@ export function useLayerRenderer(
                   sprite.y = localPos.y + offset.y;
                 }
 
-                // Instantly update background graphics while manipulating
-                if (bgSpritesRef.current[layer.id]) {
-                  const bg = bgSpritesRef.current[layer.id];
-                  bg.x = sprite.x;
-                  bg.y = sprite.y;
-                  bg.scale.set(sprite.scale.x, sprite.scale.y);
-                  if (store.activeTool === "crop") {
-                    bg.clear();
-                    if (layer.backgroundColor) {
-                      const colorNumber = parseInt(
-                        layer.backgroundColor.replace("#", "0x"),
-                        16,
-                      );
-                      bg.rect(
-                        -sprite.texture.width / 2,
-                        -sprite.texture.height / 2,
-                        sprite.texture.width,
-                        sprite.texture.height,
-                      );
-                      bg.fill({ color: colorNumber });
-                    }
-                  }
-                }
                 if (maskSpritesRef.current[layer.id]) {
                   const maskS = maskSpritesRef.current[layer.id];
                   maskS.x = sprite.x;
@@ -701,14 +537,10 @@ export function useLayerRenderer(
                   renderTexture?: PIXI.RenderTexture;
                   maskFileId?: string;
                   baseMaskTexture?: PIXI.RenderTexture;
-                  currentFeather?: number;
-                  currentShift?: number;
                 };
                 maskSprite.renderTexture = renderTexture;
                 maskSprite.maskFileId = layer.maskFileId;
                 maskSprite.baseMaskTexture = baseMaskTexture;
-                maskSprite.currentFeather = undefined;
-                maskSprite.currentShift = undefined;
                 maskSprite.anchor.set(0.5);
                 maskSprite.renderable = false;
                 maskSprite.x = sprite.x;

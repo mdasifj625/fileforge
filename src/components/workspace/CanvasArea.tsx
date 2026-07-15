@@ -24,7 +24,6 @@ export function CanvasArea() {
   >({});
   const transformOverlayRef = useRef<PIXI.Container>(null);
   const gridRef = useRef<PIXI.Graphics>(null);
-  const bgSpritesRef = useRef<Record<string, PIXI.Graphics>>({});
   const maskSpritesRef = useRef<
     Record<
       string,
@@ -38,7 +37,6 @@ export function CanvasArea() {
     appRef,
     containerRef,
     spritesRef,
-    bgSpritesRef,
     maskSpritesRef,
     transformOverlayRef,
     gridRef,

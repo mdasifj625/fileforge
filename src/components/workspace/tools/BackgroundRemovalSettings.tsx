@@ -56,19 +56,14 @@ export function BackgroundRemovalSettings({
 
         <div className="flex bg-panel rounded-lg p-1 border border-panel-border mb-4">
           <button
-            onClick={() => setBrushMode("none")}
-            className={`flex-1 text-[10px] uppercase tracking-widest font-bold py-2 rounded-md transition-all ${
-              brushMode === "none"
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Move
-          </button>
-          <button
             onClick={() => {
-              setBrushMode("restore");
-              if (!activeLayer.maskFileId && activeLayer.originalWidth) {
+              const nextMode = brushMode === "restore" ? "none" : "restore";
+              setBrushMode(nextMode);
+              if (
+                nextMode === "restore" &&
+                !activeLayer.maskFileId &&
+                activeLayer.originalWidth
+              ) {
                 // Instantly generate a solid white mask if they want to start manually erasing
                 const canvas = document.createElement("canvas");
                 canvas.width = activeLayer.originalWidth;
@@ -111,8 +106,13 @@ export function BackgroundRemovalSettings({
           </button>
           <button
             onClick={() => {
-              setBrushMode("erase");
-              if (!activeLayer.maskFileId && activeLayer.originalWidth) {
+              const nextMode = brushMode === "erase" ? "none" : "erase";
+              setBrushMode(nextMode);
+              if (
+                nextMode === "erase" &&
+                !activeLayer.maskFileId &&
+                activeLayer.originalWidth
+              ) {
                 // Instantly generate a solid white mask if they want to start manually erasing
                 const canvas = document.createElement("canvas");
                 canvas.width = activeLayer.originalWidth;
@@ -147,7 +147,7 @@ export function BackgroundRemovalSettings({
             }}
             className={`flex-1 text-[10px] uppercase tracking-widest font-bold py-2 rounded-md transition-all ${
               brushMode === "erase"
-                ? "bg-destructive text-destructive-foreground"
+                ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -176,99 +176,6 @@ export function BackgroundRemovalSettings({
             />
           </div>
         )}
-      </div>
-
-      {activeLayer.maskFileId && (
-        <div className="mb-6 pt-6 border-t border-panel-border">
-          <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
-            Edge Controls
-          </h3>
-
-          <div className="flex flex-col gap-4">
-            {/* Edge Feather */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  Feather
-                </label>
-                <span className="text-xs font-mono text-foreground">
-                  {activeLayer.edgeFeather || 0}px
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="50"
-                step="1"
-                value={activeLayer.edgeFeather || 0}
-                onChange={(e) =>
-                  updateLayerTransform(activeLayer.id, {
-                    edgeFeather: parseInt(e.target.value),
-                  })
-                }
-                className="w-full accent-primary"
-              />
-            </div>
-
-            {/* Edge Shift */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  Shift Edge
-                </label>
-                <span className="text-xs font-mono text-foreground">
-                  {activeLayer.edgeShift || 0}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="-20"
-                max="20"
-                step="1"
-                value={activeLayer.edgeShift || 0}
-                onChange={(e) =>
-                  updateLayerTransform(activeLayer.id, {
-                    edgeShift: parseInt(e.target.value),
-                  })
-                }
-                className="w-full accent-primary"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="pt-6 border-t border-panel-border">
-        <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
-          Composition
-        </h3>
-        <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-            Background Color
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={activeLayer.backgroundColor || "#000000"}
-              onChange={(e) =>
-                updateLayerTransform(activeLayer.id, {
-                  backgroundColor: e.target.value,
-                })
-              }
-              className="w-10 h-10 rounded-lg cursor-pointer border border-panel-border bg-panel"
-            />
-            <button
-              onClick={() =>
-                updateLayerTransform(activeLayer.id, {
-                  backgroundColor: null,
-                })
-              }
-              className="flex-1 bg-panel hover:bg-muted text-foreground text-xs py-2 px-4 rounded-lg transition-all border border-panel-border font-bold"
-            >
-              Transparent
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -6,7 +6,6 @@ import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 export function useCanvasExport({
   appRef,
   spritesRef,
-  bgSpritesRef,
   maskSpritesRef,
   gridRef,
   transformOverlayRef,
@@ -34,7 +33,6 @@ export function useCanvasExport({
       }
 
       const sprite = spritesRef.current[activeLayerId];
-      const bgS = bgSpritesRef.current[activeLayerId];
       const maskS = maskSpritesRef.current[activeLayerId];
 
       // Save original transforms
@@ -58,13 +56,6 @@ export function useCanvasExport({
         maskS.y = sprite.y;
         maskS.scale.set(1);
         maskS.rotation = 0;
-      }
-
-      if (bgS) {
-        bgS.x = sprite.x;
-        bgS.y = sprite.y;
-        bgS.scale.set(1);
-        bgS.rotation = 0;
       }
 
       // Hide grid and overlay
@@ -132,13 +123,6 @@ export function useCanvasExport({
           maskS.y = origY;
           maskS.scale.set(origScaleX, origScaleY);
           maskS.rotation = origRot;
-        }
-
-        if (bgS) {
-          bgS.x = origX;
-          bgS.y = origY;
-          bgS.scale.set(origScaleX, origScaleY);
-          bgS.rotation = origRot;
         }
 
         if (gridRef.current) gridRef.current.visible = wasGridVisible ?? true;

@@ -13,17 +13,13 @@ export function useTransformOverlay(
   const {
     appRef,
     spritesRef,
-    bgSpritesRef,
     maskSpritesRef,
     transformOverlayRef,
     brushControllerRef,
   } = refs;
 
-  const layers = useWorkspaceStore((state) => state.layers);
   const activeLayerId = useWorkspaceStore((state) => state.activeLayerId);
   const activeTool = useWorkspaceStore((state) => state.activeTool);
-  const brushMode = useWorkspaceStore((state) => state.brushMode);
-  const brushSize = useWorkspaceStore((state) => state.brushSize);
   const theme = useWorkspaceStore((state) => state.theme);
   // We assume isPixiReady is essentially checked by appRef.current being available
   // Draw and Manage the Transform Overlay for the Active Layer
@@ -237,12 +233,7 @@ export function useTransformOverlay(
               y: activeSprite.y,
             });
           }
-          if (bgSpritesRef.current[activeLayerId]) {
-            const bg = bgSpritesRef.current[activeLayerId];
-            bg.x = activeSprite.x;
-            bg.y = activeSprite.y;
-            bg.scale.set(activeSprite.scale.x, activeSprite.scale.y);
-          }
+
           if (maskSpritesRef.current[activeLayerId]) {
             const maskS = maskSpritesRef.current[activeLayerId];
             maskS.x = activeSprite.x;
@@ -402,32 +393,6 @@ export function useTransformOverlay(
             if (newScaleY < 0.05) newScaleY = 0.05;
 
             activeSprite.scale.set(newScaleX, newScaleY);
-          }
-
-          if (bgSpritesRef.current[activeLayerId]) {
-            const bg = bgSpritesRef.current[activeLayerId];
-            bg.x = activeSprite.x;
-            bg.y = activeSprite.y;
-            bg.scale.set(activeSprite.scale.x, activeSprite.scale.y);
-            if (isCropMode) {
-              const layer = useWorkspaceStore
-                .getState()
-                .layers.find((l) => l.id === activeLayerId);
-              bg.clear();
-              if (layer?.backgroundColor) {
-                const colorNumber = parseInt(
-                  layer.backgroundColor.replace("#", "0x"),
-                  16,
-                );
-                bg.rect(
-                  -activeSprite.texture.width / 2,
-                  -activeSprite.texture.height / 2,
-                  activeSprite.texture.width,
-                  activeSprite.texture.height,
-                );
-                bg.fill({ color: colorNumber });
-              }
-            }
           }
 
           if (maskSpritesRef.current[activeLayerId]) {
