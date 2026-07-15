@@ -84,7 +84,7 @@ Instead of building a separate React component for every new image or video filt
 
 - **ONNX & Transformers.js**: Runs true Machine Learning models locally using the browser's WASM backend or WebGPU.
 - **Hardware Acceleration Probe & Cascade**: The inference engine implements an asynchronous, multi-tiered startup probe (`WebGPU` -> `WebNN-NPU` -> `WebNN` -> `WASM`). To prevent crashing or deadlocking on low-spec hardware:
-  - **GPU Memory Checks**: Probes the GPU adapter limits (`maxBufferSize`) to ensure at least 256MB of buffer allocation size is supported before enabling WebGPU.
+  - **GPU Memory Checks**: Probes the GPU adapter limits (`maxBufferSize` >= 256MB and `maxStorageBufferBindingSize` > 128MB) to ensure the device has sufficient allocation thresholds before enabling WebGPU to avoid attention graph allocation crashes during inference.
   - **Dynamic Precision Selection**: Queries device feature support (e.g. `shader-f16` extension) to load optimized 16-bit float models (`fp16`) for ~2x speedups on modern GPUs, while safely falling back to full-precision `fp32` on older hardware (like Intel Gen 9) where fp16 shaders cause compilation stalls.
   - **Lazy Worker Initialization**: Keeps worker import synchronous and offloads adapter checking inside `getOrProbeBackends()` to avoid top-level await deadlocks on the Comlink RPC thread.
 - **Self-Healing Device Blacklisting**: If a backend encounters an unrecoverable driver deadlock or crash during session initialization, the system intercepts the error and blacklists that backend in `localStorage` (`fileforge:ai_backend_blacklist`) to automatically skip it on subsequent runs and route directly to the stable multi-threaded WASM CPU fallback.

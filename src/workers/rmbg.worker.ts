@@ -42,6 +42,7 @@ async function probeBackends(): Promise<string[]> {
         // Only log on the first worker — retry workers are silent to avoid duplicate blocks
         if (!hasLoggedProbe) {
           hasLoggedProbe = true;
+          console.log(adapter); // TODO: Remove this debug log once WebGPU adapter probing is stable
           PerformanceProfiler.logGPUAdapter({
             vendor: adapter.info?.vendor ?? "unknown",
             architecture: adapter.info?.architecture ?? "unknown",
@@ -52,14 +53,18 @@ async function probeBackends(): Promise<string[]> {
           });
         }
 
-        if (bufferSize >= WEBGPU_MIN_BUFFER_SIZE) {
+        const storageBindingSizeLimit = 128 * 1024 * 1024; // 128 MB
+        if (
+          bufferSize >= WEBGPU_MIN_BUFFER_SIZE &&
+          storageSize > storageBindingSizeLimit
+        ) {
           backends.push("webgpu");
           PerformanceProfiler.logInfo(
             `WebGPU accepted — shader-f16: ${hasF16 ? "✅ Yes" : "❌ No"}`,
           );
         } else {
           PerformanceProfiler.logInfo(
-            `WebGPU skipped — maxBufferSize ${(bufferSize / 1024 / 1024).toFixed(0)} MB < required 256 MB for BEN2`,
+            `WebGPU skipped — limits insufficient for BEN2. maxBufferSize: ${(bufferSize / 1024 / 1024).toFixed(0)} MB (req: 256 MB), maxStorageBufferBindingSize: ${(storageSize / 1024 / 1024).toFixed(0)} MB (req: > 128 MB)`,
           );
         }
       }
