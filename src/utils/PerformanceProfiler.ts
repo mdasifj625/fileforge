@@ -20,7 +20,8 @@ export class PerformanceProfiler {
 
   start(step: string) {
     if (!this.enabled) return;
-    console.log(`▶ [${this.name}] Starting: ${step}...`);
+    const ts = new Date().toISOString().split("T")[1].replace("Z", "");
+    console.log(`[${ts}] ▶ [${this.name}] Starting: ${step}...`);
     this.timings.set(step, { start: performance.now() });
   }
 
@@ -30,8 +31,9 @@ export class PerformanceProfiler {
     if (timing && !timing.end) {
       timing.end = performance.now();
       timing.duration = timing.end - timing.start;
+      const ts = new Date().toISOString().split("T")[1].replace("Z", "");
       console.log(
-        `✔ [${this.name}] Finished: ${step} in ${this.formatTime(timing.duration)}`,
+        `[${ts}] ✔ [${this.name}] Finished: ${step} in ${this.formatTime(timing.duration)}`,
       );
     }
   }

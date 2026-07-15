@@ -69,13 +69,18 @@ class RMBGProcessor {
     if (this.activePlugin) return;
 
     const backend = forceBackend || preferredBackends[0];
+    const profiler = new PerformanceProfiler(
+      `Model Initialization [${backend}]`,
+    );
 
     try {
+      profiler.start("Fetch Model Weights & Session Init");
       const plugin = new Ben2Plugin(backend);
       await plugin.loadModel(onProgress);
+      profiler.end("Fetch Model Weights & Session Init");
 
       // Execute a tiny dummy prediction to force shader compilation and catch WebGPU crashes (e.g. Context Lost)
-      console.log(`[RMBGProcessor] Running warmup inference for ${backend}...`);
+      profiler.start("Warmup Inference (Shader/Graph Compilation)");
       const dummyImage = new RawImage(
         new Uint8ClampedArray(64 * 64 * 4),
         64,
@@ -83,11 +88,9 @@ class RMBGProcessor {
         4,
       );
       await plugin.predict(dummyImage);
+      profiler.end("Warmup Inference (Shader/Graph Compilation)");
 
       this.activePlugin = plugin;
-      console.log(
-        `[RMBGProcessor] Successfully initialized pipeline with backend: ${backend}`,
-      );
     } catch (e) {
       console.warn(`[RMBGProcessor] Backend '${backend}' failed`, e);
       throw e;
