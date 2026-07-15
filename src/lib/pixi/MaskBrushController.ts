@@ -127,19 +127,17 @@ export class MaskBrushController {
     this.brush.clear();
 
     if (mode === "restore") {
-      this.brush.beginFill(0xffffff, 1);
       this.brush.blendMode = "normal" as PIXI.BLEND_MODES;
     } else {
-      this.brush.beginFill(0xffffff, 1);
       this.brush.blendMode = "erase" as PIXI.BLEND_MODES;
     }
 
-    this.brush.drawCircle(
+    this.brush.circle(
       xInRenderTexture,
       yInRenderTexture,
       brushSize / Math.abs(this.sprite.scale.x),
     );
-    this.brush.endFill();
+    this.brush.fill({ color: 0xffffff, alpha: 1 });
 
     // Wrapper
     const tempContainer = new PIXI.Container();

@@ -7,6 +7,11 @@ export class Ben2Plugin implements PipelinePlugin {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private segmenter: any = null;
+  private readonly device: string;
+
+  constructor(device: string = "wasm") {
+    this.device = device;
+  }
 
   async loadModel(onProgress?: (progress: number) => void): Promise<void> {
     if (this.segmenter) return;
@@ -15,7 +20,8 @@ export class Ben2Plugin implements PipelinePlugin {
       "image-segmentation",
       "onnx-community/BEN2-ONNX",
       {
-        device: "wasm",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        device: this.device as any,
         progress_callback: (data: { status: string; progress?: number }) => {
           if (
             data.status === "progress" &&

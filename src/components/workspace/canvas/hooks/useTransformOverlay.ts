@@ -127,16 +127,14 @@ export function useTransformOverlay(
     handles.forEach((pos) => {
       const handle = new PIXI.Graphics();
       if (isCropMode) {
-        handle.lineStyle(1.5, handleStrokeColor, handleStrokeAlpha);
-        handle.beginFill(handleFillColor);
         if (pos.x === 0 || pos.y === 0) {
           // Edges (Pill)
           if (pos.x === 0) {
             const yOffset = -2.5;
-            handle.drawRoundedRect(-16, yOffset, 32, 5, 2.5);
+            handle.roundRect(-16, yOffset, 32, 5, 2.5);
           } else {
             const xOffset = -2.5;
-            handle.drawRoundedRect(xOffset, -16, 5, 32, 2.5);
+            handle.roundRect(xOffset, -16, 5, 32, 2.5);
           }
         } else {
           // Corners (L-Shape)
@@ -145,22 +143,26 @@ export function useTransformOverlay(
           // Horizontal leg
           const hX = pos.x === -1 ? -th / 2 : -len + th / 2;
           const hY = pos.y === -1 ? -th / 2 : -th / 2;
-          handle.drawRoundedRect(hX, hY, len, th, 2.5);
+          handle.roundRect(hX, hY, len, th, 2.5);
           // Vertical leg
           const vX = pos.x === -1 ? -th / 2 : -th / 2;
           const vY = pos.y === -1 ? -th / 2 : -len + th / 2;
-          handle.drawRoundedRect(vX, vY, th, len, 2.5);
+          handle.roundRect(vX, vY, th, len, 2.5);
         }
-        handle.endFill();
+        handle.fill({ color: handleFillColor });
+        handle.stroke({
+          width: 1.5,
+          color: handleStrokeColor,
+          alpha: handleStrokeAlpha,
+        });
       } else {
-        handle.beginFill(handleFillColor); // Interior
-        handle.lineStyle(1.5, overlayColor, 1);
         if (pos.x === 0 || pos.y === 0) {
-          handle.drawRect(-3.5, -3.5, 7, 7); // slightly smaller for edges
+          handle.rect(-3.5, -3.5, 7, 7); // slightly smaller for edges
         } else {
-          handle.drawRect(-4.5, -4.5, 9, 9);
+          handle.rect(-4.5, -4.5, 9, 9);
         }
-        handle.endFill();
+        handle.fill({ color: handleFillColor });
+        handle.stroke({ width: 1.5, color: overlayColor, alpha: 1 });
       }
 
       // Expand hit area significantly for mobile touch targets
@@ -417,14 +419,13 @@ export function useTransformOverlay(
                   layer.backgroundColor.replace("#", "0x"),
                   16,
                 );
-                bg.beginFill(colorNumber);
-                bg.drawRect(
+                bg.rect(
                   -activeSprite.texture.width / 2,
                   -activeSprite.texture.height / 2,
                   activeSprite.texture.width,
                   activeSprite.texture.height,
                 );
-                bg.endFill();
+                bg.fill({ color: colorNumber });
               }
             }
           }
@@ -472,25 +473,23 @@ export function useTransformOverlay(
 
       if (isCropMode) {
         // Draw shadow/outline first for high contrast
-        boundsBox.lineStyle(
-          3.5,
-          isDark ? 0x000000 : 0xffffff,
-          isDark ? 0.3 : 0.8,
-        );
-        boundsBox.drawRect(-width / 2, -height / 2, width, height);
+        boundsBox.rect(-width / 2, -height / 2, width, height);
+        boundsBox.stroke({
+          width: 3.5,
+          color: isDark ? 0x000000 : 0xffffff,
+          alpha: isDark ? 0.3 : 0.8,
+        });
       }
 
-      boundsBox.lineStyle(isCropMode ? 1.5 : 2, boxColor, boxAlpha);
-      boundsBox.drawRect(-width / 2, -height / 2, width, height);
+      boundsBox.rect(-width / 2, -height / 2, width, height);
+      boundsBox.stroke({
+        width: isCropMode ? 1.5 : 2,
+        color: boxColor,
+        alpha: boxAlpha,
+      });
 
       if (isCropMode) {
         // Draw contrast shadow for Rule of Thirds Grid
-        boundsBox.lineStyle(
-          3,
-          isDark ? 0x000000 : 0xffffff,
-          isDark ? 0.2 : 0.5,
-        );
-
         boundsBox.moveTo(-width / 2 + width / 3, -height / 2);
         boundsBox.lineTo(-width / 2 + width / 3, height / 2);
         boundsBox.moveTo(-width / 2 + (2 * width) / 3, -height / 2);
@@ -501,10 +500,13 @@ export function useTransformOverlay(
         boundsBox.moveTo(-width / 2, -height / 2 + (2 * height) / 3);
         boundsBox.lineTo(width / 2, -height / 2 + (2 * height) / 3);
 
-        // Draw Rule of Thirds Grid
-        boundsBox.lineStyle(1, boxColor, 0.6);
+        boundsBox.stroke({
+          width: 3,
+          color: isDark ? 0x000000 : 0xffffff,
+          alpha: isDark ? 0.2 : 0.5,
+        });
 
-        // Vertical lines
+        // Draw Rule of Thirds Grid
         boundsBox.moveTo(-width / 2 + width / 3, -height / 2);
         boundsBox.lineTo(-width / 2 + width / 3, height / 2);
         boundsBox.moveTo(-width / 2 + (2 * width) / 3, -height / 2);
@@ -515,6 +517,8 @@ export function useTransformOverlay(
         boundsBox.lineTo(width / 2, -height / 2 + height / 3);
         boundsBox.moveTo(-width / 2, -height / 2 + (2 * height) / 3);
         boundsBox.lineTo(width / 2, -height / 2 + (2 * height) / 3);
+
+        boundsBox.stroke({ width: 1, color: boxColor, alpha: 0.6 });
       }
 
       boundsBox.position.set(activeSprite.x, activeSprite.y);

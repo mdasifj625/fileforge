@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as Comlink from "comlink";
 import { env, RawImage } from "@huggingface/transformers";
 import { createWorker } from "tesseract.js";
 import { PipelinePlugin } from "./plugins/PipelinePlugin";
 import { Ben2Plugin } from "./plugins/Ben2Plugin";
+import { PerformanceProfiler } from "../utils/PerformanceProfiler";
 
-// Disable local models, since we will download from huggingface hub
+// Phase 6: ONNX Runtime Optimization & Phase 5: Backend Detection
 env.allowLocalModels = false;
 env.useBrowserCache = true;
 if (env.backends?.onnx?.wasm) {
@@ -13,35 +15,190 @@ if (env.backends?.onnx?.wasm) {
     typeof navigator !== "undefined"
       ? Math.max(1, (navigator.hardwareConcurrency || 4) - 1)
       : 4;
+  env.backends.onnx.wasm.simd = true;
 }
 
-class RMBGProcessor {
-  private readonly activePlugin: PipelinePlugin;
-
-  constructor() {
-    // We can easily swap this out for Rmbg14Plugin or a future model
-    this.activePlugin = new Ben2Plugin();
+// Check what backends are available and preferred in order of performance
+const getAvailableBackends = (): string[] => {
+  const backends: string[] = [];
+  if (typeof navigator !== "undefined") {
+    if ((navigator as any).gpu) backends.push("webgpu");
+    if ((navigator as any).ml) backends.push("webnn-npu", "webnn-gpu", "webnn");
   }
+  backends.push("wasm");
+  return Array.from(new Set(backends));
+};
+
+const preferredBackends = getAvailableBackends();
+
+function logBrowserEnvironment() {
+  console.log(`
+====================================
+BROWSER ENVIRONMENT INSPECTION
+====================================
+Browser: ${typeof navigator !== "undefined" ? navigator.userAgent : "Node"}
+Hardware Concurrency: ${typeof navigator !== "undefined" ? navigator.hardwareConcurrency : "Unknown"}
+crossOriginIsolated: ${typeof crossOriginIsolated !== "undefined" ? crossOriginIsolated : false}
+SharedArrayBuffer available?: ${typeof SharedArrayBuffer !== "undefined"}
+ONNX Runtime Threads configured: ${env.backends?.onnx?.wasm?.numThreads}
+SIMD enabled: ${env.backends?.onnx?.wasm?.simd}
+Preferred Backends (In Order): ${preferredBackends.join(", ")}
+====================================
+  `);
+}
+
+logBrowserEnvironment();
+
+export type QualityMode = "fast" | "balanced" | "high" | "original";
+
+const QualityMap: Record<QualityMode, number> = {
+  fast: 512,
+  balanced: 1024,
+  high: 1536,
+  original: 0,
+};
+
+class RMBGProcessor {
+  private activePlugin: PipelinePlugin | null = null;
 
   async loadModel(onProgress?: (progress: number) => void) {
-    await this.activePlugin.loadModel(onProgress);
+    if (this.activePlugin) return;
+
+    for (const backend of preferredBackends) {
+      try {
+        const plugin = new Ben2Plugin(backend);
+        await plugin.loadModel(onProgress);
+        this.activePlugin = plugin;
+        console.log(
+          `[RMBGProcessor] Successfully initialized pipeline with backend: ${backend}`,
+        );
+        return;
+      } catch (e) {
+        console.warn(
+          `[RMBGProcessor] Backend '${backend}' failed, falling back...`,
+          e,
+        );
+      }
+    }
+
+    throw new Error("Failed to load AI model on all available backends.");
+  }
+
+  private resizeImage(image: RawImage, maxDim: number): RawImage {
+    if (maxDim === 0 || (image.width <= maxDim && image.height <= maxDim)) {
+      return image;
+    }
+    const scale = Math.min(maxDim / image.width, maxDim / image.height);
+    const newWidth = Math.round(image.width * scale);
+    const newHeight = Math.round(image.height * scale);
+
+    const canvas = new OffscreenCanvas(newWidth, newHeight);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Could not get 2d context for resize");
+
+    const imgData = new ImageData(
+      new Uint8ClampedArray(image.data),
+      image.width,
+      image.height,
+    );
+
+    const tempCanvas = new OffscreenCanvas(image.width, image.height);
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCtx!.putImageData(imgData, 0, 0);
+
+    ctx.drawImage(tempCanvas, 0, 0, newWidth, newHeight);
+    const resizedData = ctx.getImageData(0, 0, newWidth, newHeight);
+
+    return new RawImage(
+      new Uint8ClampedArray(resizedData.data),
+      newWidth,
+      newHeight,
+      image.channels,
+    );
+  }
+
+  private upscaleMask(
+    mask: RawImage,
+    targetWidth: number,
+    targetHeight: number,
+  ): RawImage {
+    if (mask.width === targetWidth && mask.height === targetHeight) {
+      return mask;
+    }
+    const canvas = new OffscreenCanvas(targetWidth, targetHeight);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Could not get 2d context for upscale");
+
+    const maskImgData = new ImageData(mask.width, mask.height);
+    for (let i = 0; i < mask.data.length; i++) {
+      const val = mask.data[i];
+      const idx = i * 4;
+      maskImgData.data[idx] = val;
+      maskImgData.data[idx + 1] = val;
+      maskImgData.data[idx + 2] = val;
+      maskImgData.data[idx + 3] = 255;
+    }
+
+    const tempCanvas = new OffscreenCanvas(mask.width, mask.height);
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCtx!.putImageData(maskImgData, 0, 0);
+
+    ctx.drawImage(tempCanvas, 0, 0, targetWidth, targetHeight);
+    const upscaledData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+
+    const newMaskData = new Uint8Array(targetWidth * targetHeight);
+    for (let i = 0; i < newMaskData.length; i++) {
+      newMaskData[i] = upscaledData.data[i * 4];
+    }
+
+    return new RawImage(newMaskData, targetWidth, targetHeight, 1);
   }
 
   async removeBackgroundGetMask(
     imageBlob: Blob,
     onProgress?: (progress: number) => void,
+    quality: QualityMode = "balanced",
+    onProfile?: (report: string) => void,
   ): Promise<Blob> {
+    const profiler = new PerformanceProfiler("Background Removal (Mask Only)");
+    profiler.start("Load Model");
     await this.loadModel(onProgress);
+    profiler.end("Load Model");
+
+    profiler.start("Decode Image");
     const imageURL = URL.createObjectURL(imageBlob);
+    let finalBlob: Blob;
 
     try {
       const img = await RawImage.fromURL(imageURL);
-      const mask = await this.activePlugin.predict(img);
+      profiler.end("Decode Image");
 
+      profiler.setMetadata("Original File Size", imageBlob.size);
+      profiler.setMetadata("Original Width", img.width);
+      profiler.setMetadata("Original Height", img.height);
+      profiler.setMetadata("Quality Mode", quality);
+
+      profiler.start("Resize");
+      const maxDim = QualityMap[quality];
+      const resizedImg = this.resizeImage(img, maxDim);
+      profiler.end("Resize");
+
+      profiler.start("Model Inference");
+      if (!this.activePlugin) throw new Error("Model not loaded");
+      const smallMask = await this.activePlugin.predict(resizedImg);
+      profiler.end("Model Inference");
+
+      profiler.start("Post Processing");
       if (this.activePlugin.postProcess) {
-        this.activePlugin.postProcess(mask);
+        this.activePlugin.postProcess(smallMask);
       }
+      profiler.end("Post Processing");
 
+      profiler.start("Upscale Mask");
+      const mask = this.upscaleMask(smallMask, img.width, img.height);
+      profiler.end("Upscale Mask");
+
+      profiler.start("Canvas Rendering");
       const maskCanvas = new OffscreenCanvas(mask.width, mask.height);
       const maskCtx = maskCanvas.getContext("2d");
       if (!maskCtx) throw new Error("Failed to get 2d context");
@@ -56,36 +213,74 @@ class RMBGProcessor {
         maskImgData.data[idx + 3] = val;
       }
       maskCtx.putImageData(maskImgData, 0, 0);
+      profiler.end("Canvas Rendering");
 
-      return await maskCanvas.convertToBlob({ type: "image/png" });
+      profiler.start("PNG Encoding");
+      finalBlob = await maskCanvas.convertToBlob({ type: "image/png" });
+      profiler.end("PNG Encoding");
     } finally {
       URL.revokeObjectURL(imageURL);
     }
+
+    const reportStr = profiler.report();
+    if (onProfile) {
+      onProfile(reportStr);
+    }
+    return finalBlob;
   }
 
   async removeBackground(
     imageBlob: Blob,
     onProgress?: (progress: number) => void,
+    quality: QualityMode = "balanced",
+    onProfile?: (report: string) => void,
   ): Promise<Blob> {
+    const profiler = new PerformanceProfiler("Background Removal");
+    profiler.start("Load Model");
     await this.loadModel(onProgress);
+    profiler.end("Load Model");
+
+    profiler.start("Decode Image");
     const imageURL = URL.createObjectURL(imageBlob);
+    let finalBlob: Blob;
 
     try {
-      // 1. Load image using Transformers.js native RawImage
       const img = await RawImage.fromURL(imageURL);
+      profiler.end("Decode Image");
 
-      // 2. Run the official segmentation pipeline via the plugin
-      const mask = await this.activePlugin.predict(img);
+      profiler.setMetadata("Original File Size", imageBlob.size);
+      profiler.setMetadata("Original Width", img.width);
+      profiler.setMetadata("Original Height", img.height);
+      profiler.setMetadata("Quality Mode", quality);
 
-      // 3. Optional: Mathematical Mask Refinement (Noise Floor)
+      profiler.start("Resize");
+      const maxDim = QualityMap[quality];
+      const resizedImg = this.resizeImage(img, maxDim);
+      profiler.end("Resize");
+
+      profiler.setMetadata("Inference Width", resizedImg.width);
+      profiler.setMetadata("Inference Height", resizedImg.height);
+
+      profiler.start("Model Inference");
+      if (!this.activePlugin) throw new Error("Model not loaded");
+      const smallMask = await this.activePlugin.predict(resizedImg);
+      profiler.end("Model Inference");
+
+      profiler.start("Post Processing");
       if (this.activePlugin.postProcess) {
-        this.activePlugin.postProcess(mask);
+        this.activePlugin.postProcess(smallMask);
       }
+      profiler.end("Post Processing");
 
-      // 4. Inject the precise mask directly into the original image's alpha channel
+      profiler.start("Upscale Mask");
+      const mask = this.upscaleMask(smallMask, img.width, img.height);
+      profiler.end("Upscale Mask");
+
+      profiler.start("Alpha Composition");
       const transparentImg = img.putAlpha(mask);
+      profiler.end("Alpha Composition");
 
-      // 5. Render to an OffscreenCanvas
+      profiler.start("Canvas Rendering");
       const finalCanvas = new OffscreenCanvas(
         transparentImg.width,
         transparentImg.height,
@@ -99,12 +294,22 @@ class RMBGProcessor {
         transparentImg.height,
       );
       finalCtx.putImageData(imgData, 0, 0);
+      profiler.end("Canvas Rendering");
 
-      // 6. Export pristine PNG
-      return await finalCanvas.convertToBlob({ type: "image/png" });
+      profiler.start("PNG Encoding");
+      finalBlob = await finalCanvas.convertToBlob({ type: "image/png" });
+      profiler.end("PNG Encoding");
+
+      profiler.setMetadata("Output File Size", finalBlob.size);
     } finally {
       URL.revokeObjectURL(imageURL);
     }
+
+    const reportStr = profiler.report();
+    if (onProfile) {
+      onProfile(reportStr);
+    }
+    return finalBlob;
   }
 
   async extractText(

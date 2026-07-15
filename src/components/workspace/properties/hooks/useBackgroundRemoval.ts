@@ -32,7 +32,15 @@ export function useBackgroundRemoval(
         }),
       );
 
-      const maskBlob = await api.removeBackgroundGetMask(fileRecord.blob);
+      const maskBlob = await api.removeBackgroundGetMask(
+        fileRecord.blob,
+        undefined, // onProgress
+        "balanced",
+        Comlink.proxy((report: string) => {
+          // Logs to console cleanly without interrupting the UI flow
+          console.log(report);
+        }),
+      );
 
       // Save new mask blob
       const maskFileId = crypto.randomUUID();

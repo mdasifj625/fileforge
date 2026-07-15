@@ -24,7 +24,8 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 - **Canvas Background**: The PixiJS application is initialized with `backgroundAlpha: 0`. This is intentional! It allows the CSS-based Light/Dark themes (`bg-panel`) to visually pass through the WebGL canvas. Do not hardcode black or white backgrounds in PixiJS.
 - **Interactivity**: When dragging or scaling objects, always use `app.stage.on('globalpointermove')` combined with `app.stage.toLocal(event.global)` instead of attaching listeners directly to small sprites. This prevents the mouse from outrunning the bounding box.
 - **Cropping (PixiJS v8)**: `texture.frame` is read-only in v8. To implement non-destructive cropping, you MUST instantiate a new `PIXI.Texture` sharing the same `source` but with the updated `frame` rectangle: `new PIXI.Texture({ source: sprite.texture.source, frame: new PIXI.Rectangle(...) })`.
-- **Mask Swapping & GPU Memory**: In PixiJS v8, `AlphaMaskPipe` heavily caches render instructions. If you swap a sprite's mask and immediately call `renderTexture.destroy(true)` synchronously, the renderer will crash with `Cannot read properties of null (reading '0')` because the current frame's pipeline still attempts to execute against the now-destroyed VRAM. ALWAYS use `setTimeout(() => oldTexture.destroy(true), 100)` when hot-swapping masks to give the ticker time to rebuild its BindGroups.
+- **Mask Swapping & GPU Memory**: In PixiJS v8, `AlphaMaskPipe` heavily caches render instructions. If you swap a sprite's mask and immediately call `renderTexture.destroy(true)` synchronously, the renderer will crash with `Cannot read properties of null (reading '0')` because the current frame's pipeline still attempts to execute against the now-destroyed VRAM. ALWAYS use `setTimeout(() => oldTexture.destroy(true), 100)` when hot-swapping masks.
+- **Graphics API (PixiJS v8)**: `beginFill()`, `drawRect()`, `drawCircle()`, and `endFill()` are DEPRECATED. ALWAYS use `.rect()`, `.circle()`, `.fill()`, and `.stroke()` on `PIXI.Graphics` instances.
 
 ### 3. File Persistence (Dexie / IndexedDB)
 
@@ -34,9 +35,11 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 
 ### 4. Web Workers & WASM
 
-- **FFmpeg & Shared Memory**: When using `@ffmpeg/ffmpeg`, the worker utilizes `SharedArrayBuffer`. When casting FFmpeg outputs (which are `Uint8Array<ArrayBufferLike>`) to standard Blobs, ALWAYS explicitly cast to `Uint8Array<ArrayBuffer>` (e.g., `new Blob([data as unknown as Uint8Array<ArrayBuffer>])`) to satisfy strict TypeScript `BlobPart` constraints without using `any`.
-- **AI Models (Transformers.js)**: Transformers.js and the `AutoProcessor` library occasionally reference DOM globals like `document` which do not exist in Web Workers, causing `ReferenceError` crashes. NEVER remove the `import "./polyfill"` line at the top of AI workers, as it safely mocks these globals.
+- **FFmpeg & Shared Memory**: When using `@ffmpeg/ffmpeg`, the worker utilizes `SharedArrayBuffer`. When casting FFmpeg outputs (which are `Uint8Array<ArrayBufferLike>`) to standard Blobs, ALWAYS explicitly cast to `Uint8Array<ArrayBuffer>`.
+- **AI Models (Transformers.js)**: Transformers.js and the `AutoProcessor` library occasionally reference DOM globals like `document` which do not exist in Web Workers, causing `ReferenceError` crashes. NEVER remove the `import "./polyfill"` line at the top of AI workers.
+- **AI Hardware Acceleration**: ALWAYS explicitly handle multi-tiered hardware acceleration (`webgpu` -> `webnn` -> `wasm`) inside the worker orchestrator (`rmbg.worker.ts`) before passing the chosen device to the model plugin.
 - **AI Background Removal (PipelinePlugin)**: The AI models are decoupled from the Web Worker logic via the `PipelinePlugin` interface (`src/workers/plugins/PipelinePlugin.ts`). Always use this interface to build new models (like `Ben2Plugin`) and instantiate them in the `RMBGProcessor` constructor. This future-proofs the app, meaning you NEVER hardcode model logic directly into the worker thread. We currently use `onnx-community/BEN2-ONNX` which natively handles alpha matting.
+- **Mobile Profiling**: If implementing a `PerformanceProfiler`, DO NOT use `alert()` to display it, as it breaks the user flow. ALWAYS use `console.log()` and instruct the user to utilize native Remote Debugging (Chrome Inspect / Safari Web Inspector).
 
 ### 5. Backend & Database Architecture
 

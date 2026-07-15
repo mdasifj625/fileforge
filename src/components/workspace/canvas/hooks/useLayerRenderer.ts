@@ -210,14 +210,13 @@ export function useLayerRenderer(
                 layer.backgroundColor.replace("#", "0x"),
                 16,
               );
-              bgSprite.beginFill(colorNumber);
-              bgSprite.drawRect(
+              bgSprite.rect(
                 -sprite.texture.width / 2,
                 -sprite.texture.height / 2,
                 sprite.texture.width,
                 sprite.texture.height,
               );
-              bgSprite.endFill();
+              bgSprite.fill({ color: colorNumber });
               bgSprite.x = sprite.x;
               bgSprite.y = sprite.y;
               bgSprite.scale.set(sprite.scale.x, sprite.scale.y);
@@ -459,14 +458,13 @@ export function useLayerRenderer(
                 layer.backgroundColor.replace("#", "0x"),
                 16,
               );
-              bgSprite.beginFill(colorNumber);
-              bgSprite.drawRect(
+              bgSprite.rect(
                 -sprite.texture.width / 2,
                 -sprite.texture.height / 2,
                 sprite.texture.width,
                 sprite.texture.height,
               );
-              bgSprite.endFill();
+              bgSprite.fill({ color: colorNumber });
               bgSprite.x = sprite.x;
               bgSprite.y = sprite.y;
               bgSprite.scale.set(sprite.scale.x, sprite.scale.y);
@@ -603,14 +601,13 @@ export function useLayerRenderer(
                         layer.backgroundColor.replace("#", "0x"),
                         16,
                       );
-                      bg.beginFill(colorNumber);
-                      bg.drawRect(
+                      bg.rect(
                         -sprite.texture.width / 2,
                         -sprite.texture.height / 2,
                         sprite.texture.width,
                         sprite.texture.height,
                       );
-                      bg.endFill();
+                      bg.fill({ color: colorNumber });
                     }
                   }
                 }
