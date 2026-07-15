@@ -58,35 +58,24 @@ class RMBGProcessor {
       `Model Initialization [${backend}]`,
     );
 
-    try {
-      profiler.start("Fetch Model Weights & Session Init");
-      const plugin = new Ben2Plugin(backend);
-      await plugin.loadModel(onProgress);
-      profiler.end("Fetch Model Weights & Session Init");
+    // Select the best quantization per backend:
+    //   WASM (CPU): q4 = ~4x smaller weights, faster int8 SIMD matrix multiply
+    //   WebGPU/WebNN: fp16 = GPU native half-precision, ~2x faster than fp32
+    const dtype = backend === "wasm" ? "q4" : "fp16";
 
-      // Warmup inference forces GPU shader/pipeline compilation and catches WebGPU context loss.
-      // WASM has no shaders — skipping warmup on CPU backends saves ~3 minutes of wasted inference.
-      const isGpuBackend =
-        backend.startsWith("webgpu") || backend.startsWith("webnn");
-      if (isGpuBackend) {
-        profiler.start("Warmup Inference (GPU Shader/Graph Compilation)");
-        const dummyImage = new RawImage(
-          new Uint8ClampedArray(64 * 64 * 4),
-          64,
-          64,
-          4,
-        );
-        await plugin.predict(dummyImage);
-        profiler.end("Warmup Inference (GPU Shader/Graph Compilation)");
-      } else {
-        profiler.succeed(
-          `Warmup skipped — ${backend.toUpperCase()} is CPU-bound, no shader compilation needed`,
-        );
-      }
+    try {
+      profiler.start(`Fetch Model Weights & Session Init [dtype=${dtype}]`);
+      const plugin = new Ben2Plugin(backend, dtype);
+      await plugin.loadModel(onProgress);
+      profiler.end(`Fetch Model Weights & Session Init [dtype=${dtype}]`);
+
+      // Warmup removed: localStorage backend caching means WebGPU only fails once.
+      // BEN2 has static input shapes — warmup cost equals real inference cost (~3 min wasted).
+      profiler.succeed(`Backend ${backend.toUpperCase()} [${dtype}] ready`);
 
       this.activePlugin = plugin;
     } catch (e) {
-      console.warn(`[RMBGProcessor] Backend '${backend}' failed`, e);
+      profiler.fail(`Backend ${backend.toUpperCase()} [${dtype}]`, e);
       throw e;
     }
   }

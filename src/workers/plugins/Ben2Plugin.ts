@@ -8,9 +8,12 @@ export class Ben2Plugin implements PipelinePlugin {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private segmenter: any = null;
   private readonly device: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private readonly dtype: any;
 
-  constructor(device: string = "wasm") {
+  constructor(device: string = "wasm", dtype?: string) {
     this.device = device;
+    this.dtype = dtype;
   }
 
   async loadModel(onProgress?: (progress: number) => void): Promise<void> {
@@ -22,6 +25,8 @@ export class Ben2Plugin implements PipelinePlugin {
       {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         device: this.device as any,
+        // Quantized dtype drastically reduces inference time on CPU (q4 = ~4x smaller weights)
+        ...(this.dtype ? { dtype: this.dtype } : {}),
         progress_callback: (data: { status: string; progress?: number }) => {
           if (
             data.status === "progress" &&
