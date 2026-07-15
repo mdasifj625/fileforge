@@ -32,23 +32,8 @@ const getAvailableBackends = (): string[] => {
 
 const preferredBackends = getAvailableBackends();
 
-function logBrowserEnvironment() {
-  console.log(`
-====================================
-BROWSER ENVIRONMENT INSPECTION
-====================================
-Browser: ${typeof navigator !== "undefined" ? navigator.userAgent : "Node"}
-Hardware Concurrency: ${typeof navigator !== "undefined" ? navigator.hardwareConcurrency : "Unknown"}
-crossOriginIsolated: ${typeof crossOriginIsolated !== "undefined" ? crossOriginIsolated : false}
-SharedArrayBuffer available?: ${typeof SharedArrayBuffer !== "undefined"}
-ONNX Runtime Threads configured: ${env.backends?.onnx?.wasm?.numThreads}
-SIMD enabled: ${env.backends?.onnx?.wasm?.simd}
-Preferred Backends (In Order): ${preferredBackends.join(", ")}
-====================================
-  `);
-}
-
-logBrowserEnvironment();
+// Log structured environment info via the profiler
+PerformanceProfiler.logEnvironment();
 
 export type QualityMode = "fast" | "balanced" | "high" | "original";
 

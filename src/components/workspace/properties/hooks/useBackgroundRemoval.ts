@@ -6,6 +6,32 @@ import type { AIProcessor } from "@/workers/rmbg.worker";
 import { FileLayer } from "@/store/useWorkspaceStore";
 import { PerformanceProfiler } from "@/utils/PerformanceProfiler";
 
+// localStorage key for persisting the last known-good backend.
+// Prevents the WebGPU GPU context crash from reloading the page on every run.
+const BACKEND_CACHE_KEY = "fileforge:preferred_ai_backend";
+
+function getPreferredBackends(): string[] {
+  try {
+    const cached = localStorage.getItem(BACKEND_CACHE_KEY);
+    if (cached) {
+      // Put the cached winner first so we skip the failing backend entirely
+      const rest = ["webgpu", "wasm"].filter((b) => b !== cached);
+      return [cached, ...rest];
+    }
+  } catch {
+    // localStorage unavailable (e.g. private browsing edge cases)
+  }
+  return ["webgpu", "wasm"];
+}
+
+function cacheSuccessfulBackend(backend: string) {
+  try {
+    localStorage.setItem(BACKEND_CACHE_KEY, backend);
+  } catch {
+    // ignore
+  }
+}
+
 export function useBackgroundRemoval(
   activeLayer: FileLayer | undefined,
   updateLayerTransform: (id: string, updates: Partial<FileLayer>) => void,
@@ -23,7 +49,8 @@ export function useBackgroundRemoval(
       if (!fileRecord) throw new Error("File not found in DB");
 
       const profiler = new PerformanceProfiler("AI Background Removal");
-      const backends = ["webgpu", "wasm"];
+      // Use cached preferred backend to avoid WebGPU GPU context crash that causes tab reload
+      const backends = getPreferredBackends();
       let maskBlob: Blob | null = null;
       let lastError: any = null;
 
@@ -55,16 +82,18 @@ export function useBackgroundRemoval(
 
           maskBlob = await api.removeBackgroundGetMask(
             fileRecord.blob,
-            undefined, // onProgress
+            undefined,
             quality,
             Comlink.proxy((report: string) => {
               console.log(report);
             }),
           );
 
+          // Persist the winning backend so next run skips any failing ones
+          cacheSuccessfulBackend(backend);
           profiler.succeed(`Backend ${backend.toUpperCase()}`);
           worker.terminate();
-          break; // Success!
+          break;
         } catch (e: any) {
           profiler.fail(
             `Backend ${backend.toUpperCase()}`,
@@ -75,6 +104,9 @@ export function useBackgroundRemoval(
           worker.terminate();
         }
       }
+
+      // Print the cumulative attempt summary before checking result
+      profiler.summary();
 
       if (!maskBlob) throw lastError || new Error("All AI backends failed.");
 
@@ -89,7 +121,7 @@ export function useBackgroundRemoval(
         createdAt: Date.now(),
       });
 
-      // Instead of replacing the layer with a new image, we apply the mask to the existing layer
+      // Apply the mask to the existing layer (non-destructive)
       updateLayerTransform(activeLayer.id, { maskFileId });
     } catch (e) {
       console.error(e);

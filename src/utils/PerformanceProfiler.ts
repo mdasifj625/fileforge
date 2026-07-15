@@ -8,23 +8,85 @@ export class PerformanceProfiler {
   private metadata: Record<string, any> = {};
   private readonly enabled: boolean = true;
 
+  // Attempt-level tracking for cumulative summary
+  private attempts: Array<{
+    label: string;
+    startMs: number;
+    endMs?: number;
+    status?: "success" | "failed";
+  }> = [];
+  private currentAttemptIndex = -1;
+
   constructor(name: string, enabled: boolean = true) {
     this.name = name;
     this.enabled = enabled;
   }
 
+  // ─── Static Utilities ────────────────────────────────────────────────────
+
+  /** Log a structured browser environment inspection as part of the profiler output */
+  static logEnvironment() {
+    const ts = () => new Date().toISOString().split("T")[1].replace("Z", "");
+    const gpu =
+      typeof navigator !== "undefined" && (navigator as any).gpu
+        ? "✅ Available"
+        : "❌ Not Available";
+    const ml =
+      typeof navigator !== "undefined" && (navigator as any).ml
+        ? "✅ Available"
+        : "❌ Not Available";
+    const sab = typeof SharedArrayBuffer !== "undefined" ? "✅ Yes" : "❌ No";
+    const coi =
+      typeof crossOriginIsolated !== "undefined"
+        ? String(crossOriginIsolated)
+        : "false";
+    const threads =
+      (globalThis as any).env?.backends?.onnx?.wasm?.numThreads ?? "?";
+
+    console.log(
+      `[${ts()}] ════════════════════════════════════════════\n` +
+        `[${ts()}] 🌐 BROWSER ENVIRONMENT\n` +
+        `[${ts()}] ════════════════════════════════════════════\n` +
+        `[${ts()}]   Browser:              ${typeof navigator !== "undefined" ? navigator.userAgent : "Node"}\n` +
+        `[${ts()}]   Hardware Concurrency: ${typeof navigator !== "undefined" ? navigator.hardwareConcurrency : "?"}\n` +
+        `[${ts()}]   crossOriginIsolated:  ${coi}\n` +
+        `[${ts()}]   SharedArrayBuffer:    ${sab}\n` +
+        `[${ts()}]   WebGPU:               ${gpu}\n` +
+        `[${ts()}]   WebNN:                ${ml}\n` +
+        `[${ts()}]   ONNX Threads:         ${threads}\n` +
+        `[${ts()}] ════════════════════════════════════════════`,
+    );
+  }
+
+  // ─── Private helpers ────────────────────────────────────────────────────
+
   private ts(): string {
     return new Date().toISOString().split("T")[1].replace("Z", "");
   }
+
+  private formatTime(ms: number): string {
+    if (ms < 1000) return `${ms.toFixed(2)} ms`;
+    const seconds = ms / 1000;
+    if (seconds < 60) return `${seconds.toFixed(2)} s`;
+    const minutes = Math.floor(seconds / 60);
+    const remSeconds = seconds % 60;
+    return `${minutes}m ${remSeconds.toFixed(2)}s`;
+  }
+
+  // ─── Metadata ────────────────────────────────────────────────────────────
 
   setMetadata(key: string, value: any) {
     if (!this.enabled) return;
     this.metadata[key] = value;
   }
 
-  /** Log a clear attempt banner — use before each retry loop iteration */
+  // ─── Attempt-level logging ───────────────────────────────────────────────
+
+  /** Log a clear attempt banner and start tracking its duration */
   attempt(index: number, total: number, label: string) {
     if (!this.enabled) return;
+    this.currentAttemptIndex = index;
+    this.attempts[index] = { label, startMs: Date.now() };
     console.log(
       `[${this.ts()}] ════════════════════════════════════\n` +
         `[${this.ts()}] 🚀 ATTEMPT ${index + 1}/${total}: ${label}\n` +
@@ -32,17 +94,30 @@ export class PerformanceProfiler {
     );
   }
 
-  /** Log a clean one-line success banner */
+  /** Mark the current attempt as succeeded */
   succeed(label: string) {
     if (!this.enabled) return;
+    if (
+      this.currentAttemptIndex >= 0 &&
+      this.attempts[this.currentAttemptIndex]
+    ) {
+      this.attempts[this.currentAttemptIndex].endMs = Date.now();
+      this.attempts[this.currentAttemptIndex].status = "success";
+    }
     console.log(`[${this.ts()}] ✅ ${label} — SUCCESS`);
   }
 
-  /** Log a clean failure with just the first line of the error message — no stack dump */
+  /** Mark the current attempt as failed and log a clean one-line reason */
   fail(label: string, error: any, fallbackLabel?: string) {
     if (!this.enabled) return;
+    if (
+      this.currentAttemptIndex >= 0 &&
+      this.attempts[this.currentAttemptIndex]
+    ) {
+      this.attempts[this.currentAttemptIndex].endMs = Date.now();
+      this.attempts[this.currentAttemptIndex].status = "failed";
+    }
     const raw = error?.message ?? String(error);
-    // Take only the first line and cap it to keep logs readable
     const shortReason = raw.split("\n")[0].substring(0, 200);
     const fallback = fallbackLabel
       ? `\n[${this.ts()}]    ⚠️  Falling back to ${fallbackLabel}...`
@@ -53,6 +128,8 @@ export class PerformanceProfiler {
         fallback,
     );
   }
+
+  // ─── Step-level logging ───────────────────────────────────────────────────
 
   start(step: string) {
     if (!this.enabled) return;
@@ -72,15 +149,36 @@ export class PerformanceProfiler {
     }
   }
 
-  private formatTime(ms: number): string {
-    if (ms < 1000) return `${ms.toFixed(2)} ms`;
-    const seconds = ms / 1000;
-    if (seconds < 60) return `${seconds.toFixed(2)} s`;
-    const minutes = Math.floor(seconds / 60);
-    const remSeconds = seconds % 60;
-    return `${minutes}m ${remSeconds.toFixed(2)}s`;
+  // ─── Summary & Report ────────────────────────────────────────────────────
+
+  /** Print a cumulative table of all attempts with their durations and final total */
+  summary() {
+    if (!this.enabled || this.attempts.length === 0) return;
+
+    let totalMs = 0;
+    let out =
+      `[${this.ts()}] ════════════════════════════════════════════\n` +
+      `[${this.ts()}] 📊 CUMULATIVE ATTEMPT SUMMARY\n` +
+      `[${this.ts()}] ════════════════════════════════════════════\n`;
+
+    this.attempts.forEach((a, i) => {
+      const elapsed = a.endMs ? a.endMs - a.startMs : null;
+      if (elapsed !== null) totalMs += elapsed;
+      const icon = a.status === "success" ? "✅" : "❌";
+      const time = elapsed !== null ? this.formatTime(elapsed) : "N/A";
+      out += `[${this.ts()}]   ${icon} Attempt ${i + 1} — ${a.label}\n`;
+      out += `[${this.ts()}]      Time taken: ${time}\n`;
+    });
+
+    out +=
+      `[${this.ts()}] ────────────────────────────────────────────\n` +
+      `[${this.ts()}]   🕐 Total time across all attempts: ${this.formatTime(totalMs)}\n` +
+      `[${this.ts()}] ════════════════════════════════════════════`;
+
+    console.log(out);
   }
 
+  /** Detailed per-step report for the successful attempt */
   report(): string {
     if (!this.enabled) return "";
     let totalTime = 0;
