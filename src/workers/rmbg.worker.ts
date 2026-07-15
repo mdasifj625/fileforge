@@ -68,6 +68,20 @@ class RMBGProcessor {
       try {
         const plugin = new Ben2Plugin(backend);
         await plugin.loadModel(onProgress);
+
+        // Execute a tiny dummy prediction to force shader compilation and catch WebGPU crashes (e.g. Context Lost)
+        // Some mobile devices successfully "load" WebGPU but crash hard during the actual compute pipeline creation
+        console.log(
+          `[RMBGProcessor] Running warmup inference for ${backend}...`,
+        );
+        const dummyImage = new RawImage(
+          new Uint8ClampedArray(64 * 64 * 4),
+          64,
+          64,
+          4,
+        );
+        await plugin.predict(dummyImage);
+
         this.activePlugin = plugin;
         console.log(
           `[RMBGProcessor] Successfully initialized pipeline with backend: ${backend}`,
