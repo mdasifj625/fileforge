@@ -6,22 +6,55 @@ import type { AIProcessor } from "@/workers/rmbg.worker";
 import { FileLayer } from "@/store/useWorkspaceStore";
 import { PerformanceProfiler } from "@/utils/PerformanceProfiler";
 
+// Tracks backends that have permanently failed (deadlocked) on this device.
+// Once blacklisted, a backend is never retried — we go straight to the next one.
+const BLACKLIST_KEY = "fileforge:ai_backend_blacklist";
+
+function getBlacklist(): Set<string> {
+  try {
+    const raw = localStorage.getItem(BLACKLIST_KEY);
+    const list = raw ? new Set<string>(JSON.parse(raw)) : new Set<string>();
+    // Self-heal: remove wasm if it was accidentally blacklisted before this guard was added
+    if (list.has("wasm")) {
+      list.delete("wasm");
+      localStorage.setItem(BLACKLIST_KEY, JSON.stringify([...list]));
+    }
+    return list;
+  } catch {
+    return new Set();
+  }
+}
+
+function blacklistBackend(backend: string) {
+  // WASM is the CPU fallback — it always works, just slowly. Never blacklist it.
+  if (backend === "wasm") return;
+  try {
+    const list = getBlacklist();
+    list.add(backend);
+    localStorage.setItem(BLACKLIST_KEY, JSON.stringify([...list]));
+  } catch {
+    // ignore
+  }
+}
+
 // localStorage key for persisting the last known-good backend.
-// Prevents the WebGPU GPU context crash from reloading the page on every run.
 const BACKEND_CACHE_KEY = "fileforge:preferred_ai_backend";
 
 function getPreferredBackends(): string[] {
+  const blacklist = getBlacklist();
+  // GPU backends can be blacklisted; WASM is always the guaranteed final fallback
+  const gpuBackends = ["webgpu"].filter((b) => !blacklist.has(b));
   try {
     const cached = localStorage.getItem(BACKEND_CACHE_KEY);
-    if (cached) {
-      // Put the cached winner first so we skip the failing backend entirely
-      const rest = ["webgpu", "wasm"].filter((b) => b !== cached);
-      return [cached, ...rest];
+    if (cached && !blacklist.has(cached) && cached !== "wasm") {
+      // Bubble the last GPU winner to the front, always end with wasm
+      return [cached, ...gpuBackends.filter((b) => b !== cached), "wasm"];
     }
   } catch {
-    // localStorage unavailable (e.g. private browsing edge cases)
+    // localStorage unavailable
   }
-  return ["webgpu", "wasm"];
+  // Always end with wasm — even if the list is otherwise empty
+  return [...gpuBackends, "wasm"];
 }
 
 function cacheSuccessfulBackend(backend: string) {
@@ -49,7 +82,6 @@ export function useBackgroundRemoval(
       if (!fileRecord) throw new Error("File not found in DB");
 
       const profiler = new PerformanceProfiler("AI Background Removal");
-      // Use cached preferred backend to avoid WebGPU GPU context crash that causes tab reload
       const backends = getPreferredBackends();
       let maskBlob: Blob | null = null;
       let lastError: any = null;
@@ -73,7 +105,7 @@ export function useBackgroundRemoval(
         try {
           await api.loadModel(
             Comlink.proxy((progress: number) => {
-              setAiProgress(progress);
+              if (progress >= 0) setAiProgress(progress);
             }),
             backend,
           );
@@ -89,12 +121,21 @@ export function useBackgroundRemoval(
             }),
           );
 
-          // Persist the winning backend so next run skips any failing ones
           cacheSuccessfulBackend(backend);
           profiler.succeed(`Backend ${backend.toUpperCase()}`);
           worker.terminate();
           break;
         } catch (e: any) {
+          // If this backend stalled/deadlocked, blacklist it permanently for this device.
+          // Next run will skip it entirely and go straight to the next backend.
+          const isDeadlock =
+            typeof e?.message === "string" && e.message.includes("stalled");
+          if (isDeadlock) {
+            blacklistBackend(backend);
+            PerformanceProfiler.logInfo(
+              `${backend.toUpperCase()} permanently blacklisted on this device — will be skipped on all future runs`,
+            );
+          }
           profiler.fail(
             `Backend ${backend.toUpperCase()}`,
             e,
@@ -105,12 +146,10 @@ export function useBackgroundRemoval(
         }
       }
 
-      // Print the cumulative attempt summary before checking result
       profiler.summary();
 
       if (!maskBlob) throw lastError || new Error("All AI backends failed.");
 
-      // Save new mask blob
       const maskFileId = crypto.randomUUID();
       await db.files.put({
         id: maskFileId,
@@ -121,7 +160,6 @@ export function useBackgroundRemoval(
         createdAt: Date.now(),
       });
 
-      // Apply the mask to the existing layer (non-destructive)
       updateLayerTransform(activeLayer.id, { maskFileId });
     } catch (e) {
       console.error(e);

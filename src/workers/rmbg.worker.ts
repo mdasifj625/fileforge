@@ -21,8 +21,11 @@ if (env.backends?.onnx?.wasm) {
 
 // BEN2 transformer requires substantial GPU buffer capacity.
 // Devices that expose WebGPU but have tiny limits will crash at shader compilation.
-// Minimum limits required to attempt WebGPU inference with BEN2:
 const WEBGPU_MIN_BUFFER_SIZE = 256 * 1024 * 1024; // 256 MB
+
+// Each worker module runs probeBackends() once on init.
+// This flag prevents double-logging when a second worker is spawned for a retry attempt.
+let hasLoggedProbe = false;
 
 async function probeBackends(): Promise<string[]> {
   const backends: string[] = [];
@@ -33,22 +36,30 @@ async function probeBackends(): Promise<string[]> {
       if (adapter) {
         const bufferSize = adapter.limits?.maxBufferSize ?? 0;
         const storageSize = adapter.limits?.maxStorageBufferBindingSize ?? 0;
+        const features: string[] = [...(adapter.features ?? [])];
+        const hasF16 = features.includes("shader-f16");
 
-        // Log full adapter info so we can diagnose problematic GPU models
-        PerformanceProfiler.logGPUAdapter({
-          vendor: adapter.info?.vendor ?? "unknown",
-          architecture: adapter.info?.architecture ?? "unknown",
-          description: adapter.info?.description ?? "unknown",
-          maxBufferSize: bufferSize,
-          maxStorageBufferBindingSize: storageSize,
-          features: [...(adapter.features ?? [])],
-        });
+        // Only log on the first worker — retry workers are silent to avoid duplicate blocks
+        if (!hasLoggedProbe) {
+          hasLoggedProbe = true;
+          PerformanceProfiler.logGPUAdapter({
+            vendor: adapter.info?.vendor ?? "unknown",
+            architecture: adapter.info?.architecture ?? "unknown",
+            description: adapter.info?.description ?? "unknown",
+            maxBufferSize: bufferSize,
+            maxStorageBufferBindingSize: storageSize,
+            features,
+          });
+        }
 
         if (bufferSize >= WEBGPU_MIN_BUFFER_SIZE) {
           backends.push("webgpu");
+          PerformanceProfiler.logInfo(
+            `WebGPU accepted — shader-f16: ${hasF16 ? "✅ Yes" : "❌ No"}`,
+          );
         } else {
           PerformanceProfiler.logInfo(
-            `WebGPU skipped — maxBufferSize ${(bufferSize / 1024 / 1024).toFixed(0)} MB is below required ${WEBGPU_MIN_BUFFER_SIZE / 1024 / 1024} MB for BEN2`,
+            `WebGPU skipped — maxBufferSize ${(bufferSize / 1024 / 1024).toFixed(0)} MB < required 256 MB for BEN2`,
           );
         }
       }
@@ -67,10 +78,16 @@ async function probeBackends(): Promise<string[]> {
   return Array.from(new Set(backends));
 }
 
-const preferredBackends: string[] = await probeBackends();
+let preferredBackends: string[] | null = null;
 
-// Log structured environment info via the profiler
-PerformanceProfiler.logEnvironment();
+async function getOrProbeBackends(): Promise<string[]> {
+  if (preferredBackends) return preferredBackends;
+  preferredBackends = await probeBackends();
+
+  // Log structured environment info via the profiler on worker init
+  PerformanceProfiler.logEnvironment();
+  return preferredBackends;
+}
 
 export type QualityMode = "fast" | "balanced" | "high" | "original";
 
@@ -88,31 +105,56 @@ class RMBGProcessor {
     onProgress?: (progress: number) => void,
     forceBackend?: string,
   ) {
-    if (this.activePlugin) return;
+    if (this.activePlugin) {
+      return;
+    }
 
-    const backend = forceBackend || preferredBackends[0];
+    const backendsList = await getOrProbeBackends();
+    const backend = forceBackend || backendsList[0];
+
+    // If the adapter probe already rejected this backend, fail fast —
+    // don't attempt to load the model and silently deadlock.
+    if (forceBackend && !backendsList.includes(forceBackend)) {
+      throw new Error(
+        `Backend '${forceBackend}' was rejected by the GPU adapter probe (insufficient limits or unstable driver). Falling back.`,
+      );
+    }
+
     const profiler = new PerformanceProfiler(
       `Model Initialization [${backend}]`,
     );
 
-    // Select the best quantization per backend:
-    //   WASM (CPU): q4 = ~4x smaller weights, faster int8 SIMD matrix multiply
-    //   WebGPU/WebNN: fp16 = GPU native half-precision, ~2x faster than fp32
-    const dtype = backend === "wasm" ? "q4" : "fp16";
+    // Dtype Optimization Selection:
+    // - WebGPU: If the device supports shader-f16 (e.g. Modern GPUs), load fp16 for faster speed and lower memory.
+    //           Otherwise fall back to fp32.
+    // - WASM: ONNX BEN2-ONNX only has official fp32 (and community pezhgorski/BEN2-FP32-ONNX).
+    //         Specifying q4/q8 fails or hangs because the community repo lacks them. WASM uses default (fp32).
+    let dtype: string | undefined = undefined;
+    if (backend === "webgpu") {
+      const adapter =
+        typeof navigator !== "undefined" && (navigator as any).gpu
+          ? await (navigator as any).gpu.requestAdapter()
+          : null;
+      const hasF16 = adapter?.features?.has("shader-f16") ?? false;
+      dtype = hasF16 ? "fp16" : "fp32";
+    }
+
+    const dtypeLabel = dtype ?? "default fp32";
 
     try {
-      profiler.start(`Fetch Model Weights & Session Init [dtype=${dtype}]`);
+      profiler.start(
+        `Fetch Model Weights & Session Init [dtype=${dtypeLabel}]`,
+      );
       const plugin = new Ben2Plugin(backend, dtype);
       await plugin.loadModel(onProgress);
-      profiler.end(`Fetch Model Weights & Session Init [dtype=${dtype}]`);
+      profiler.end(`Fetch Model Weights & Session Init [dtype=${dtypeLabel}]`);
 
-      // Warmup removed: localStorage backend caching means WebGPU only fails once.
-      // BEN2 has static input shapes — warmup cost equals real inference cost (~3 min wasted).
-      profiler.succeed(`Backend ${backend.toUpperCase()} [${dtype}] ready`);
-
+      profiler.succeed(
+        `Backend ${backend.toUpperCase()} [${dtypeLabel}] ready`,
+      );
       this.activePlugin = plugin;
     } catch (e) {
-      profiler.fail(`Backend ${backend.toUpperCase()} [${dtype}]`, e);
+      profiler.fail(`Backend ${backend.toUpperCase()} [${dtypeLabel}]`, e);
       throw e;
     }
   }

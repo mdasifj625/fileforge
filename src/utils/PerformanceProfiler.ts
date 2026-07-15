@@ -96,12 +96,28 @@ export class PerformanceProfiler {
   }
 
   private formatTime(ms: number): string {
+    if (ms < 0.001) return `${(ms * 1000000).toFixed(0)} ns`;
+    if (ms < 1) return `${(ms * 1000).toFixed(0)} μs`;
     if (ms < 1000) return `${ms.toFixed(2)} ms`;
     const seconds = ms / 1000;
     if (seconds < 60) return `${seconds.toFixed(2)} s`;
     const minutes = Math.floor(seconds / 60);
     const remSeconds = seconds % 60;
     return `${minutes}m ${remSeconds.toFixed(2)}s`;
+  }
+
+  private formatValue(key: string, value: any): string {
+    if (
+      typeof value === "number" &&
+      (key.toLowerCase().includes("size") ||
+        key.toLowerCase().includes("bytes"))
+    ) {
+      if (value >= 1024 * 1024)
+        return `${(value / (1024 * 1024)).toFixed(2)} MB`;
+      if (value >= 1024) return `${(value / 1024).toFixed(2)} KB`;
+      return `${value} B`;
+    }
+    return String(value);
   }
 
   // ─── Metadata ────────────────────────────────────────────────────────────
@@ -223,7 +239,7 @@ export class PerformanceProfiler {
       out += `\nMetadata:\n`;
       out += `-------------\n`;
       for (const [k, v] of Object.entries(this.metadata)) {
-        out += `${k}: ${v}\n`;
+        out += `${k}: ${this.formatValue(k, v)}\n`;
       }
     }
 

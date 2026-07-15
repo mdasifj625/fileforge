@@ -41,9 +41,12 @@ export class Ben2Plugin implements PipelinePlugin {
   }
 
   async predict(image: RawImage): Promise<RawImage> {
-    if (!this.segmenter) throw new Error("Model not loaded");
+    if (!this.segmenter) {
+      throw new Error("Model not loaded");
+    }
 
     const results = await this.segmenter(image);
+
     let mask: RawImage;
     if (Array.isArray(results)) {
       mask = results[0].mask;
