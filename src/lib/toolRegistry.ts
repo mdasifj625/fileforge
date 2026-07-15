@@ -71,5 +71,24 @@ export const toolRegistry: Record<string, ToolDefinition> = {
     workerAction: "processImage",
     params: [],
   },
+  resize: {
+    id: "resize",
+    name: "Resize Image",
+    category: "image",
+    description: "Resize your image by scaling its dimensions.",
+    workerAction: "processImage",
+    params: [
+      {
+        key: "scale",
+        label: "Scale (%)",
+        type: "slider",
+        min: 10,
+        max: 500,
+        defaultValue: 100,
+        step: 1,
+        description: "Scale the image proportionally as a percentage.",
+      },
+    ],
+  },
   // We can scale this effortlessly to the 100+ tools mapped out
 };
