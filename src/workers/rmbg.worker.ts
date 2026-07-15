@@ -23,9 +23,8 @@ if (env.backends?.onnx?.wasm) {
 // Devices that expose WebGPU but have tiny limits will crash at shader compilation.
 const WEBGPU_MIN_BUFFER_SIZE = 256 * 1024 * 1024; // 256 MB
 
-// Each worker module runs probeBackends() once on init.
-// This flag prevents double-logging when a second worker is spawned for a retry attempt.
-let hasLoggedProbe = false;
+// Global cache for backend probing outcome to avoid repeating logs across worker reinstantiations.
+let preferredBackends: string[] | null = null;
 
 async function probeBackends(): Promise<string[]> {
   const backends: string[] = [];
@@ -39,19 +38,14 @@ async function probeBackends(): Promise<string[]> {
         const features: string[] = [...(adapter.features ?? [])];
         const hasF16 = features.includes("shader-f16");
 
-        // Only log on the first worker — retry workers are silent to avoid duplicate blocks
-        if (!hasLoggedProbe) {
-          hasLoggedProbe = true;
-          console.log(adapter); // TODO: Remove this debug log once WebGPU adapter probing is stable
-          PerformanceProfiler.logGPUAdapter({
-            vendor: adapter.info?.vendor ?? "unknown",
-            architecture: adapter.info?.architecture ?? "unknown",
-            description: adapter.info?.description ?? "unknown",
-            maxBufferSize: bufferSize,
-            maxStorageBufferBindingSize: storageSize,
-            features,
-          });
-        }
+        PerformanceProfiler.logGPUAdapter({
+          vendor: adapter.info?.vendor ?? "unknown",
+          architecture: adapter.info?.architecture ?? "unknown",
+          description: adapter.info?.description ?? "unknown",
+          maxBufferSize: bufferSize,
+          maxStorageBufferBindingSize: storageSize,
+          features,
+        });
 
         const storageBindingSizeLimit = 128 * 1024 * 1024; // 128 MB
         if (
@@ -82,8 +76,6 @@ async function probeBackends(): Promise<string[]> {
   backends.push("wasm");
   return Array.from(new Set(backends));
 }
-
-let preferredBackends: string[] | null = null;
 
 async function getOrProbeBackends(): Promise<string[]> {
   if (preferredBackends) return preferredBackends;
@@ -238,7 +230,6 @@ class RMBGProcessor {
     imageBlob: Blob,
     onProgress?: (progress: number) => void,
     quality: QualityMode = "balanced",
-    onProfile?: (report: string) => void,
   ): Promise<Blob> {
     const profiler = new PerformanceProfiler("Background Removal (Mask Only)");
     profiler.start("Load Model");
@@ -303,9 +294,7 @@ class RMBGProcessor {
     }
 
     const reportStr = profiler.report();
-    if (onProfile) {
-      onProfile(reportStr);
-    }
+    console.log(reportStr);
     return finalBlob;
   }
 
@@ -313,7 +302,6 @@ class RMBGProcessor {
     imageBlob: Blob,
     onProgress?: (progress: number) => void,
     quality: QualityMode = "balanced",
-    onProfile?: (report: string) => void,
   ): Promise<Blob> {
     const profiler = new PerformanceProfiler("Background Removal");
     profiler.start("Load Model");
@@ -386,9 +374,7 @@ class RMBGProcessor {
     }
 
     const reportStr = profiler.report();
-    if (onProfile) {
-      onProfile(reportStr);
-    }
+    console.log(reportStr);
     return finalBlob;
   }
 

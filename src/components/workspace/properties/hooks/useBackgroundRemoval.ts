@@ -40,13 +40,40 @@ function blacklistBackend(backend: string) {
 // localStorage key for persisting the last known-good backend.
 const BACKEND_CACHE_KEY = "fileforge:preferred_ai_backend";
 
+const LIMITS_CHECK_KEY = "fileforge:ai_webgpu_limits_failed";
+
+function isWebGPULimitsFailed(): boolean {
+  try {
+    return localStorage.getItem(LIMITS_CHECK_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function cacheWebGPULimitsFailed() {
+  try {
+    localStorage.setItem(LIMITS_CHECK_KEY, "true");
+  } catch {
+    // ignore
+  }
+}
+
 function getPreferredBackends(): string[] {
   const blacklist = getBlacklist();
-  // GPU backends can be blacklisted; WASM is always the guaranteed final fallback
-  const gpuBackends = ["webgpu"].filter((b) => !blacklist.has(b));
+  const limitsFailed = isWebGPULimitsFailed();
+
+  // Filter out webgpu if it is blacklisted OR if hardware limits are insufficient
+  const gpuBackends = ["webgpu"].filter(
+    (b) => !blacklist.has(b) && !limitsFailed,
+  );
   try {
     const cached = localStorage.getItem(BACKEND_CACHE_KEY);
-    if (cached && !blacklist.has(cached) && cached !== "wasm") {
+    if (
+      cached &&
+      !blacklist.has(cached) &&
+      cached !== "wasm" &&
+      !limitsFailed
+    ) {
       // Bubble the last GPU winner to the front, always end with wasm
       return [cached, ...gpuBackends.filter((b) => b !== cached), "wasm"];
     }
@@ -116,9 +143,6 @@ export function useBackgroundRemoval(
             fileRecord.blob,
             undefined,
             quality,
-            Comlink.proxy((report: string) => {
-              console.log(report);
-            }),
           );
 
           cacheSuccessfulBackend(backend);
@@ -126,6 +150,7 @@ export function useBackgroundRemoval(
           worker.terminate();
           break;
         } catch (e: any) {
+          const errMsg = e?.message ?? String(e);
           // If this backend stalled/deadlocked, blacklist it permanently for this device.
           // Next run will skip it entirely and go straight to the next backend.
           const isDeadlock =
@@ -136,6 +161,19 @@ export function useBackgroundRemoval(
               `${backend.toUpperCase()} permanently blacklisted on this device — will be skipped on all future runs`,
             );
           }
+
+          // If the worker rejected this backend due to hardware limits checks, cache it
+          // so we skip spawning workers for WebGPU entirely on subsequent runs.
+          const isLimitsFailed = errMsg.includes(
+            "rejected by the GPU adapter probe",
+          );
+          if (isLimitsFailed && backend === "webgpu") {
+            cacheWebGPULimitsFailed();
+            PerformanceProfiler.logInfo(
+              `WebGPU hardware limits check failed — skipped for all future runs on this device`,
+            );
+          }
+
           profiler.fail(
             `Backend ${backend.toUpperCase()}`,
             e,

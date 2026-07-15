@@ -231,33 +231,31 @@ export class PerformanceProfiler {
     let totalTime = 0;
     let out = "";
 
-    out += `====================================\n`;
-    out += `${this.name.toUpperCase()} PROFILING SUMMARY\n`;
-    out += `====================================\n`;
+    out += `┌──────────────────────────────────────────────┐\n`;
+    out += `│ 📊 ${this.name.toUpperCase()} PERFORMANCE REPORT │\n`;
+    out += `├──────────────────────────────────────────────┤\n`;
 
     if (Object.keys(this.metadata).length > 0) {
-      out += `\nMetadata:\n`;
-      out += `-------------\n`;
+      out += `│ ℹ️  METADATA:\n`;
       for (const [k, v] of Object.entries(this.metadata)) {
-        out += `${k}: ${this.formatValue(k, v)}\n`;
+        out += `│    • ${k}: ${this.formatValue(k, v)}\n`;
       }
+      out += `├──────────────────────────────────────────────┤\n`;
     }
 
-    out += `\nSteps:\n`;
-    out += `-------------\n`;
+    out += `│ ⏱️  PIPELINE STEPS:\n`;
     let stepCount = 1;
     for (const [step, timing] of this.timings.entries()) {
       if (timing.duration !== undefined) {
-        out += `STEP ${stepCount}\n`;
-        out += `${step}\n`;
-        out += `Time: ${this.formatTime(timing.duration)}\n\n`;
+        out += `│    ${stepCount}. ${step.padEnd(28)} ➔  ${this.formatTime(timing.duration)}\n`;
         totalTime += timing.duration;
         stepCount++;
       }
     }
 
-    out += `TOTAL TIME: ${this.formatTime(totalTime)}\n`;
-    out += `====================================\n`;
+    out += `├──────────────────────────────────────────────┤\n`;
+    out += `│ 🕐 TOTAL RUNTIME: ${this.formatTime(totalTime).padEnd(25)} │\n`;
+    out += `└──────────────────────────────────────────────┘\n`;
 
     return out;
   }
