@@ -20,6 +20,7 @@ export interface FileLayer {
   cropRect?: { x: number; y: number; width: number; height: number };
   cropAspectRatio?: number | "original" | "free" | null;
   opacity?: number;
+  isAiBackgroundRemoved?: boolean;
   blendMode?:
     | "normal"
     | "multiply"
@@ -70,6 +71,18 @@ export interface WorkspaceState {
   setBrushSize: (size: number) => void;
   undo: () => void;
   redo: () => void;
+  isRemovingBackground: boolean;
+  setIsRemovingBackground: (val: boolean) => void;
+  aiProgress: number | null;
+  setAiProgress: (val: number | null) => void;
+  aiProgressPhase: "model" | "inference" | null;
+  setAiProgressPhase: (val: "model" | "inference" | null) => void;
+  aiProgressBackend: string | null;
+  setAiProgressBackend: (val: string | null) => void;
+  bgRemovalSuccessTrigger: number;
+  triggerBgRemovalSuccess: () => void;
+  bgRemovalDuration: number | null;
+  setBgRemovalDuration: (val: number | null) => void;
 }
 
 const saveHistory = (state: WorkspaceState, newLayers: FileLayer[]) => {
@@ -92,7 +105,22 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   exportImageBlob: null,
   brushMode: "none",
   brushSize: 20,
+  isRemovingBackground: false,
+  aiProgress: null,
+  aiProgressPhase: null,
+  aiProgressBackend: null,
+  bgRemovalSuccessTrigger: 0,
+  bgRemovalDuration: null,
 
+  setIsRemovingBackground: (val) => set({ isRemovingBackground: val }),
+  setAiProgress: (val) => set({ aiProgress: val }),
+  setAiProgressPhase: (val) => set({ aiProgressPhase: val }),
+  setAiProgressBackend: (val) => set({ aiProgressBackend: val }),
+  triggerBgRemovalSuccess: () =>
+    set((state) => ({
+      bgRemovalSuccessTrigger: state.bgRemovalSuccessTrigger + 1,
+    })),
+  setBgRemovalDuration: (val) => set({ bgRemovalDuration: val }),
   setBrushMode: (mode) => set({ brushMode: mode }),
   setBrushSize: (size) => set({ brushSize: size }),
   triggerExport: () =>

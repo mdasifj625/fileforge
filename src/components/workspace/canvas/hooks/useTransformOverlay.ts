@@ -21,6 +21,7 @@ export function useTransformOverlay(
   const activeLayerId = useWorkspaceStore((state) => state.activeLayerId);
   const activeTool = useWorkspaceStore((state) => state.activeTool);
   const theme = useWorkspaceStore((state) => state.theme);
+
   // We assume isPixiReady is essentially checked by appRef.current being available
   // Draw and Manage the Transform Overlay for the Active Layer
   useEffect(() => {

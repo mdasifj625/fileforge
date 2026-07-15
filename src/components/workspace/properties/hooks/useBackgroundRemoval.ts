@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { db } from "@/db";
 import * as Comlink from "comlink";
 import type { AIProcessor } from "@/workers/rmbg.worker";
 import { FileLayer } from "@/store/useWorkspaceStore";
 import { PerformanceProfiler } from "@/utils/PerformanceProfiler";
+
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 // Tracks backends that have permanently failed (deadlocked) on this device.
 // Once blacklisted, a backend is never retried — we go straight to the next one.
@@ -96,14 +98,28 @@ export function useBackgroundRemoval(
   activeLayer: FileLayer | undefined,
   updateLayerTransform: (id: string, updates: Partial<FileLayer>) => void,
 ) {
-  const [isFiltering, setIsFiltering] = useState(false);
-  const [aiProgress, setAiProgress] = useState<number | null>(null);
+  const isFiltering = useWorkspaceStore((state) => state.isRemovingBackground);
+  const aiProgress = useWorkspaceStore((state) => state.aiProgress);
+  const {
+    setIsRemovingBackground,
+    setAiProgress,
+    setAiProgressPhase,
+    setAiProgressBackend,
+    triggerBgRemovalSuccess,
+    setBgRemovalDuration,
+  } = useWorkspaceStore();
 
   const applyAIBackgroundRemoval = useCallback(async () => {
     if (!activeLayer || isFiltering) return;
 
-    setIsFiltering(true);
+    setIsRemovingBackground(true);
+    setAiProgressPhase("model");
     setAiProgress(0);
+    setBgRemovalDuration(null);
+
+    const overallStart = Date.now();
+    let activeInterval: NodeJS.Timeout | null = null;
+
     try {
       const fileRecord = await db.files.get(activeLayer.fileId);
       if (!fileRecord) throw new Error("File not found in DB");
@@ -116,6 +132,10 @@ export function useBackgroundRemoval(
       for (let i = 0; i < backends.length; i++) {
         const backend = backends[i];
         const nextBackend = backends[i + 1];
+
+        setAiProgressBackend(backend);
+        setAiProgressPhase("model");
+        setAiProgress(0);
 
         profiler.attempt(
           i,
@@ -132,10 +152,40 @@ export function useBackgroundRemoval(
         try {
           await api.loadModel(
             Comlink.proxy((progress: number) => {
-              if (progress >= 0) setAiProgress(progress);
+              if (progress >= 0) {
+                // Map Phase 1 model download to 0% - 40%
+                setAiProgress(Math.round(progress * 0.4));
+              }
             }),
             backend,
           );
+
+          // Phase 2: Inference (Actual image segmentation)
+          setAiProgressPhase("inference");
+          setAiProgress(40);
+
+          const cores =
+            typeof navigator !== "undefined"
+              ? navigator.hardwareConcurrency || 4
+              : 4;
+          const estDuration =
+            backend === "webgpu"
+              ? Math.max(20000, Math.round(25 * (16 / cores)) * 1000)
+              : Math.max(25000, Math.round(30 * (16 / cores)) * 1000);
+
+          const startProgress = 40;
+          const targetProgress = 95;
+          let currentProgress = startProgress;
+          // Dynamically scale decayFactor so visual progress bar speed matches hardware-scaled duration
+          const decayFactor = Math.min(
+            0.25,
+            Math.max(0.02, 0.3 / (estDuration / 1000)),
+          );
+
+          activeInterval = setInterval(() => {
+            currentProgress += (targetProgress - currentProgress) * decayFactor;
+            setAiProgress(Math.round(currentProgress));
+          }, 150);
 
           const quality = backend === "wasm" ? "fast" : "balanced";
 
@@ -145,11 +195,21 @@ export function useBackgroundRemoval(
             quality,
           );
 
+          if (activeInterval) {
+            clearInterval(activeInterval);
+            activeInterval = null;
+          }
+          setAiProgress(100);
+
           cacheSuccessfulBackend(backend);
           profiler.succeed(`Backend ${backend.toUpperCase()}`);
           worker.terminate();
           break;
         } catch (e: any) {
+          if (activeInterval) {
+            clearInterval(activeInterval);
+            activeInterval = null;
+          }
           const errMsg = e?.message ?? String(e);
           // If this backend stalled/deadlocked, blacklist it permanently for this device.
           // Next run will skip it entirely and go straight to the next backend.
@@ -198,15 +258,35 @@ export function useBackgroundRemoval(
         createdAt: Date.now(),
       });
 
-      updateLayerTransform(activeLayer.id, { maskFileId });
+      updateLayerTransform(activeLayer.id, {
+        maskFileId,
+        isAiBackgroundRemoved: true,
+      });
+      const durationMs = Date.now() - overallStart;
+      setBgRemovalDuration(durationMs);
+      // Trigger achievement confetti
+      triggerBgRemovalSuccess();
     } catch (e) {
+      if (activeInterval) clearInterval(activeInterval);
       console.error(e);
       alert("Failed to remove background.");
     } finally {
-      setIsFiltering(false);
+      setIsRemovingBackground(false);
       setAiProgress(null);
+      setAiProgressPhase(null);
+      setAiProgressBackend(null);
     }
-  }, [activeLayer, isFiltering, updateLayerTransform]);
+  }, [
+    activeLayer,
+    isFiltering,
+    updateLayerTransform,
+    setIsRemovingBackground,
+    setAiProgress,
+    setAiProgressPhase,
+    setAiProgressBackend,
+    triggerBgRemovalSuccess,
+    setBgRemovalDuration,
+  ]);
 
   return { applyAIBackgroundRemoval, isFiltering, aiProgress };
 }
