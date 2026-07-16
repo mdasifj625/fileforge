@@ -3,11 +3,8 @@
 import React, { useRef } from "react";
 import * as PIXI from "pixi.js";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
-import { toolRegistry } from "@/lib/toolRegistry";
-import { PDFWorkspaceArea } from "./PDFWorkspaceArea";
-import { VideoWorkspaceArea } from "./VideoWorkspaceArea";
-import { AudioWorkspaceArea } from "./AudioWorkspaceArea";
-import { UtilityWorkspaceArea } from "./UtilityWorkspaceArea";
+
+import { WorkspaceOverlayOrchestrator } from "./WorkspaceOverlayOrchestrator";
 import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
 
 import { usePixiApp } from "./canvas/hooks/usePixiApp";
@@ -33,9 +30,7 @@ export function CanvasArea() {
     >
   >({});
   const layers = useWorkspaceStore((state) => state.layers);
-  const activeTool = useWorkspaceStore((state) => state.activeTool);
-  const activeToolDef = activeTool ? toolRegistry[activeTool] : undefined;
-  const ActiveWorkspaceOverlay = activeToolDef?.WorkspaceOverlayComponent;
+
 
   const canvasRefs: CanvasRefs = {
     appRef,
@@ -119,24 +114,7 @@ export function CanvasArea() {
         </div>
       )}
 
-      {ActiveWorkspaceOverlay && <ActiveWorkspaceOverlay />}
-      {!ActiveWorkspaceOverlay && activeTool?.startsWith("pdf-") && (
-        <PDFWorkspaceArea />
-      )}
-      {!ActiveWorkspaceOverlay &&
-        (activeTool?.startsWith("ai-summarize-pdf") ||
-          activeTool?.startsWith("ai-translate-document")) && (
-          <PDFWorkspaceArea />
-        )}
-      {!ActiveWorkspaceOverlay && activeTool?.startsWith("video-") && (
-        <VideoWorkspaceArea />
-      )}
-      {!ActiveWorkspaceOverlay && activeTool?.startsWith("audio-") && (
-        <AudioWorkspaceArea />
-      )}
-      {!ActiveWorkspaceOverlay && activeTool?.startsWith("utility-") && (
-        <UtilityWorkspaceArea />
-      )}
+      <WorkspaceOverlayOrchestrator />
     </div>
   );
 }

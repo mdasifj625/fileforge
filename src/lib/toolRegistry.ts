@@ -1,5 +1,5 @@
 import React from "react";
-import { FileLayer } from "@/store/useWorkspaceStore";
+import { Layer } from "@/types/layer";
 import { removeBackgroundTool } from "@/features/RemoveBackground";
 import { ocrTool } from "@/features/OCR";
 import { cropTool } from "@/features/Crop";
@@ -38,7 +38,7 @@ export interface ToolDefinition {
   description: string;
   workerAction?: string;
   params: UIParam[];
-  PropertiesComponent?: React.ComponentType<{ layer?: FileLayer }>;
+  PropertiesComponent?: React.ComponentType<{ layer?: Layer }>;
   WorkspaceOverlayComponent?: React.ComponentType;
 }
 

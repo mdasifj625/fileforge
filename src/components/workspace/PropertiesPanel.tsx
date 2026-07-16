@@ -106,10 +106,16 @@ export function PropertiesPanel() {
               <ActivePropertiesComponent layer={activeLayer} />
             )}
 
-            {/* Dynamic Tools (Vintage, Sepia, etc) */}
-            {dynamicTool && (
-              <DynamicPropertiesPanel key={dynamicTool.id} tool={dynamicTool} />
-            )}
+            {/* Dynamic Tools (Vintage, Sepia, etc) without custom UI */}
+            {!ActivePropertiesComponent &&
+              dynamicTool &&
+              dynamicTool.params &&
+              dynamicTool.params.length > 0 && (
+                <DynamicPropertiesPanel
+                  key={dynamicTool.id}
+                  tool={dynamicTool}
+                />
+              )}
           </div>
         ) : (
           <div className="flex items-center justify-center h-full text-sm text-muted-foreground text-center px-4 font-medium">
