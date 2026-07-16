@@ -5,7 +5,10 @@ import { CanvasArea } from "./CanvasArea";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { ExportModal } from "./ExportModal";
 import { Undo2, Redo2 } from "lucide-react";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useToolStore } from "@/store/useToolStore";
+import { useLayerStore } from "@/store/useLayerStore";
+import { useExportStore } from "@/store/useExportStore";
+import { useWorkspaceActions } from "@/store";
 
 export function WorkspaceLayout({
   children,
@@ -14,15 +17,15 @@ export function WorkspaceLayout({
   children?: React.ReactNode;
   title?: string;
 }>) {
-  const pastCount = useWorkspaceStore((s) => s.past?.length || 0);
-  const futureCount = useWorkspaceStore((s) => s.future?.length || 0);
-  const undo = useWorkspaceStore((s) => s.undo);
-  const redo = useWorkspaceStore((s) => s.redo);
-  const triggerExport = useWorkspaceStore((s) => s.triggerExport);
-  const hasLayers = useWorkspaceStore((s) => s.layers.length > 0);
-  const activeTool = useWorkspaceStore((s) => s.activeTool);
-  const hydrateLayers = useWorkspaceStore((s) => s.hydrateLayers);
-  const startOver = useWorkspaceStore((s) => s.startOver);
+  const pastCount = useLayerStore((s) => s.past?.length || 0);
+  const futureCount = useLayerStore((s) => s.future?.length || 0);
+  const undo = useLayerStore((s) => s.undo);
+  const redo = useLayerStore((s) => s.redo);
+  const triggerExport = useExportStore((s) => s.triggerExport);
+  const hasLayers = useLayerStore((s) => s.layers.length > 0);
+  const activeTool = useToolStore((s) => s.activeTool);
+  const hydrateLayers = useLayerStore((s) => s.hydrateLayers);
+  const { startOver } = useWorkspaceActions();
 
   useEffect(() => {
     hydrateLayers();
@@ -37,7 +40,7 @@ export function WorkspaceLayout({
         return;
 
       if (e.key === "Delete" || e.key === "Backspace") {
-        const { activeLayerId, removeLayer } = useWorkspaceStore.getState();
+        const { activeLayerId, removeLayer } = useLayerStore.getState();
         if (activeLayerId) {
           removeLayer(activeLayerId);
         }

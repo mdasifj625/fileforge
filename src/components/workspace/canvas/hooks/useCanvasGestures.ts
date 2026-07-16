@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore, useToolStore, useExportStore, useAIStore } from "@/store";
 
 export function useCanvasGestures(
   containerRef: React.RefObject<HTMLDivElement | null>,
@@ -17,7 +17,7 @@ export function useCanvasGestures(
       );
       initialPinchDistance.current = dist;
 
-      const { activeLayerId, layers } = useWorkspaceStore.getState();
+      const { activeLayerId, layers } = useLayerStore.getState();
       const layer = layers.find((l) => l.id === activeLayerId);
       if (layer) {
         initialLayerScale.current = { x: layer.scaleX, y: layer.scaleY };
@@ -40,7 +40,7 @@ export function useCanvasGestures(
 
       const scale = dist / initialPinchDistance.current;
       const { activeLayerId, updateLayerTransform } =
-        useWorkspaceStore.getState();
+        useLayerStore.getState();
       if (activeLayerId) {
         updateLayerTransform(
           activeLayerId,
@@ -74,7 +74,7 @@ export function useCanvasGestures(
       e.preventDefault(); // Block native page scroll and browser zoom
 
       const { activeLayerId, layers, updateLayerTransform } =
-        useWorkspaceStore.getState();
+        useLayerStore.getState();
       const layer = layers.find((l) => l.id === activeLayerId);
       if (!layer) return;
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FileLayer as ImageLayer } from "@/store/useWorkspaceStore";
+import { ImageLayer } from "@/types/layer";
 
 interface ResizeHandlersProps {
   layer: ImageLayer;

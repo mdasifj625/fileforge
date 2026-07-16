@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import * as PIXI from "pixi.js";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useToolStore } from "@/store/useToolStore";
+import { useLayerStore } from "@/store/useLayerStore";
 import { CanvasRefs } from "../types";
 import {
   getHandlesConfig,
@@ -24,9 +25,9 @@ export function useTransformOverlay(
     brushControllerRef,
   } = refs;
 
-  const activeLayerId = useWorkspaceStore((state) => state.activeLayerId);
-  const activeTool = useWorkspaceStore((state) => state.activeTool);
-  const theme = useWorkspaceStore((state) => state.theme);
+  const activeLayerId = useLayerStore((s) => s.activeLayerId);
+  const activeTool = useToolStore((s) => s.activeTool);
+  const theme = useToolStore((s) => s.theme);
 
   useEffect(() => {
     const app = appRef.current;
@@ -78,7 +79,7 @@ export function useTransformOverlay(
     let cropGhostSprite: PIXI.Sprite | null = null;
 
     if (isCropMode) {
-      const layer = useWorkspaceStore
+      const layer = useLayerStore
         .getState()
         .layers.find((l) => l.id === activeLayerId);
       if (layer && layer.originalWidth > 0) {
@@ -139,7 +140,7 @@ export function useTransformOverlay(
       });
 
       if (cropGhostSprite && isCropMode) {
-        const layer = useWorkspaceStore
+        const layer = useLayerStore
           .getState()
           .layers.find((l) => l.id === activeLayerId);
         if (layer) {

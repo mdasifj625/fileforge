@@ -1,16 +1,18 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useToolStore } from "@/store/useToolStore";
+import { useLayerStore } from "@/store/useLayerStore";
+import { useExportStore } from "@/store/useExportStore";
 
 import { useLayerBlobs } from "@/hooks/useBlobStorage";
 import * as Comlink from "comlink";
 import type { VideoProcessor } from "@/workers/video.worker";
 
 export function VideoWorkspaceArea() {
-  const layers = useWorkspaceStore((state) => state.layers);
-  const activeTool = useWorkspaceStore((state) => state.activeTool);
-  const exportTrigger = useWorkspaceStore((state) => state.exportTrigger);
+  const layers = useLayerStore((s) => s.layers);
+  const activeTool = useToolStore((s) => s.activeTool);
+  const exportTrigger = useExportStore((s) => s.exportTrigger);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const { blobs } = useLayerBlobs(layers);
@@ -128,7 +130,7 @@ export function VideoWorkspaceArea() {
               </h3>
               <button
                 onClick={() =>
-                  useWorkspaceStore.getState().removeLayer(layer.id)
+                  useLayerStore.getState().removeLayer(layer.id)
                 }
                 className="text-muted-foreground hover:text-red-500 transition-colors p-1"
                 title="Remove Video"

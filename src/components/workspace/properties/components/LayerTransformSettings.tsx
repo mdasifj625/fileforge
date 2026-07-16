@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FileLayer } from "@/store/useWorkspaceStore";
+import { Layer as FileLayer } from "@/types/layer";
 import { Link, Unlock } from "lucide-react";
 
 interface Props {

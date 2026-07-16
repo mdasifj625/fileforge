@@ -1,15 +1,15 @@
 "use client";
 
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useToolStore } from "@/store/useToolStore";
 
 export default function ThemeToggle() {
   return (
     <button
       onClick={() =>
-        useWorkspaceStore
+        useToolStore
           .getState()
           .setTheme(
-            useWorkspaceStore.getState().theme === "dark" ? "light" : "dark",
+            useToolStore.getState().theme === "dark" ? "light" : "dark",
           )
       }
       className="p-2 w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-panel rounded-xl transition-colors"

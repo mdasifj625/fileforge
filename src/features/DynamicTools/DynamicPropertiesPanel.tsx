@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import { ToolDefinition } from "@/lib/toolRegistry";
 import { useDynamicTool } from "./useDynamicTool";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore } from "@/store/useLayerStore";
 
 interface DynamicPropertiesPanelProps {
   tool: ToolDefinition;
 }
 
 export function DynamicPropertiesPanel({ tool }: DynamicPropertiesPanelProps) {
-  const activeLayerId = useWorkspaceStore((s) => s.activeLayerId);
-  const layers = useWorkspaceStore((s) => s.layers);
+  const activeLayerId = useLayerStore((s) => s.activeLayerId);
+  const layers = useLayerStore((s) => s.layers);
   const activeLayer = layers.find((l) => l.id === activeLayerId);
-  const replaceLayer = useWorkspaceStore((s) => s.replaceLayer);
+  const replaceLayer = useLayerStore((s) => s.replaceLayer);
 
   const { applyDynamicTool, isProcessing } = useDynamicTool(
     activeLayer,

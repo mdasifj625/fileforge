@@ -1,5 +1,5 @@
 import React from "react";
-import { FileLayer as Layer } from "@/store/useWorkspaceStore";
+import { Layer } from "@/types/layer";
 import { useSmartCrop } from "./useSmartCrop";
 
 interface Props {

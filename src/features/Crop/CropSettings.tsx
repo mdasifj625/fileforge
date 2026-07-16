@@ -1,15 +1,15 @@
 import React from "react";
-import { FileLayer as Layer } from "@/store/useWorkspaceStore";
+import { Layer } from "@/types/layer";
 import { LayerCropSettings } from "./LayerCropSettings";
 import { SmartCropSettings } from "./SmartCropSettings";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore } from "@/store/useLayerStore";
 
 interface Props {
   layer?: Layer;
 }
 
 export function CropSettings({ layer }: Readonly<Props>) {
-  const updateLayerTransform = useWorkspaceStore((s) => s.updateLayerTransform);
+  const updateLayerTransform = useLayerStore((s) => s.updateLayerTransform);
 
   if (!layer || layer.type !== "image") {
     return (

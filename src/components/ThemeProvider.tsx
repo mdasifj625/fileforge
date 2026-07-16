@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useToolStore } from "@/store/useToolStore";
 
 export default function ThemeProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const theme = useWorkspaceStore((s) => s.theme);
+  const theme = useToolStore((s) => s.theme);
 
   useEffect(() => {
     const root = window.document.documentElement;

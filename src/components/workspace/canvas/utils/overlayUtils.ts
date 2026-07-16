@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import { ImageLayer } from "@/types/layer";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore } from "@/store/useLayerStore";
 import { CanvasRefs } from "../types";
 
 export function getHandlesConfig(isCropMode: boolean) {
@@ -192,7 +192,7 @@ function getCropRatio(
   originalW: number,
   originalH: number,
 ) {
-  const layerState = useWorkspaceStore
+  const layerState = useLayerStore
     .getState()
     .layers.find((l) => l.id === activeLayerId) as ImageLayer | undefined;
   const rawRatio = layerState?.cropAspectRatio;
@@ -383,7 +383,7 @@ export function setupTransformHandles(
       startSpriteX = activeSprite.x;
       startSpriteY = activeSprite.y;
 
-      const layer = useWorkspaceStore
+      const layer = useLayerStore
         .getState()
         .layers.find((l) => l.id === activeLayerId);
       if (layer) {
@@ -405,13 +405,13 @@ export function setupTransformHandles(
       activeSprite.isBeingManipulated = false;
 
       if (isCropMode) {
-        useWorkspaceStore.getState().updateLayerTransform(activeLayerId, {
+        useLayerStore.getState().updateLayerTransform(activeLayerId, {
           cropRect: currentCropRect,
           x: activeSprite.x,
           y: activeSprite.y,
         });
       } else {
-        useWorkspaceStore.getState().updateLayerTransform(activeLayerId, {
+        useLayerStore.getState().updateLayerTransform(activeLayerId, {
           scaleX: activeSprite.scale.x,
           scaleY: activeSprite.scale.y,
           x: activeSprite.x,

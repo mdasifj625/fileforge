@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import * as PIXI from "pixi.js";
+import { useLayerStore } from "@/store";
 import { CanvasRefs } from "../types";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useToolStore } from "@/store/useToolStore";
+import { useExportStore } from "@/store/useExportStore";
 
 export function useCanvasExport({
   appRef,
@@ -10,13 +12,13 @@ export function useCanvasExport({
   gridRef,
   transformOverlayRef,
 }: CanvasRefs) {
-  const exportTrigger = useWorkspaceStore((state) => state.exportTrigger);
-  const activeTool = useWorkspaceStore((state) => state.activeTool);
+  const exportTrigger = useExportStore((s) => s.exportTrigger);
+  const activeTool = useToolStore((s) => s.activeTool);
 
   useEffect(() => {
     if (exportTrigger > 0 && appRef.current && activeTool !== "pdf-merge") {
       const app = appRef.current;
-      const state = useWorkspaceStore.getState();
+      const state = useLayerStore.getState();
       const activeLayerId = state.activeLayerId;
       const activeLayer = state.layers.find((l) => l.id === activeLayerId);
 
@@ -27,7 +29,7 @@ export function useCanvasExport({
       ) {
         // Fallback to full screen if no active layer
         app.canvas.toBlob((blob) => {
-          if (blob) useWorkspaceStore.getState().setExportImageBlob(blob);
+          if (blob) useExportStore.getState().setExportImageBlob(blob);
         }, "image/png");
         return;
       }
@@ -110,7 +112,7 @@ export function useCanvasExport({
 
       extractedCanvas.toBlob((blob) => {
         if (blob) {
-          useWorkspaceStore.getState().setExportImageBlob(blob);
+          useExportStore.getState().setExportImageBlob(blob);
         }
 
         // Cleanup and Restore

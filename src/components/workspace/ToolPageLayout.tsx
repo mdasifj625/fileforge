@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { WorkspaceLayout } from "./WorkspaceLayout";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useToolStore } from "@/store/useToolStore";
 import { TOOL_MENUS } from "@/config/tools";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
@@ -29,7 +29,7 @@ export function ToolPageLayout({
   content,
   children,
 }: ToolPageLayoutProps) {
-  const setActiveTool = useWorkspaceStore((state) => state.setActiveTool);
+  const setActiveTool = useToolStore((s) => s.setActiveTool);
 
   useEffect(() => {
     setActiveTool(toolId);

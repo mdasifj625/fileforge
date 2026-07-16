@@ -1,7 +1,10 @@
 "use client";
 
 import React from "react";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useToolStore } from "@/store/useToolStore";
+import { useLayerStore } from "@/store/useLayerStore";
+import { useExportStore } from "@/store/useExportStore";
+import { useWorkspaceActions } from "@/store";
 import { LayerTransformSettings } from "./properties/components/LayerTransformSettings";
 import { DynamicPropertiesPanel } from "@/features/DynamicTools/DynamicPropertiesPanel";
 import { toolRegistry } from "@/lib/toolRegistry";
@@ -9,20 +12,20 @@ import { FeatureErrorBoundary } from "@/components/FeatureErrorBoundary";
 import { Undo2, Redo2 } from "lucide-react";
 
 export function PropertiesPanel() {
-  const activeLayerId = useWorkspaceStore((state) => state.activeLayerId);
-  const layers = useWorkspaceStore((state) => state.layers);
-  const activeTool = useWorkspaceStore((state) => state.activeTool);
-  const updateLayerTransform = useWorkspaceStore(
+  const activeLayerId = useLayerStore((s) => s.activeLayerId);
+  const layers = useLayerStore((s) => s.layers);
+  const activeTool = useToolStore((s) => s.activeTool);
+  const updateLayerTransform = useLayerStore(
     (state) => state.updateLayerTransform,
   );
 
-  const pastCount = useWorkspaceStore((s) => s.past?.length || 0);
-  const futureCount = useWorkspaceStore((s) => s.future?.length || 0);
-  const undo = useWorkspaceStore((s) => s.undo);
-  const redo = useWorkspaceStore((s) => s.redo);
-  const triggerExport = useWorkspaceStore((s) => s.triggerExport);
-  const hasLayers = useWorkspaceStore((s) => s.layers.length > 0);
-  const startOver = useWorkspaceStore((s) => s.startOver);
+  const pastCount = useLayerStore((s) => s.past?.length || 0);
+  const futureCount = useLayerStore((s) => s.future?.length || 0);
+  const undo = useLayerStore((s) => s.undo);
+  const redo = useLayerStore((s) => s.redo);
+  const triggerExport = useExportStore((s) => s.triggerExport);
+  const hasLayers = useLayerStore((s) => s.layers.length > 0);
+  const { startOver } = useWorkspaceActions();
 
   const activeLayer = layers.find((l) => l.id === activeLayerId);
 

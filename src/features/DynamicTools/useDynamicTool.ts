@@ -1,6 +1,6 @@
 import { useState } from "react";
 import * as Comlink from "comlink";
-import { FileLayer } from "@/store/useWorkspaceStore";
+import { Layer as FileLayer } from "@/types/layer";
 import { toolRegistry } from "@/lib/toolRegistry";
 
 let cachedImageWorker: Worker | null = null;

@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore, useToolStore, useExportStore, useAIStore } from "@/store";
 
 export class MaskBrushController {
   private app: PIXI.Application;
@@ -49,10 +49,10 @@ export class MaskBrushController {
   }
 
   private onPointerDown = (e: PIXI.FederatedPointerEvent) => {
-    const store = useWorkspaceStore.getState();
+    const store = useLayerStore.getState();
     if (
-      store.activeTool !== "ai-remove-background" ||
-      store.brushMode === "none"
+      useToolStore.getState().activeTool !== "ai-remove-background" ||
+      useToolStore.getState().brushMode === "none"
     )
       return;
 
@@ -99,7 +99,7 @@ export class MaskBrushController {
         });
 
         // Update the store. This will trigger useCanvasRender to re-sync `baseMaskRenderTexture` and re-apply filters!
-        useWorkspaceStore
+        useLayerStore
           .getState()
           .updateLayerTransform(this.layerId, { maskFileId });
       } catch (e) {
@@ -111,7 +111,7 @@ export class MaskBrushController {
   private draw(e: PIXI.FederatedPointerEvent) {
     if (!this.renderTexture || this.renderTexture.destroyed || !this.sprite)
       return;
-    const store = useWorkspaceStore.getState();
+    const store = useLayerStore.getState();
 
     // Calculate local position relative to the unscaled texture
     const localPos = this.sprite.toLocal(e.global);
@@ -121,8 +121,8 @@ export class MaskBrushController {
     const xInRenderTexture = localPos.x + frame.width / 2 + frame.x;
     const yInRenderTexture = localPos.y + frame.height / 2 + frame.y;
 
-    const brushSize = store.brushSize || 20;
-    const mode = store.brushMode || "restore"; // "restore" or "erase"
+    const brushSize = useToolStore.getState().brushSize || 20;
+    const mode = useToolStore.getState().brushMode || "restore"; // "restore" or "erase"
 
     this.brush.clear();
 

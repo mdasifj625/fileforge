@@ -1,9 +1,6 @@
 import React, { useState } from "react";
-import {
-  FileLayer as ImageLayer,
-  FileLayer as Layer,
-} from "@/store/useWorkspaceStore";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { Layer, ImageLayer } from "@/types/layer";
+import { useLayerStore } from "@/store/useLayerStore";
 import { Link2, Link2Off } from "lucide-react";
 import { useResizeHandlers } from "./useResizeHandlers";
 
@@ -17,7 +14,7 @@ export function ResizeSettings({ layer }: Readonly<Props>) {
 }
 
 function ResizeSettingsInner({ layer }: { layer: ImageLayer }) {
-  const updateLayerTransform = useWorkspaceStore((s) => s.updateLayerTransform);
+  const updateLayerTransform = useLayerStore((s) => s.updateLayerTransform);
   const [lockRatio, setLockRatio] = useState(true);
   const [doNotEnlarge, setDoNotEnlarge] = useState(false);
 

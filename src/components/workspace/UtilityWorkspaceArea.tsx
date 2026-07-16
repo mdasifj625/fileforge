@@ -1,17 +1,19 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useToolStore } from "@/store/useToolStore";
+import { useLayerStore } from "@/store/useLayerStore";
+import { useExportStore } from "@/store/useExportStore";
 import { db } from "@/db";
 import { useLayerBlobs } from "@/hooks/useBlobStorage";
 import * as Comlink from "comlink";
 import type { UtilityProcessor } from "@/workers/utility.worker";
 
 export function UtilityWorkspaceArea() {
-  const layers = useWorkspaceStore((state) => state.layers);
-  const activeTool = useWorkspaceStore((state) => state.activeTool);
-  const exportTrigger = useWorkspaceStore((state) => state.exportTrigger);
-  const addLayer = useWorkspaceStore((state) => state.addLayer);
+  const layers = useLayerStore((s) => s.layers);
+  const activeTool = useToolStore((s) => s.activeTool);
+  const exportTrigger = useExportStore((s) => s.exportTrigger);
+  const addLayer = useLayerStore((s) => s.addLayer);
   const { blobs } = useLayerBlobs(layers);
   const [isProcessing, setIsProcessing] = useState(false);
   const [base64Output, setBase64Output] = useState<string>("");

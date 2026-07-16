@@ -2,10 +2,10 @@ import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@/db";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore } from "@/store/useLayerStore";
 
 export function useCanvasDrop() {
-  const addLayer = useWorkspaceStore((state) => state.addLayer);
+  const addLayer = useLayerStore((s) => s.addLayer);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {

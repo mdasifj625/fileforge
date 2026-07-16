@@ -9,7 +9,7 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore, useToolStore, useExportStore, useAIStore } from "@/store";
 import { Trash2, Eye, X } from "lucide-react";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -31,10 +31,10 @@ export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
     return () => URL.revokeObjectURL(url);
   }, [blob]);
 
-  const layer = useWorkspaceStore((state) =>
+  const layer = useLayerStore((state) =>
     state.layers.find((l) => l.id === layerId),
   ) as PDFLayer | undefined;
-  const updateLayerTransform = useWorkspaceStore(
+  const updateLayerTransform = useLayerStore(
     (state) => state.updateLayerTransform,
   );
 

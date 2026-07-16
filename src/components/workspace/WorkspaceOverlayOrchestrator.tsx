@@ -1,5 +1,5 @@
 import React from "react";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useToolStore } from "@/store/useToolStore";
 import { toolRegistry } from "@/lib/toolRegistry";
 import { PDFWorkspaceArea } from "./PDFWorkspaceArea";
 import { VideoWorkspaceArea } from "./VideoWorkspaceArea";
@@ -9,12 +9,12 @@ import { UtilityWorkspaceArea } from "./UtilityWorkspaceArea";
 import { FeatureErrorBoundary } from "@/components/FeatureErrorBoundary";
 
 export function WorkspaceOverlayOrchestrator() {
-  const activeTool = useWorkspaceStore((state) => state.activeTool);
+  const activeTool = useToolStore((s) => s.activeTool);
   const activeToolDef = activeTool ? toolRegistry[activeTool] : undefined;
   const ActiveWorkspaceOverlay = activeToolDef?.WorkspaceOverlayComponent;
 
   const resetTool = () => {
-    useWorkspaceStore.getState().setActiveTool(null);
+    useToolStore.getState().setActiveTool(null);
   };
 
   const renderContent = () => {

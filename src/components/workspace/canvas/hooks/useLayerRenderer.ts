@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useToolStore } from "@/store/useToolStore";
+import { useLayerStore } from "@/store/useLayerStore";
 import { db } from "@/db";
 import { CanvasRefs } from "../types";
 import { Layer, ImageLayer } from "@/types/layer";
@@ -20,10 +21,10 @@ export function useLayerRenderer(
 ) {
   const { appRef, spritesRef, maskSpritesRef, brushControllerRef } = refs;
 
-  const layers = useWorkspaceStore((state) => state.layers);
-  const activeTool = useWorkspaceStore((state) => state.activeTool);
-  const brushMode = useWorkspaceStore((state) => state.brushMode);
-  const brushSize = useWorkspaceStore((state) => state.brushSize);
+  const layers = useLayerStore((s) => s.layers);
+  const activeTool = useToolStore((s) => s.activeTool);
+  const brushMode = useToolStore((s) => s.brushMode);
+  const brushSize = useToolStore((s) => s.brushSize);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,7 +98,7 @@ export function useLayerRenderer(
 
             setSpriteUpdateTick((t) => t + 1);
 
-            useWorkspaceStore.getState().updateLayerTransform(
+            useLayerStore.getState().updateLayerTransform(
               layer.id,
               {
                 originalWidth: realWidth,

@@ -1,6 +1,6 @@
 import React from "react";
 import { useToolStore, useAIStore } from "@/store";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore } from "@/store/useLayerStore";
 import { useBackgroundRemoval } from "./useBackgroundRemoval";
 import confetti from "canvas-confetti";
 import { Layer, ImageLayer } from "@/types/layer";
@@ -100,7 +100,7 @@ export function BackgroundRemovalSettings({
 }: Readonly<{
   layer?: Layer;
 }>) {
-  const updateLayerTransform = useWorkspaceStore((s) => s.updateLayerTransform);
+  const updateLayerTransform = useLayerStore((s) => s.updateLayerTransform);
   const brushMode = useToolStore((s) => s.brushMode);
   const brushSize = useToolStore((s) => s.brushSize);
   const setBrushMode = useToolStore((s) => s.setBrushMode);

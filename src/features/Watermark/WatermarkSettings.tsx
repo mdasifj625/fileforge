@@ -1,13 +1,13 @@
 import React from "react";
-import { FileLayer as Layer } from "@/store/useWorkspaceStore";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { Layer } from "@/types/layer";
+import { useLayerStore } from "@/store/useLayerStore";
 
 interface Props {
   layer?: Layer;
 }
 
 export function WatermarkSettings({ layer }: Readonly<Props>) {
-  const updateLayerTransform = useWorkspaceStore((s) => s.updateLayerTransform);
+  const updateLayerTransform = useLayerStore((s) => s.updateLayerTransform);
   if (!layer) return null;
   return (
     <div className="pt-6 border-t border-panel-border mt-6">

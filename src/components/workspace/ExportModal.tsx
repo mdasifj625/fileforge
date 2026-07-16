@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import UPNG from "upng-js";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore, useToolStore, useExportStore, useAIStore } from "@/store";
 import {
   Lock,
   Unlock,
@@ -18,13 +18,10 @@ import {
 type Format = "image/png" | "image/jpeg" | "image/webp";
 
 export function ExportModal() {
-  const {
-    exportImageBlob,
-    setExportImageBlob,
-    layers,
-    activeLayerId,
-    activeTool,
-  } = useWorkspaceStore();
+  const layers = useLayerStore((s) => s.layers);
+  const activeLayerId = useLayerStore((s) => s.activeLayerId);
+  const { exportImageBlob, setExportImageBlob } = useExportStore();
+  const activeTool = useToolStore((s) => s.activeTool);
 
   const [format, setFormat] = useState<Format>("image/png");
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import * as PIXI from "pixi.js";
 import { CanvasRefs } from "../types";
 import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore, useToolStore, useExportStore, useAIStore } from "@/store";
 
 export function usePixiApp({
   containerRef,
@@ -40,10 +40,10 @@ export function usePixiApp({
           // Re-center any sprite that is logically at origin (0,0) — these are
           // layers that were placed at the canvas center and must track the new
           // stage origin when the canvas container resizes (e.g. mobile height change).
-          const { layers } = useWorkspaceStore.getState();
+          const { layers } = useLayerStore.getState();
           layers.forEach((layer) => {
             if (layer.x === 0 && layer.y === 0) {
-              useWorkspaceStore
+              useLayerStore
                 .getState()
                 .updateLayerTransform(layer.id, { x: 0, y: 0 }, false);
             }

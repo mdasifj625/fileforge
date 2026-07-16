@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import * as PIXI from "pixi.js";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore } from "@/store/useLayerStore";
 
 import { WorkspaceOverlayOrchestrator } from "./WorkspaceOverlayOrchestrator";
 import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
@@ -29,7 +29,7 @@ export function CanvasArea() {
       PIXI.Sprite & { renderTexture?: PIXI.RenderTexture; maskFileId?: string }
     >
   >({});
-  const layers = useWorkspaceStore((state) => state.layers);
+  const layers = useLayerStore((s) => s.layers);
 
   const canvasRefs: CanvasRefs = {
     appRef,

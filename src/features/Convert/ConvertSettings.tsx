@@ -1,8 +1,8 @@
 import React from "react";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useToolStore } from "@/store/useToolStore";
 
 export function ConvertSettings() {
-  const activeTool = useWorkspaceStore((state) => state.activeTool);
+  const activeTool = useToolStore((s) => s.activeTool);
 
   return (
     <div>

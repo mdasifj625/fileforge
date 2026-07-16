@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { Layer, ImageLayer } from "@/types/layer";
 import { db } from "@/db";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore, useToolStore, useExportStore, useAIStore } from "@/store";
 import { CanvasRefs } from "../types";
 
 export function getBrushCursor(size: number) {
@@ -323,17 +323,17 @@ export function bindSpriteEvents(
   let dragStartCrop = { x: 0, y: 0, w: 0, h: 0 };
 
   sprite.on("pointerdown", (e) => {
-    const store = useWorkspaceStore.getState();
+    const store = useLayerStore.getState();
     store.setActiveLayerId(layer.id);
 
-    if (store.activeTool !== "select" && store.activeTool !== "crop") return;
+    if (useToolStore.getState().activeTool !== "select" && useToolStore.getState().activeTool !== "crop") return;
 
     dragging = true;
     sprite.isBeingManipulated = true;
     dragData = e;
     const localPos = dragData.getLocalPosition(app.stage);
 
-    if (store.activeTool === "crop") {
+    if (useToolStore.getState().activeTool === "crop") {
       offset.x = localPos.x;
       offset.y = localPos.y;
       dragStartCrop = {
@@ -354,8 +354,8 @@ export function bindSpriteEvents(
       dragData = null;
       sprite.isBeingManipulated = false;
 
-      const store = useWorkspaceStore.getState();
-      if (store.activeTool === "crop") {
+      const store = useLayerStore.getState();
+      if (useToolStore.getState().activeTool === "crop") {
         store.updateLayerTransform(layer.id, {
           cropRect: {
             x: sprite.texture.frame.x,
@@ -384,11 +384,11 @@ export function bindSpriteEvents(
 
   sprite.on("globalpointermove", (e) => {
     if (dragging && dragData) {
-      const store = useWorkspaceStore.getState();
+      const store = useLayerStore.getState();
       const globalPos = e.global;
       const localPos = app.stage.toLocal(globalPos);
 
-      if (store.activeTool === "crop") {
+      if (useToolStore.getState().activeTool === "crop") {
         const dx = localPos.x - offset.x;
         const dy = localPos.y - offset.y;
 
@@ -434,7 +434,7 @@ export function bindSpriteEvents(
         maskS.x = sprite.x;
         maskS.y = sprite.y;
         maskS.scale.set(sprite.scale.x, sprite.scale.y);
-        if (store.activeTool === "crop") {
+        if (useToolStore.getState().activeTool === "crop") {
           maskS.texture = new PIXI.Texture({
             source: maskS.texture.source,
             frame: sprite.texture.frame.clone(),
