@@ -2,45 +2,18 @@
 
 import React, { useEffect, useState } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
-import { db } from "@/db";
+
 import * as Comlink from "comlink";
 import type { AudioProcessor } from "@/workers/audio.worker";
+import { useLayerBlobs } from "@/hooks/useBlobStorage";
 
 export function AudioWorkspaceArea() {
   const layers = useWorkspaceStore((state) => state.layers);
   const activeTool = useWorkspaceStore((state) => state.activeTool);
   const exportTrigger = useWorkspaceStore((state) => state.exportTrigger);
-  const [blobs, setBlobs] = useState<Record<string, Blob>>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    const fetchBlobs = async () => {
-      const newBlobs: Record<string, Blob> = {};
-      let changed = false;
-
-      for (const layer of layers) {
-        if (!blobs[layer.fileId]) {
-          const fileRecord = await db.files.get(layer.fileId);
-          if (fileRecord && fileRecord.type.startsWith("audio/")) {
-            newBlobs[layer.fileId] = fileRecord.blob;
-            changed = true;
-          }
-        } else {
-          newBlobs[layer.fileId] = blobs[layer.fileId];
-        }
-      }
-
-      if (mounted && changed) {
-        setBlobs((prev) => ({ ...prev, ...newBlobs }));
-      }
-    };
-    fetchBlobs();
-    return () => {
-      mounted = false;
-    };
-  }, [layers, blobs]);
+  const { blobs } = useLayerBlobs(layers);
 
   const audioLayers = layers.filter((l) => blobs[l.fileId]);
 

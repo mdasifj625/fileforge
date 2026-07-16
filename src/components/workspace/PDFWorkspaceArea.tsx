@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
-import { db } from "@/db";
+
+import { useLayerBlobs } from "@/hooks/useBlobStorage";
 import dynamic from "next/dynamic";
 import * as Comlink from "comlink";
 import type { PdfProcessor } from "@/workers/pdf.worker";
@@ -16,41 +17,8 @@ export function PDFWorkspaceArea() {
   const layers = useWorkspaceStore((state) => state.layers);
   const activeTool = useWorkspaceStore((state) => state.activeTool);
   const exportTrigger = useWorkspaceStore((state) => state.exportTrigger);
-  const [blobs, setBlobs] = useState<Record<string, Blob>>({});
   const [isMerging, setIsMerging] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    const fetchBlobs = async () => {
-      const newBlobs: Record<string, Blob> = {};
-      let changed = false;
-
-      for (const layer of layers) {
-        if (!blobs[layer.fileId]) {
-          const fileRecord = await db.files.get(layer.fileId);
-          if (
-            fileRecord &&
-            (fileRecord.type === "application/pdf" ||
-              (activeTool === "pdf-images-to-pdf" &&
-                fileRecord.type.startsWith("image/")))
-          ) {
-            newBlobs[layer.fileId] = fileRecord.blob;
-            changed = true;
-          } else {
-            newBlobs[layer.fileId] = blobs[layer.fileId];
-          }
-        }
-      }
-
-      if (mounted && changed) {
-        setBlobs((prev) => ({ ...prev, ...newBlobs }));
-      }
-    };
-    fetchBlobs();
-    return () => {
-      mounted = false;
-    };
-  }, [layers, blobs, activeTool]);
+  const { blobs } = useLayerBlobs(layers);
 
   const pdfLayers = layers.filter((l) => blobs[l.fileId]);
 

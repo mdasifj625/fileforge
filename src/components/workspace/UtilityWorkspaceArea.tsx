@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { db } from "@/db";
+import { useLayerBlobs } from "@/hooks/useBlobStorage";
 import * as Comlink from "comlink";
 import type { UtilityProcessor } from "@/workers/utility.worker";
 
@@ -11,43 +12,10 @@ export function UtilityWorkspaceArea() {
   const activeTool = useWorkspaceStore((state) => state.activeTool);
   const exportTrigger = useWorkspaceStore((state) => state.exportTrigger);
   const addLayer = useWorkspaceStore((state) => state.addLayer);
-  const [blobs, setBlobs] = useState<
-    Record<string, { blob: Blob; name: string }>
-  >({});
+  const { blobs } = useLayerBlobs(layers);
   const [isProcessing, setIsProcessing] = useState(false);
   const [base64Output, setBase64Output] = useState<string>("");
   const [uuidOutput, setUuidOutput] = useState<string>("");
-
-  useEffect(() => {
-    let mounted = true;
-    const fetchBlobs = async () => {
-      const newBlobs: Record<string, { blob: Blob; name: string }> = {};
-      let changed = false;
-
-      for (const layer of layers) {
-        if (!blobs[layer.fileId]) {
-          const fileRecord = await db.files.get(layer.fileId);
-          if (fileRecord) {
-            newBlobs[layer.fileId] = {
-              blob: fileRecord.blob,
-              name: fileRecord.name,
-            };
-            changed = true;
-          }
-        } else {
-          newBlobs[layer.fileId] = blobs[layer.fileId];
-        }
-      }
-
-      if (mounted && changed) {
-        setBlobs((prev) => ({ ...prev, ...newBlobs }));
-      }
-    };
-    fetchBlobs();
-    return () => {
-      mounted = false;
-    };
-  }, [layers, blobs]);
 
   const activeLayers = layers.filter((l) => blobs[l.fileId]);
 
@@ -64,8 +32,8 @@ export function UtilityWorkspaceArea() {
 
           if (activeTool === "utility-zip" && activeLayers.length > 0) {
             const filesToZip = activeLayers.map((l) => ({
-              name: blobs[l.fileId].name,
-              blob: blobs[l.fileId].blob,
+              name: l.name,
+              blob: blobs[l.fileId],
             }));
             const zipBlob = await api.zipFiles(filesToZip);
 
@@ -79,7 +47,7 @@ export function UtilityWorkspaceArea() {
             activeTool === "utility-unzip" &&
             activeLayers.length > 0
           ) {
-            const inputBlob = blobs[activeLayers[0].fileId].blob;
+            const inputBlob = blobs[activeLayers[0].fileId];
             const extracted = await api.unzipFile(inputBlob);
 
             // Add extracted files to workspace
@@ -115,7 +83,7 @@ export function UtilityWorkspaceArea() {
             activeTool === "utility-base64" &&
             activeLayers.length > 0
           ) {
-            const inputBlob = blobs[activeLayers[0].fileId].blob;
+            const inputBlob = blobs[activeLayers[0].fileId];
             const b64 = await api.encodeBase64(inputBlob);
             setBase64Output(b64);
           } else if (activeTool === "utility-uuid") {
@@ -196,7 +164,7 @@ export function UtilityWorkspaceArea() {
                   key={l.id}
                   className="text-sm px-3 py-2 bg-background border border-panel-border rounded-md truncate"
                 >
-                  {blobs[l.fileId]?.name || l.name}
+                  {l.name}
                 </li>
               ))}
             </ul>
