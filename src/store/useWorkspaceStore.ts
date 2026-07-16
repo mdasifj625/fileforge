@@ -147,14 +147,43 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
       isHydrated: true,
     }),
   startOver: () => {
+    // Clear all persisted storage synchronously first, so no stale data
+    // can be re-hydrated if the component re-mounts immediately after.
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("fileforge_layers");
+      sessionStorage.removeItem("fileforge_active_layer_id");
+    }
+
+    // Wipe both IndexedDB tables — files (blobs) and history (cached operations).
+    // Both .clear() calls are fire-and-forget; errors are logged but won't block the UI.
     import("@/db").then(({ db }) => {
-      db.files.clear().catch(console.error);
+      Promise.all([db.files.clear(), db.history.clear()]).catch((err) =>
+        console.error("[startOver] Failed to clear DB:", err),
+      );
     });
+
+    // Reset ALL in-memory state to initial values — no stale fields left behind.
     set({
+      // Canvas / layers
       layers: [],
       activeLayerId: null,
       past: [],
       future: [],
+
+      // Export
+      exportTrigger: 0,
+      exportImageBlob: null,
+
+      // Brush / mask
+      brushMode: "none",
+      brushSize: 20,
+
+      // AI background removal
+      isRemovingBackground: false,
+      aiProgress: null,
+      aiProgressPhase: null,
+      aiProgressBackend: null,
+      bgRemovalDuration: null,
     });
   },
   setBrushMode: (mode) => set({ brushMode: mode }),
