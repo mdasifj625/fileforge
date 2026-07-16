@@ -7,6 +7,102 @@ export type FilterType =
  * Image Processing Worker
  * This worker runs the heavy lifting for image processing.
  */
+function getColorForFilter(
+  r: number,
+  g: number,
+  b: number,
+  filterType: FilterType,
+  threshold: number,
+) {
+  if (filterType === "grayscale") {
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    return { r: lum, g: lum, b: lum };
+  }
+  if (filterType === "invert") {
+    return { r: 255 - r, g: 255 - g, b: 255 - b };
+  }
+  if (filterType === "sepia") {
+    return {
+      r: Math.min(255, r * 0.393 + g * 0.769 + b * 0.189),
+      g: Math.min(255, r * 0.349 + g * 0.686 + b * 0.168),
+      b: Math.min(255, r * 0.272 + g * 0.534 + b * 0.131),
+    };
+  }
+  if (filterType === "vintage") {
+    return {
+      r: Math.min(255, r * 0.9 + g * 0.5 + b * 0.1),
+      g: Math.min(255, r * 0.3 + g * 0.8 + b * 0.1),
+      b: Math.min(255, r * 0.2 + g * 0.3 + b * 0.5),
+    };
+  }
+  if (filterType === "solarize") {
+    return {
+      r: r > threshold ? 255 - r : r,
+      g: g > threshold ? 255 - g : g,
+      b: b > threshold ? 255 - b : b,
+    };
+  }
+  return { r, g, b };
+}
+
+function applyFilterToPixels(
+  data: Uint8ClampedArray,
+  filterType: FilterType,
+  strength: number,
+  params: Record<string, unknown>,
+) {
+  const threshold =
+    typeof params.threshold === "number" ? params.threshold : 127;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+
+    const filtered = getColorForFilter(r, g, b, filterType, threshold);
+
+    // Interpolate based on strength
+    data[i] = r + (filtered.r - r) * strength;
+    data[i + 1] = g + (filtered.g - g) * strength;
+    data[i + 2] = b + (filtered.b - b) * strength;
+  }
+}
+
+function updateBounds(
+  x: number,
+  y: number,
+  bounds: { minX: number; minY: number; maxX: number; maxY: number },
+) {
+  if (x < bounds.minX) bounds.minX = x;
+  if (x > bounds.maxX) bounds.maxX = x;
+  if (y < bounds.minY) bounds.minY = y;
+  if (y > bounds.maxY) bounds.maxY = y;
+}
+
+function scanForContentBounds(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+) {
+  const bounds = {
+    minX: width,
+    minY: height,
+    maxX: 0,
+    maxY: 0,
+  };
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const alpha = data[(y * width + x) * 4 + 3];
+      if (alpha > 10) {
+        updateBounds(x, y, bounds);
+      }
+    }
+  }
+
+  return bounds;
+}
+
 const imageProcessor = {
   async ping() {
     return "pong from image worker";
@@ -32,50 +128,12 @@ const imageProcessor = {
 
     // Extract pixel data
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
 
     // Extract optional strength from params (default 100%)
     const strength =
       typeof params.intensity === "number" ? params.intensity / 100 : 1;
 
-    // Apply pixel-level math
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-
-      let fr = r;
-      let fg = g;
-      let fb = b;
-
-      if (filterType === "grayscale") {
-        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-        fr = fg = fb = lum;
-      } else if (filterType === "invert") {
-        fr = 255 - r;
-        fg = 255 - g;
-        fb = 255 - b;
-      } else if (filterType === "sepia") {
-        fr = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189);
-        fg = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168);
-        fb = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131);
-      } else if (filterType === "vintage") {
-        fr = Math.min(255, r * 0.9 + g * 0.5 + b * 0.1);
-        fg = Math.min(255, r * 0.3 + g * 0.8 + b * 0.1);
-        fb = Math.min(255, r * 0.2 + g * 0.3 + b * 0.5);
-      } else if (filterType === "solarize") {
-        const threshold =
-          typeof params.threshold === "number" ? params.threshold : 127;
-        fr = r > threshold ? 255 - r : r;
-        fg = g > threshold ? 255 - g : g;
-        fb = b > threshold ? 255 - b : b;
-      }
-
-      // Interpolate based on strength
-      data[i] = r + (fr - r) * strength;
-      data[i + 1] = g + (fg - g) * strength;
-      data[i + 2] = b + (fb - b) * strength;
-    }
+    applyFilterToPixels(imageData.data, filterType, strength, params);
 
     // Put data back
     ctx.putImageData(imageData, 0, 0);
@@ -158,26 +216,12 @@ const imageProcessor = {
 
     ctx.drawImage(bitmap, 0, 0);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
 
-    let minX = canvas.width;
-    let minY = canvas.height;
-    let maxX = 0;
-    let maxY = 0;
-
-    // Scan for non-transparent pixels
-    for (let y = 0; y < canvas.height; y++) {
-      for (let x = 0; x < canvas.width; x++) {
-        const alpha = data[(y * canvas.width + x) * 4 + 3];
-        if (alpha > 10) {
-          // arbitrary threshold for transparency
-          if (x < minX) minX = x;
-          if (x > maxX) maxX = x;
-          if (y < minY) minY = y;
-          if (y > maxY) maxY = y;
-        }
-      }
-    }
+    const { minX, minY, maxX, maxY } = scanForContentBounds(
+      imageData.data,
+      canvas.width,
+      canvas.height,
+    );
 
     // If completely transparent, return original
     if (minX > maxX || minY > maxY) {

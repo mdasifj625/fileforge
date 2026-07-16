@@ -1,6 +1,6 @@
 import { useState } from "react";
 import * as Comlink from "comlink";
-import { Layer } from "@/types/layer";
+import { FileLayer } from "@/store/useWorkspaceStore";
 import { toolRegistry } from "@/lib/toolRegistry";
 
 let cachedImageWorker: Worker | null = null;
@@ -25,8 +25,8 @@ function getImageProcessor() {
 }
 
 export function useDynamicTool(
-  activeLayer: Layer | undefined,
-  replaceLayer: (id: string, newLayer: Layer) => void,
+  activeLayer: FileLayer | undefined,
+  replaceLayer: (id: string, newLayer: FileLayer) => void,
 ) {
   const [isProcessing, setIsProcessing] = useState(false);
 
