@@ -6,34 +6,54 @@ import { VideoWorkspaceArea } from "./VideoWorkspaceArea";
 import { AudioWorkspaceArea } from "./AudioWorkspaceArea";
 import { UtilityWorkspaceArea } from "./UtilityWorkspaceArea";
 
+import { FeatureErrorBoundary } from "@/components/FeatureErrorBoundary";
+
 export function WorkspaceOverlayOrchestrator() {
   const activeTool = useWorkspaceStore((state) => state.activeTool);
   const activeToolDef = activeTool ? toolRegistry[activeTool] : undefined;
   const ActiveWorkspaceOverlay = activeToolDef?.WorkspaceOverlayComponent;
 
-  if (ActiveWorkspaceOverlay) {
-    return <ActiveWorkspaceOverlay />;
-  }
+  const resetTool = () => {
+    useWorkspaceStore.getState().setActiveTool(null);
+  };
 
-  if (
-    activeTool?.startsWith("pdf-") ||
-    activeTool?.startsWith("ai-summarize-pdf") ||
-    activeTool?.startsWith("ai-translate-document")
-  ) {
-    return <PDFWorkspaceArea />;
-  }
+  const renderContent = () => {
+    if (ActiveWorkspaceOverlay) {
+      return <ActiveWorkspaceOverlay />;
+    }
 
-  if (activeTool?.startsWith("video-")) {
-    return <VideoWorkspaceArea />;
-  }
+    if (
+      activeTool?.startsWith("pdf-") ||
+      activeTool?.startsWith("ai-summarize-pdf") ||
+      activeTool?.startsWith("ai-translate-document")
+    ) {
+      return <PDFWorkspaceArea />;
+    }
 
-  if (activeTool?.startsWith("audio-")) {
-    return <AudioWorkspaceArea />;
-  }
+    if (activeTool?.startsWith("video-")) {
+      return <VideoWorkspaceArea />;
+    }
 
-  if (activeTool?.startsWith("utility-")) {
-    return <UtilityWorkspaceArea />;
-  }
+    if (activeTool?.startsWith("audio-")) {
+      return <AudioWorkspaceArea />;
+    }
 
-  return null;
+    if (activeTool?.startsWith("utility-")) {
+      return <UtilityWorkspaceArea />;
+    }
+
+    return null;
+  };
+
+  const content = renderContent();
+  if (!content) return null;
+
+  return (
+    <FeatureErrorBoundary
+      toolName={activeToolDef?.name || activeTool || "Workspace Tool"}
+      onReset={resetTool}
+    >
+      {content}
+    </FeatureErrorBoundary>
+  );
 }

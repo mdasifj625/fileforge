@@ -31,7 +31,6 @@ export function CanvasArea() {
   >({});
   const layers = useWorkspaceStore((state) => state.layers);
 
-
   const canvasRefs: CanvasRefs = {
     appRef,
     containerRef,

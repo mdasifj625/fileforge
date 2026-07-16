@@ -5,6 +5,7 @@ import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { LayerTransformSettings } from "./properties/components/LayerTransformSettings";
 import { DynamicPropertiesPanel } from "@/features/DynamicTools/DynamicPropertiesPanel";
 import { toolRegistry } from "@/lib/toolRegistry";
+import { FeatureErrorBoundary } from "@/components/FeatureErrorBoundary";
 import { Undo2, Redo2 } from "lucide-react";
 
 export function PropertiesPanel() {
@@ -103,7 +104,9 @@ export function PropertiesPanel() {
 
             {/* Dynamically Injected Tool UI via Registry */}
             {ActivePropertiesComponent && (
-              <ActivePropertiesComponent layer={activeLayer} />
+              <FeatureErrorBoundary toolName={activeToolDef?.name}>
+                <ActivePropertiesComponent layer={activeLayer} />
+              </FeatureErrorBoundary>
             )}
 
             {/* Dynamic Tools (Vintage, Sepia, etc) without custom UI */}
@@ -111,10 +114,12 @@ export function PropertiesPanel() {
               dynamicTool &&
               dynamicTool.params &&
               dynamicTool.params.length > 0 && (
-                <DynamicPropertiesPanel
-                  key={dynamicTool.id}
-                  tool={dynamicTool}
-                />
+                <FeatureErrorBoundary toolName={dynamicTool.name}>
+                  <DynamicPropertiesPanel
+                    key={dynamicTool.id}
+                    tool={dynamicTool}
+                  />
+                </FeatureErrorBoundary>
               )}
           </div>
         ) : (
