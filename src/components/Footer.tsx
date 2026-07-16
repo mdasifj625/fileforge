@@ -69,7 +69,7 @@ export default function Footer() {
             <ul className="space-y-4 text-sm text-muted-foreground">
               <li>
                 <Link
-                  href="/ai/remove-background"
+                  href="/image/remove-background"
                   className="hover:text-primary transition-colors"
                 >
                   AI Background Removal

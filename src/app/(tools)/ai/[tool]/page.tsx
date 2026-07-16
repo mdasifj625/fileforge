@@ -2,21 +2,13 @@ import { ToolPageLayout } from "@/components/workspace/ToolPageLayout";
 import { notFound } from "next/navigation";
 
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
-  "remove-background": {
-    title: "Remove Background",
-    description: "AI powered background removal.",
-  },
-  "image-upscale": {
-    title: "Image Upscale",
-    description: "Upscale images without losing quality.",
-  },
-  "magic-eraser": {
-    title: "Magic Eraser",
-    description: "Remove unwanted objects from images.",
-  },
   ocr: {
     title: "Extract Text (OCR)",
     description: "Extract text from images and documents.",
+  },
+  "face-detection": {
+    title: "Face Detection",
+    description: "Detect and highlight faces in images.",
   },
   "summarize-pdf": {
     title: "Summarize PDF",

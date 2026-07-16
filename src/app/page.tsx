@@ -223,7 +223,7 @@ export default function Home() {
             </Link>
 
             <Link
-              href="/ai/remove-background"
+              href="/image/remove-background"
               className="group flex flex-col h-full bg-background border border-panel-border rounded-3xl p-6 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all"
             >
               <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">

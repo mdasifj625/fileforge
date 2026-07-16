@@ -9,7 +9,10 @@ export const TOOL_MENUS = [
       { name: "Rotate & Flip", href: "/image/rotate" },
       { name: "Watermark", href: "/image/watermark" },
       { name: "Filters & Effects", href: "/image/filters" },
-      { name: "Color Picker", href: "/image/color-picker" },
+      { name: "Remove Background", href: "/image/remove-background" },
+      { name: "Smart Crop", href: "/image/smart-crop" },
+      { name: "Magic Eraser", href: "/image/magic-eraser" },
+      { name: "Image Upscale", href: "/image/upscale" },
     ],
   },
   {
@@ -47,12 +50,10 @@ export const TOOL_MENUS = [
   {
     title: "AI",
     items: [
-      { name: "Remove Background", href: "/ai/remove-background" },
       { name: "Extract Text (OCR)", href: "/ai/ocr" },
-      { name: "Magic Eraser", href: "/ai/magic-eraser" },
-      { name: "Smart Crop", href: "/ai/smart-crop" },
-      { name: "Image Upscale", href: "/ai/upscale" },
       { name: "Face Detection", href: "/ai/face-detection" },
+      { name: "Summarize PDF", href: "/ai/summarize-pdf" },
+      { name: "Translate Document", href: "/ai/translate-document" },
     ],
   },
   {
