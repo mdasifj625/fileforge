@@ -25,6 +25,7 @@ export function useLayerRenderer(
   // We assume isPixiReady is essentially checked by appRef.current being available
   // Render Pipeline: Listen to layers and render them
   useEffect(() => {
+    let cancelled = false;
     const renderLayers = async () => {
       const app = appRef.current;
       if (!app || !isPixiReady) return;
@@ -250,35 +251,41 @@ export function useLayerRenderer(
 
           try {
             const imageBitmap = await window.createImageBitmap(fileData.blob);
+
+            // Bail out if a newer effect run has already started — avoids duplicate sprites
+            if (cancelled) return;
+
             let texture = PIXI.Texture.from(imageBitmap);
 
-            if (layer.originalWidth === 0 || layer.originalHeight === 0) {
+            // Resolve real pixel dimensions directly from the bitmap.
+            // Never bail out and re-trigger via the store — that pattern causes a
+            // stale-closure deadlock where both async runs see originalWidth===0
+            // and both continue without ever creating the sprite.
+            const realWidth =
+              layer.originalWidth > 0 ? layer.originalWidth : imageBitmap.width;
+            const realHeight =
+              layer.originalHeight > 0
+                ? layer.originalHeight
+                : imageBitmap.height;
+
+            // Compute an initial fit-to-canvas scale only for brand-new layers
+            const isNewLayer = layer.originalWidth === 0;
+            let resolvedScaleX = layer.scaleX;
+            let resolvedScaleY = layer.scaleY;
+            if (isNewLayer) {
               const maxWidth = app.screen.width * 0.8;
               const maxHeight = app.screen.height * 0.8;
-              let initialScale = 1;
-
               if (
                 imageBitmap.width > maxWidth ||
                 imageBitmap.height > maxHeight
               ) {
-                const fitScaleX = maxWidth / imageBitmap.width;
-                const fitScaleY = maxHeight / imageBitmap.height;
-                initialScale = Math.min(fitScaleX, fitScaleY);
+                const fitScale = Math.min(
+                  maxWidth / imageBitmap.width,
+                  maxHeight / imageBitmap.height,
+                );
+                resolvedScaleX = fitScale;
+                resolvedScaleY = fitScale;
               }
-
-              useWorkspaceStore.getState().updateLayerTransform(
-                layer.id,
-                {
-                  originalWidth: imageBitmap.width,
-                  originalHeight: imageBitmap.height,
-                  scaleX: initialScale,
-                  scaleY: initialScale,
-                },
-                false,
-              );
-              // We exit this render cycle since the state update will immediately trigger another one
-              // with the correct originalWidth/Height, avoiding layout jumping
-              continue;
             }
 
             const sprite = new PIXI.Sprite(texture) as PIXI.Sprite & {
@@ -287,17 +294,10 @@ export function useLayerRenderer(
 
             if (layer.cropRect) {
               // Apply non-destructive crop via texture frame
-              // Clamp values to prevent WebGL errors if cropRect exceeds bounds
               const cx = Math.max(0, layer.cropRect.x);
               const cy = Math.max(0, layer.cropRect.y);
-              const cw = Math.min(
-                layer.originalWidth - cx,
-                layer.cropRect.width,
-              );
-              const ch = Math.min(
-                layer.originalHeight - cy,
-                layer.cropRect.height,
-              );
+              const cw = Math.min(realWidth - cx, layer.cropRect.width);
+              const ch = Math.min(realHeight - cy, layer.cropRect.height);
 
               if (cw > 0 && ch > 0) {
                 texture = new PIXI.Texture({
@@ -308,25 +308,18 @@ export function useLayerRenderer(
             } else {
               texture = new PIXI.Texture({
                 source: texture.source,
-                frame: new PIXI.Rectangle(
-                  0,
-                  0,
-                  layer.originalWidth,
-                  layer.originalHeight,
-                ),
+                frame: new PIXI.Rectangle(0, 0, realWidth, realHeight),
               });
             }
 
             sprite.anchor.set(0.5);
-
-            const initialX = layer.x;
-            const initialY = layer.y;
-
-            sprite.x = initialX;
-            sprite.y = initialY;
-
-            sprite.scale.set(layer.scaleX);
-
+            sprite.x = layer.x;
+            sprite.y = layer.y;
+            sprite.scale.set(resolvedScaleX, resolvedScaleY);
+            sprite.alpha = layer.opacity ?? 1;
+            sprite.rotation = layer.rotation || 0;
+            sprite.blendMode = (layer.blendMode ||
+              "normal") as PIXI.BLEND_MODES;
             sprite.zIndex = (layers.length - i) * 2;
             sprite.eventMode = "static";
             sprite.cursor =
@@ -577,16 +570,21 @@ export function useLayerRenderer(
             }
             setSpriteUpdateTick((t) => t + 1); // Trigger overlay update
 
-            if (layer.x === 0 && layer.y === 0) {
-              useWorkspaceStore.getState().updateLayerTransform(
-                layer.id,
-                {
-                  x: sprite.x,
-                  y: sprite.y,
-                },
-                false,
-              );
-            }
+            // Persist the resolved dimensions and scale back to the store.
+            // Do this AFTER the sprite is safely on stage so there is no
+            // second render pass needed (avoids the stale-closure deadlock).
+            useWorkspaceStore.getState().updateLayerTransform(
+              layer.id,
+              {
+                originalWidth: realWidth,
+                originalHeight: realHeight,
+                scaleX: resolvedScaleX,
+                scaleY: resolvedScaleY,
+                x: sprite.x,
+                y: sprite.y,
+              },
+              false,
+            );
           } catch (error) {
             console.error(
               "Failed to load texture for layer",
@@ -610,6 +608,9 @@ export function useLayerRenderer(
     };
 
     renderLayers();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layers, isPixiReady, activeTool, brushMode, brushSize]); // Re-render when layers change or Pixi becomes ready
 }
