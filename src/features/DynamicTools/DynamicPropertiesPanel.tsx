@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ToolDefinition } from "@/lib/toolRegistry";
 import { useDynamicTool } from "./useDynamicTool";
 import { useLayerStore } from "@/store";
@@ -7,9 +7,7 @@ interface DynamicPropertiesPanelProps {
   tool: ToolDefinition;
 }
 
-export function DynamicPropertiesPanel({
-  tool,
-}: DynamicPropertiesPanelProps) {
+export function DynamicPropertiesPanel({ tool }: DynamicPropertiesPanelProps) {
   const activeLayerId = useLayerStore((s) => s.activeLayerId);
   const layers = useLayerStore((s) => s.layers);
   const activeLayer = layers.find((l) => l.id === activeLayerId);
@@ -17,18 +15,18 @@ export function DynamicPropertiesPanel({
 
   const { applyDynamicTool, isProcessing } = useDynamicTool(
     activeLayer,
-    replaceLayer
+    replaceLayer,
   );
   // Initialize state with default values from registry
-  const [paramsState, setParamsState] = useState<Record<string, unknown>>({});
-
-  useEffect(() => {
-    const defaultState: Record<string, unknown> = {};
-    tool.params.forEach((param) => {
-      defaultState[param.key] = param.defaultValue ?? 0;
-    });
-    setParamsState(defaultState);
-  }, [tool]);
+  const [paramsState, setParamsState] = useState<Record<string, unknown>>(
+    () => {
+      const defaultState: Record<string, unknown> = {};
+      tool.params.forEach((param) => {
+        defaultState[param.key] = param.defaultValue ?? 0;
+      });
+      return defaultState;
+    },
+  );
 
   const handleParamChange = (key: string, value: unknown) => {
     setParamsState((prev) => ({

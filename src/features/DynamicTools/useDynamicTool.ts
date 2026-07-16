@@ -3,6 +3,27 @@ import * as Comlink from "comlink";
 import { Layer } from "@/types/layer";
 import { toolRegistry } from "@/lib/toolRegistry";
 
+let cachedImageWorker: Worker | null = null;
+let imageProcessor: {
+  processImage: (
+    blob: Blob,
+    id: string,
+    params?: Record<string, unknown>,
+  ) => Promise<Blob>;
+} | null = null;
+
+function getImageProcessor() {
+  if (!cachedImageWorker) {
+    cachedImageWorker = new Worker(
+      new URL("@/workers/image.worker.ts", import.meta.url),
+      { type: "module" },
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    imageProcessor = Comlink.wrap(cachedImageWorker) as any;
+  }
+  return imageProcessor!;
+}
+
 export function useDynamicTool(
   activeLayer: Layer | undefined,
   replaceLayer: (id: string, newLayer: Layer) => void,
@@ -11,7 +32,6 @@ export function useDynamicTool(
 
   const applyDynamicTool = async (
     toolId: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     params: Record<string, unknown>,
   ) => {
     if (!activeLayer || !activeLayer.fileId) return;
@@ -30,20 +50,12 @@ export function useDynamicTool(
 
       // Map to the correct worker based on category
       if (tool.category === "image") {
-        const workerInstance = new Worker(
-          new URL("@/workers/image.worker.ts", import.meta.url),
-          { type: "module" },
+        const processor = getImageProcessor();
+        newBlob = await processor.processImage(
+          fileRecord.blob,
+          tool.id,
+          params,
         );
-        const imageProcessor = Comlink.wrap<unknown>(
-          workerInstance,
-        ) as unknown as {
-          processImage: (blob: Blob, id: string) => Promise<Blob>;
-        };
-
-        // For now, assume processImage takes Blob and FilterType (string)
-        // We can pass params if needed in the future
-        newBlob = await imageProcessor.processImage(fileRecord.blob, tool.id);
-        workerInstance.terminate();
       } else {
         throw new Error("Worker for category not implemented yet");
       }

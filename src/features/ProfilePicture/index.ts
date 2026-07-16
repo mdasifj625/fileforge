@@ -2,8 +2,11 @@ import dynamic from "next/dynamic";
 import { ToolDefinition } from "@/lib/toolRegistry";
 
 const ProfilePictureSettings = dynamic(
-  () => import("./ProfilePictureSettings").then((mod) => mod.ProfilePictureSettings),
-  { ssr: false }
+  () =>
+    import("./ProfilePictureSettings").then(
+      (mod) => mod.ProfilePictureSettings,
+    ),
+  { ssr: false },
 );
 
 export const profilePictureTool: ToolDefinition = {

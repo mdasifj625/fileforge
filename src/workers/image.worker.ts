@@ -12,7 +12,11 @@ const imageProcessor = {
     return "pong from image worker";
   },
 
-  async processImage(fileBlob: Blob, filterType: FilterType): Promise<Blob> {
+  async processImage(
+    fileBlob: Blob,
+    filterType: FilterType,
+    params: Record<string, unknown> = {},
+  ): Promise<Blob> {
     console.log(`Worker: Applying ${filterType} filter...`);
 
     // Decode the blob into an ImageBitmap
@@ -30,33 +34,46 @@ const imageProcessor = {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
+    // Extract optional strength from params (default 100%)
+    const strength =
+      typeof params.intensity === "number" ? params.intensity / 100 : 1;
+
     // Apply pixel-level math
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
+      
+      let fr = r;
+      let fg = g;
+      let fb = b;
 
       if (filterType === "grayscale") {
-        // Luminance math
         const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-        data[i] = data[i + 1] = data[i + 2] = lum;
+        fr = fg = fb = lum;
       } else if (filterType === "invert") {
-        data[i] = 255 - r;
-        data[i + 1] = 255 - g;
-        data[i + 2] = 255 - b;
+        fr = 255 - r;
+        fg = 255 - g;
+        fb = 255 - b;
       } else if (filterType === "sepia") {
-        data[i] = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189);
-        data[i + 1] = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168);
-        data[i + 2] = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131);
+        fr = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189);
+        fg = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168);
+        fb = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131);
       } else if (filterType === "vintage") {
-        data[i] = Math.min(255, r * 0.9 + g * 0.5 + b * 0.1);
-        data[i + 1] = Math.min(255, r * 0.3 + g * 0.8 + b * 0.1);
-        data[i + 2] = Math.min(255, r * 0.2 + g * 0.3 + b * 0.5);
+        fr = Math.min(255, r * 0.9 + g * 0.5 + b * 0.1);
+        fg = Math.min(255, r * 0.3 + g * 0.8 + b * 0.1);
+        fb = Math.min(255, r * 0.2 + g * 0.3 + b * 0.5);
       } else if (filterType === "solarize") {
-        data[i] = r > 127 ? 255 - r : r;
-        data[i + 1] = g > 127 ? 255 - g : g;
-        data[i + 2] = b > 127 ? 255 - b : b;
+        const threshold = typeof params.threshold === "number" ? params.threshold : 127;
+        fr = r > threshold ? 255 - r : r;
+        fg = g > threshold ? 255 - g : g;
+        fb = b > threshold ? 255 - b : b;
       }
+
+      // Interpolate based on strength
+      data[i] = r + (fr - r) * strength;
+      data[i + 1] = g + (fg - g) * strength;
+      data[i + 2] = b + (fb - b) * strength;
     }
 
     // Put data back

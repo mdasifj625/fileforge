@@ -57,7 +57,16 @@ export const toolRegistry: Record<string, ToolDefinition> = {
     category: "image",
     description: "Convert your image to black and white.",
     workerAction: "processImage",
-    params: [],
+    params: [
+      {
+        key: "intensity",
+        label: "Intensity",
+        type: "slider",
+        min: 0,
+        max: 100,
+        defaultValue: 100,
+      },
+    ],
   },
   sepia: {
     id: "sepia",
@@ -65,7 +74,16 @@ export const toolRegistry: Record<string, ToolDefinition> = {
     category: "image",
     description: "Apply a sepia tone to your image.",
     workerAction: "processImage",
-    params: [],
+    params: [
+      {
+        key: "intensity",
+        label: "Intensity",
+        type: "slider",
+        min: 0,
+        max: 100,
+        defaultValue: 100,
+      },
+    ],
   },
   invert: {
     id: "invert",
@@ -73,7 +91,16 @@ export const toolRegistry: Record<string, ToolDefinition> = {
     category: "image",
     description: "Invert all colors in your image.",
     workerAction: "processImage",
-    params: [],
+    params: [
+      {
+        key: "intensity",
+        label: "Intensity",
+        type: "slider",
+        min: 0,
+        max: 100,
+        defaultValue: 100,
+      },
+    ],
   },
   solarize: {
     id: "solarize",
@@ -81,7 +108,16 @@ export const toolRegistry: Record<string, ToolDefinition> = {
     category: "image",
     description: "Apply a solarize effect to your image.",
     workerAction: "processImage",
-    params: [],
+    params: [
+      {
+        key: "threshold",
+        label: "Threshold",
+        type: "slider",
+        min: 0,
+        max: 255,
+        defaultValue: 127,
+      },
+    ],
   },
   "ai-remove-background": removeBackgroundTool,
   "ai-ocr": ocrTool,

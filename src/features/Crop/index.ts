@@ -3,7 +3,7 @@ import { ToolDefinition } from "@/lib/toolRegistry";
 
 const CropSettings = dynamic(
   () => import("./CropSettings").then((mod) => mod.CropSettings),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const cropTool: ToolDefinition = {

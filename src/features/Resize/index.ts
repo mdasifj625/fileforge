@@ -3,7 +3,7 @@ import { ToolDefinition } from "@/lib/toolRegistry";
 
 const ResizeSettings = dynamic(
   () => import("./ResizeSettings").then((mod) => mod.ResizeSettings),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const resizeTool: ToolDefinition = {

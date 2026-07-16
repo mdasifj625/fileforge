@@ -3,7 +3,7 @@ import { ToolDefinition } from "@/lib/toolRegistry";
 
 const WatermarkSettings = dynamic(
   () => import("./WatermarkSettings").then((mod) => mod.WatermarkSettings),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const watermarkTool: ToolDefinition = {

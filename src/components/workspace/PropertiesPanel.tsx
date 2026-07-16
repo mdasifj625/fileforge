@@ -1,7 +1,12 @@
 "use client";
 
 import React from "react";
-import { useLayerStore, useToolStore, useExportStore, useWorkspaceActions } from "@/store";
+import {
+  useLayerStore,
+  useToolStore,
+  useExportStore,
+  useWorkspaceActions,
+} from "@/store";
 import { LayerTransformSettings } from "./properties/components/LayerTransformSettings";
 import { DynamicPropertiesPanel } from "@/features/DynamicTools/DynamicPropertiesPanel";
 import { toolRegistry } from "@/lib/toolRegistry";
@@ -182,9 +187,7 @@ export function PropertiesPanel() {
 
             {/* Dynamic Tools (Vintage, Sepia, etc) */}
             {dynamicTool && (
-              <DynamicPropertiesPanel
-                tool={dynamicTool}
-              />
+              <DynamicPropertiesPanel key={dynamicTool.id} tool={dynamicTool} />
             )}
           </div>
         ) : (

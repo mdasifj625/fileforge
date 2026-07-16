@@ -8,18 +8,17 @@ interface Props {
 }
 
 export function ResizeSettings({ layer }: Props) {
+  if (!layer || layer.type !== "image") return null;
+  return <ResizeSettingsInner layer={layer as ImageLayer} />;
+}
+
+function ResizeSettingsInner({ layer }: { layer: ImageLayer }) {
   const updateLayerTransform = useLayerStore((s) => s.updateLayerTransform);
   const [lockRatio, setLockRatio] = useState(true);
   const [doNotEnlarge, setDoNotEnlarge] = useState(false);
 
-  if (!layer || layer.type !== "image") return null;
-
-  const storeWidth = Math.round(
-    layer.originalWidth * Math.abs(layer.scaleX),
-  );
-  const storeHeight = Math.round(
-    layer.originalHeight * Math.abs(layer.scaleY),
-  );
+  const storeWidth = Math.round(layer.originalWidth * Math.abs(layer.scaleX));
+  const storeHeight = Math.round(layer.originalHeight * Math.abs(layer.scaleY));
   const storeScale = Math.round(Math.abs(layer.scaleX) * 100);
 
   const [inputWidth, setInputWidth] = useState(storeWidth.toString());

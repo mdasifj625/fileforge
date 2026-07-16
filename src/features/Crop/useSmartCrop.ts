@@ -5,9 +5,7 @@ import { ImageProcessor } from "@/workers/image.worker";
 import { Layer, ImageLayer } from "@/types/layer";
 import { useLayerStore } from "@/store";
 
-export function useSmartCrop(
-  activeLayer: Layer | undefined,
-) {
+export function useSmartCrop(activeLayer: Layer | undefined) {
   const replaceLayer = useLayerStore((s) => s.replaceLayer);
   const [isFiltering, setIsFiltering] = useState(false);
 

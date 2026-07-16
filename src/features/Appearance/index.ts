@@ -3,7 +3,7 @@ import { ToolDefinition } from "@/lib/toolRegistry";
 
 const AppearanceSettings = dynamic(
   () => import("./AppearanceSettings").then((mod) => mod.AppearanceSettings),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const appearanceTool: ToolDefinition = {
