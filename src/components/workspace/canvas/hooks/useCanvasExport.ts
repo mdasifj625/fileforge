@@ -42,19 +42,23 @@ export function useCanvasExport({
       const origScaleY = sprite.scale.y;
       const origRot = sprite.rotation;
 
-      // Reset transforms to 1:1 and centered for extraction
-      const targetWidth = sprite.texture.frame.width;
-      const targetHeight = sprite.texture.frame.height;
+      // Reset transforms to be centered for extraction but KEEP the scale
+      const targetWidth = Math.round(
+        sprite.texture.frame.width * Math.abs(origScaleX),
+      );
+      const targetHeight = Math.round(
+        sprite.texture.frame.height * Math.abs(origScaleY),
+      );
 
       sprite.x = targetWidth / 2;
       sprite.y = targetHeight / 2;
-      sprite.scale.set(1);
+      sprite.scale.set(origScaleX, origScaleY);
       sprite.rotation = 0;
 
       if (maskS) {
         maskS.x = sprite.x;
         maskS.y = sprite.y;
-        maskS.scale.set(1);
+        maskS.scale.set(origScaleX, origScaleY);
         maskS.rotation = 0;
       }
 

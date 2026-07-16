@@ -57,7 +57,8 @@ export function useTransformOverlay(
       (!activeTool?.startsWith("image-") &&
         !activeTool?.startsWith("ai-") &&
         activeTool !== "select" &&
-        activeTool !== "crop") ||
+        activeTool !== "crop" &&
+        activeTool !== "resize") ||
       !activeLayerId ||
       !spritesRef.current[activeLayerId]
     )

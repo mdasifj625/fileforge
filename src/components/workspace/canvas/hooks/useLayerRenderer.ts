@@ -66,12 +66,10 @@ export function useLayerRenderer(
             // Apply transforms from store if not currently being actively dragged/scaled
             // (To prevent jitter, we only force sync if we aren't the ones changing it)
             if (!sprite.isBeingManipulated) {
-              if (layer.x !== 0 || layer.y !== 0) {
-                sprite.x = layer.x;
-                sprite.y = layer.y;
-              }
-              if (layer.scaleX !== 1) sprite.scale.x = layer.scaleX;
-              if (layer.scaleY !== 1) sprite.scale.y = layer.scaleY;
+              sprite.x = layer.x;
+              sprite.y = layer.y;
+              sprite.scale.x = layer.scaleX;
+              sprite.scale.y = layer.scaleY;
               sprite.rotation = layer.rotation || 0;
               sprite.alpha = layer.opacity ?? 1;
               sprite.blendMode = (layer.blendMode ||

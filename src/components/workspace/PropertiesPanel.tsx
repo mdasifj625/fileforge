@@ -79,7 +79,10 @@ export function PropertiesPanel() {
   const aiProgress = rmbgProgress ?? ocrProgress;
 
   // Check if current tool is a dynamically registered tool
-  const dynamicTool = activeTool ? toolRegistry[activeTool] : undefined;
+  const dynamicTool =
+    activeTool && activeTool !== "resize"
+      ? toolRegistry[activeTool]
+      : undefined;
 
   return (
     <aside className="w-full h-auto md:h-full md:w-80 shrink-0 bg-background flex flex-col z-20 border-t md:border-t-0 md:border-l border-panel-border transition-all duration-300">
