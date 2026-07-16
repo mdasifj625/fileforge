@@ -77,7 +77,9 @@ file-forge/
 **Routing Structure:**
 
 - `/` - Landing page (Optimized for conversions and explaining the "Local-first" advantage)
-- `/[category]/[tool]` - Dynamic tool routes (e.g., `/image/remove-background`, `/pdf/merge-pdf`). Each route is completely independent for SEO and acts as a dedicated standalone tool without a confusing global editor toolbar.
+- `/image/[tool]` - All image operations, **including image-targeted AI tools** (Remove Background, Smart Crop, Magic Eraser, Image Upscale). Placing these here makes them discoverable alongside other image tools in the nav.
+- `/ai/[tool]` - Document/text AI tools only: Extract Text (OCR), Face Detection, Summarize PDF, Translate Document.
+- `/pdf/[tool]`, `/video/[tool]`, `/audio/[tool]`, `/utility/[tool]` - Their respective media domains.
 - `/blog/[slug]` - Educational content, use-case guides, and "How to" articles.
 
 **Workspace Navigation & SEO:**
@@ -104,7 +106,8 @@ file-forge/
 ### Phase 3: AI & Advanced Tools (Months 5-6)
 
 - **Infrastructure:** Cache API for lazy-loading ONNX models.
-- **Engines:** Background Removal (RMBG), Smart Crop, Local OCR (Tesseract.js).
+- **Engines:** Background Removal (RMBG/BEN2), Smart Crop, Magic Eraser, Image Upscale — all served under `/image/*` routes for intuitive discoverability.
+- **Document AI:** Local OCR (Tesseract.js), Face Detection, Summarize PDF, Translate Document — served under `/ai/*` routes.
 
 ### Phase 4: Media Heavyweight (Months 7-8)
 

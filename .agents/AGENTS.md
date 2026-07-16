@@ -71,4 +71,31 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 - **React Portals for Modals**: When building global overlays like the `ExportModal`, ALWAYS use `createPortal(..., document.body)` and apply `z-[100]`. Due to the `ToolPageLayout` and `WorkspaceLayout` heavily utilizing internal `z-10` to `z-50` stacking contexts for the canvas and navigation bars, nesting a fixed modal inside the workspace DOM will cause it to be clipped or trapped behind navigation headers.
 - **Mobile History Management**: If a modal occupies the full screen on mobile devices, use the browser's `history.pushState` API upon opening and listen for `popstate` events to close the modal. This ensures that users who swipe back on their phones or press the physical back button will gracefully exit the modal rather than accidentally navigating away from the tool page and losing their work.
 
+### 10. Route Taxonomy — Image AI vs. Document AI
+
+Tools MUST be placed in the correct category route. Misrouting causes broken nav, wrong Related Tools suggestions, and incorrect `category` prop in `ToolPageLayout`.
+
+- **`/image/[tool]`** — ANY tool that takes an image as input and outputs a processed image. This includes AI-powered image tools:
+  - Remove Background → `/image/remove-background`
+  - Smart Crop → `/image/smart-crop`
+  - Magic Eraser → `/image/magic-eraser`
+  - Image Upscale → `/image/upscale`
+- **`/ai/[tool]`** — ONLY text/document AI tools that don't fit neatly into another media category:
+  - Extract Text (OCR) → `/ai/ocr`
+  - Face Detection → `/ai/face-detection`
+  - Summarize PDF → `/ai/summarize-pdf`
+  - Translate Document → `/ai/translate-document`
+
+When adding a new AI tool that processes images, add it to `VALID_TOOLS` in `src/app/(tools)/image/[tool]/page.tsx` and update `src/config/tools.ts` under the `Image` menu. Do NOT add image tools to the AI page or AI menu.
+
+### 11. `startOver` Reset Contract
+
+The `startOver()` action in `useWorkspaceStore.ts` is the **canonical full-reset**. It MUST always:
+
+1. Clear `sessionStorage` keys `fileforge_layers` and `fileforge_active_layer_id` **synchronously** before calling `set()`.
+2. Call `db.files.clear()` AND `db.history.clear()` together via `Promise.all`.
+3. Reset **all** in-memory state fields to their initial values — not just `layers` and `activeLayerId`. This includes: `past`, `future`, `exportTrigger`, `exportImageBlob`, `brushMode`, `brushSize`, `isRemovingBackground`, `aiProgress`, `aiProgressPhase`, `aiProgressBackend`, `bgRemovalDuration`.
+
+If you add new state fields to the store, you MUST also add their reset to `startOver`.
+
 <!-- END:file-forge-agent-rules -->

@@ -6,7 +6,7 @@ File Forge is a local-first, privacy-focused file processing workspace. It allow
 
 - **100% Local Processing:** Powered by WASM and Web Workers.
 - **Dynamic Tool Generation:** New tools (e.g., Vintage, Sepia filters) are generated dynamically via a JSON `toolRegistry` that automatically mounts UI controls and routes arguments to Web Workers. No more writing redundant React components for simple effects.
-- **AI & Advanced Tools:** Local background removal (BEN2 via Transformers.js pipeline) featuring a non-destructive GPU-accelerated editing suite (Real-time Edge Feathering, Edge Shifting, and a Manual Restore/Erase Mask Brush). **Hardware Acceleration:** Includes a robust multi-tiered fallback architecture prioritizing WebGPU and WebNN (NPU) for blazing-fast inference (slashing processing times from minutes to seconds) with dynamic resolution scaling. **Future-Proofed Architecture:** AI models are strictly decoupled via a generic `PipelinePlugin` interface, meaning when a highly superior model drops in the future, you can swap the ONNX file without having to rewrite any of the UI or post-processing hooks. Also includes Smart Crop and OCR (Tesseract.js).
+- **AI & Advanced Tools:** Local background removal (BEN2 via Transformers.js pipeline) featuring a non-destructive GPU-accelerated editing suite (Real-time Edge Feathering, Edge Shifting, and a Manual Restore/Erase Mask Brush). **Hardware Acceleration:** Includes a robust multi-tiered fallback architecture prioritizing WebGPU and WebNN (NPU) for blazing-fast inference (slashing processing times from minutes to seconds) with dynamic resolution scaling. **Future-Proofed Architecture:** AI models are strictly decoupled via a generic `PipelinePlugin` interface, meaning when a highly superior model drops in the future, you can swap the ONNX file without having to rewrite any of the UI or post-processing hooks. Also includes Smart Crop and OCR (Tesseract.js). **Image AI tools** (Remove Background, Smart Crop, Magic Eraser, Image Upscale) live under `/image/*` routes; **document/text AI tools** (OCR, Face Detection, Summarize PDF, Translate Document) live under `/ai/*` routes.
 - **High-Fidelity WebGL Export:** Accurately extracts processed canvas layers directly from the GPU, perfectly capturing non-destructive AI masks, crop rects, and edge effects while enforcing proper bounds for JPEG conversion. Includes a dedicated Export Engine overlay featuring real-time format conversion, quantization, and smart 2x scaling presets.
 - **Maximized UX & Premium Design:** Edge-to-edge full-screen responsive workspace minimizing header bloat. Features dynamic navigation titles on mobile, sleek Apple-quality light/dark modes using semantic `oklch` CSS variables, and visually stunning interactive tool layouts.
 - **Advanced Crop & Transform UI:** A truly premium photo editing experience. Features a unified 'Crop Area Size' master slider that perfectly syncs width and height relative to center, stylized L-shape and pill handles, and a dynamically rendered Rule of Thirds grid on the WebGL canvas.
@@ -16,7 +16,7 @@ File Forge is a local-first, privacy-focused file processing workspace. It allow
 - **Backend & Monetization Setup:** Prepared architecture with dual compatibility for Supabase Authentication and MongoDB/Mongoose models (`User`, `Subscription`, `Workspace`). Fully integrated with Google AdSense, featuring optimized, high-RPM placements (Responsive Leaderboards, In-feed Rectangles, Skyscrapers, and Sticky Bottom Anchors) that comply with UX best practices and policies against accidental clicks.
 - **Time Travel:** Fully integrated Undo/Redo history system that tracks complex state transformations and retains original native file references.
 - **Privacy First:** No server uploads, no data collection.
-- **Standalone Tools & SEO:** Dedicated dynamic routes (e.g., `/image/crop`, `/video/compress`) that offer focused workspaces optimized for mobile and desktop, featuring rich SEO content directly embedded for discoverability.
+- **Standalone Tools & SEO:** Dedicated dynamic routes (e.g., `/image/crop`, `/image/remove-background`, `/video/compress`) that offer focused workspaces optimized for mobile and desktop, featuring rich SEO content directly embedded for discoverability. Image-processing AI tools are co-located in the `/image/` category for intuitive discoverability; purely document/text AI tools (OCR, Face Detection, etc.) remain in the `/ai/` category.
 - **Blazing Fast:** Leveraging `Comlink` for worker RPC and `PixiJS` (WebGL) for 60fps real-time previews.
 
 ## Tech Stack
@@ -42,3 +42,14 @@ yarn dev
 
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md): Detailed overview of the system design, Canvas Engine, and State Management.
 - [AI Rules](./.agents/AGENTS.md): Core rules and context specifically designed for AI coding agents.
+
+## Route Structure
+
+| Category | URL pattern       | Contains                                                                                                                    |
+| -------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Image    | `/image/[tool]`   | Compress, Crop, Resize, Convert, Rotate, Watermark, Filters, **Remove Background, Smart Crop, Magic Eraser, Image Upscale** |
+| PDF      | `/pdf/[tool]`     | Merge, Split, Compress, Watermark, Protect, Unlock                                                                          |
+| Video    | `/video/[tool]`   | Trim, Convert, Compress, Extract Audio, GIF Creator                                                                         |
+| Audio    | `/audio/[tool]`   | Trim, Merge, Convert, Volume & Speed                                                                                        |
+| AI       | `/ai/[tool]`      | Extract Text (OCR), Face Detection, Summarize PDF, Translate Document                                                       |
+| Utility  | `/utility/[tool]` | ZIP, Unzip, Base64, UUID, Color Converter, Regex Tester                                                                     |

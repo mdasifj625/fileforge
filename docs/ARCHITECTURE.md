@@ -7,7 +7,11 @@ This document provides a high-level overview of the systems and architecture dri
 - **Semantic CSS Framework**: Built on a robust, Apple/Linear-style OKLCH semantic token system defined in `src/app/globals.css`.
 - **Themes**: Full support for Light and Dark modes via `--background`, `--panel`, `--foreground`, etc., synchronized to `document.documentElement.classList`.
 - **Layout Structure**: A premium, edge-to-edge responsive workspace designed for individual tools (`ToolPageLayout.tsx` and `WorkspaceLayout.tsx`):
-  - **Tool-Specific Pages**: Instead of a global toolbar, each tool has its own dedicated dynamic route (e.g., `/image/[tool]/page.tsx`).
+  - **Tool-Specific Pages**: Instead of a global toolbar, each tool has its own dedicated dynamic route. Route categories:
+    - `/image/[tool]` — all image operations **including** image-targeted AI tools (Remove Background, Smart Crop, Magic Eraser, Image Upscale).
+    - `/ai/[tool]` — document/text AI tools only (Extract Text/OCR, Face Detection, Summarize PDF, Translate Document).
+    - `/pdf/[tool]`, `/video/[tool]`, `/audio/[tool]`, `/utility/[tool]` — their respective domains.
+  - This separation ensures intuitive navigation: users looking for visual image AI tools find them alongside other image tools, not hidden in a separate AI drawer.
   - **Center Canvas (`CanvasArea.tsx`)**: Edge-to-edge 55vh on mobile, perfectly scaled flex-1 on desktop. Now completely modularized, orchestrating logic via custom hooks (`usePixiApp`, `useCanvasRender`, `useCanvasDrop`, `useCanvasExport`) in `src/components/workspace/canvas/hooks/`.
   - **Right Properties Panel (`PropertiesPanel.tsx`)**: Responsive natural document flow on mobile and a sticky sidebar on desktop. Operates as a lightweight orchestrator importing pure UI modules (e.g., `LayerTransformSettings.tsx`, `OCRSettings.tsx`) from `src/components/workspace/properties/components/`.
   - **Maximized Viewport**: The layout drops massive hero sections during active editing, embedding the tool title neatly into the `WorkspaceLayout` top bar, and allowing the workspace to stretch full-screen (`100vh - 64px`) for optimal UX.
@@ -33,7 +37,14 @@ This document provides a high-level overview of the systems and architecture dri
   - The currently active tool
   - The active layer ID
   - The active workspace theme
+  - AI processing state (`isRemovingBackground`, `aiProgress`, `aiProgressPhase`, `aiProgressBackend`, `bgRemovalDuration`)
+  - Brush state (`brushMode`, `brushSize`)
+  - Export state (`exportTrigger`, `exportImageBlob`)
 - **Real-time Sync**: The React UI (e.g., Properties Panel) and the PixiJS canvas both subscribe to this central store. Dragging a layer in the canvas updates the Zustand state instantly, which then instantly updates the DOM inputs in the Properties Panel.
+- **Comprehensive `startOver` Reset**: The `startOver()` action performs a full, atomic workspace reset:
+  1. Synchronously clears `sessionStorage` (prevents stale layer IDs from re-hydrating on next mount)
+  2. Wipes both Dexie tables (`files` + `history`) via `Promise.all` to reclaim IndexedDB storage
+  3. Resets all in-memory state to initial values: layers, history stacks, AI flags, brush mode, and export state — leaving zero stale data that could cause downstream errors.
 
 ## 4. File Management & Persistence (IndexedDB)
 
