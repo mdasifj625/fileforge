@@ -1,5 +1,10 @@
 import * as PIXI from "pixi.js";
-import { useLayerStore, useToolStore, useExportStore, useAIStore } from "@/store";
+import {
+  useLayerStore,
+  useToolStore,
+  useExportStore,
+  useAIStore,
+} from "@/store";
 
 export class MaskBrushController {
   private app: PIXI.Application;

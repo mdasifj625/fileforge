@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { db } from "@/db";
 import * as Comlink from "comlink";
-import type { AIProcessor } from "@/workers/rmbg.worker";
+import type { OCRProcessorType } from "@/workers/ocr.worker";
 import { Layer } from "@/types/layer";
 
 export function useOCR(activeLayer: Layer | undefined) {
@@ -20,10 +20,10 @@ export function useOCR(activeLayer: Layer | undefined) {
       if (!fileRecord) throw new Error("File not found in DB");
 
       const worker = new Worker(
-        new URL("@/workers/rmbg.worker.entry", import.meta.url),
+        new URL("@/workers/ocr.worker.entry", import.meta.url),
         { type: "module" },
       );
-      const api = Comlink.wrap<AIProcessor>(worker);
+      const api = Comlink.wrap<OCRProcessorType>(worker);
 
       const text = await api.extractText(
         fileRecord.blob,

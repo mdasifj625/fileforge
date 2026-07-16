@@ -17,9 +17,9 @@ export function useLayerRenderer(
     let cancelled = false;
     const renderLayers = async () => {
       if (!isPixiReady || !layerManagerRef.current) return;
-      
+
       await layerManagerRef.current.syncLayers(layers, activeLayerId);
-      
+
       if (!cancelled) {
         setSpriteUpdateTick((t) => t + 1);
       }
@@ -30,5 +30,11 @@ export function useLayerRenderer(
     return () => {
       cancelled = true;
     };
-  }, [layers, isPixiReady, layerManagerRef, setSpriteUpdateTick, activeLayerId]);
+  }, [
+    layers,
+    isPixiReady,
+    layerManagerRef,
+    setSpriteUpdateTick,
+    activeLayerId,
+  ]);
 }

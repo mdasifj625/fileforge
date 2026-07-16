@@ -4,7 +4,12 @@ import { CanvasRefs } from "../types";
 import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
 import { LayerManager } from "@/lib/pixi/LayerManager";
 import { TransformOverlayManager } from "@/lib/pixi/TransformOverlayManager";
-import { useLayerStore, useToolStore, useExportStore, useAIStore } from "@/store";
+import {
+  useLayerStore,
+  useToolStore,
+  useExportStore,
+  useAIStore,
+} from "@/store";
 
 export function usePixiApp({
   containerRef,

@@ -6,6 +6,8 @@ import { useLayerStore } from "@/store/useLayerStore";
 
 import { WorkspaceOverlayOrchestrator } from "./WorkspaceOverlayOrchestrator";
 import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
+import { LayerManager } from "@/lib/pixi/LayerManager";
+import { TransformOverlayManager } from "@/lib/pixi/TransformOverlayManager";
 
 import { usePixiApp } from "./canvas/hooks/usePixiApp";
 import { useCanvasRender } from "./canvas/hooks/useCanvasRender";
@@ -18,9 +20,9 @@ export function CanvasArea() {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application>(null);
   const brushControllerRef = useRef<MaskBrushController | null>(null);
-  const layerManagerRef = useRef<any>(null);
-  const transformOverlayManagerRef = useRef<any>(null);
-  
+  const layerManagerRef = useRef<LayerManager | null>(null);
+  const transformOverlayManagerRef = useRef<TransformOverlayManager | null>(null);
+
   const layers = useLayerStore((s) => s.layers);
 
   const canvasRefs: CanvasRefs = {

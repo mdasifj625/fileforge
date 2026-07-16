@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as Comlink from "comlink";
 import { env, RawImage } from "@huggingface/transformers";
-import { createWorker } from "tesseract.js";
+
 import { PipelinePlugin } from "./plugins/PipelinePlugin";
 import { Ben2Plugin } from "./plugins/Ben2Plugin";
 import { PerformanceProfiler } from "../utils/PerformanceProfiler";
@@ -380,27 +380,6 @@ class RMBGProcessor {
     const reportStr = profiler.report();
     console.log(reportStr);
     return finalBlob;
-  }
-
-  async extractText(
-    imageBlob: Blob,
-    onProgress?: (progress: number) => void,
-  ): Promise<string> {
-    const imageURL = URL.createObjectURL(imageBlob);
-    try {
-      const worker = await createWorker("eng", 1, {
-        logger: (m) => {
-          if (m.status === "recognizing text" && onProgress) {
-            onProgress(m.progress * 100);
-          }
-        },
-      });
-      const ret = await worker.recognize(imageURL);
-      await worker.terminate();
-      return ret.data.text;
-    } finally {
-      URL.revokeObjectURL(imageURL);
-    }
   }
 }
 

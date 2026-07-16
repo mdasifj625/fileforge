@@ -2,7 +2,7 @@
 import { useCallback } from "react";
 import { db } from "@/db";
 import * as Comlink from "comlink";
-import type { AIProcessor } from "@/workers/rmbg.worker";
+import type { AIProcessor } from "@/workers/ben2.worker";
 import { Layer } from "@/types/layer";
 import { PerformanceProfiler } from "@/utils/PerformanceProfiler";
 import { useAIStore } from "@/store";
@@ -91,7 +91,7 @@ async function attemptBackend(
   setAiProgressPhase: (phase: "model" | "inference" | null) => void,
 ): Promise<Blob> {
   const worker = new Worker(
-    new URL("@/workers/rmbg.worker.entry", import.meta.url),
+    new URL("@/workers/ben2.worker.entry", import.meta.url),
     { type: "module" },
   );
   const api = Comlink.wrap<AIProcessor>(worker);

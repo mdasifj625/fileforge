@@ -129,9 +129,7 @@ export function VideoWorkspaceArea() {
                 {layer.name}
               </h3>
               <button
-                onClick={() =>
-                  useLayerStore.getState().removeLayer(layer.id)
-                }
+                onClick={() => useLayerStore.getState().removeLayer(layer.id)}
                 className="text-muted-foreground hover:text-red-500 transition-colors p-1"
                 title="Remove Video"
               >

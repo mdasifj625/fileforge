@@ -18,7 +18,7 @@ export function useTransformOverlay(
 
   useEffect(() => {
     if (!isPixiReady || !transformOverlayManagerRef.current) return;
-    
+
     transformOverlayManagerRef.current.update(
       activeLayerId,
       theme,

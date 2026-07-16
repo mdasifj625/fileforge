@@ -23,7 +23,12 @@ export function useCanvasExport({
       const lm = layerManagerRef.current;
       const tom = transformOverlayManagerRef.current;
 
-      if (!activeLayer || !activeLayerId || !lm || !lm.getSprite(activeLayerId)) {
+      if (
+        !activeLayer ||
+        !activeLayerId ||
+        !lm ||
+        !lm.getSprite(activeLayerId)
+      ) {
         app.canvas.toBlob((blob) => {
           if (blob) useExportStore.getState().setExportImageBlob(blob);
         }, "image/png");
@@ -95,7 +100,9 @@ export function useCanvasExport({
         clear: true,
       });
 
-      const extractedCanvas = app.renderer.extract.canvas(renderTexture) as HTMLCanvasElement;
+      const extractedCanvas = app.renderer.extract.canvas(
+        renderTexture,
+      ) as HTMLCanvasElement;
 
       app.stage.position.set(origStageX, origStageY);
       app.stage.scale.set(origStageScaleX, origStageScaleY);
@@ -128,5 +135,11 @@ export function useCanvasExport({
         app.renderer.render(app.stage);
       }, "image/png");
     }
-  }, [exportTrigger, activeTool, appRef, layerManagerRef, transformOverlayManagerRef]);
+  }, [
+    exportTrigger,
+    activeTool,
+    appRef,
+    layerManagerRef,
+    transformOverlayManagerRef,
+  ]);
 }

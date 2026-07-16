@@ -1,5 +1,10 @@
 import { useEffect, useRef } from "react";
-import { useLayerStore, useToolStore, useExportStore, useAIStore } from "@/store";
+import {
+  useLayerStore,
+  useToolStore,
+  useExportStore,
+  useAIStore,
+} from "@/store";
 
 export function useCanvasGestures(
   containerRef: React.RefObject<HTMLDivElement | null>,
@@ -39,8 +44,7 @@ export function useCanvasGestures(
       );
 
       const scale = dist / initialPinchDistance.current;
-      const { activeLayerId, updateLayerTransform } =
-        useLayerStore.getState();
+      const { activeLayerId, updateLayerTransform } = useLayerStore.getState();
       if (activeLayerId) {
         updateLayerTransform(
           activeLayerId,

@@ -10,7 +10,10 @@ export function getBrushCursor(size: number) {
 
 export class LayerManager {
   private app: PIXI.Application;
-  private sprites: Record<string, PIXI.Sprite & { isBeingManipulated?: boolean }> = {};
+  private sprites: Record<
+    string,
+    PIXI.Sprite & { isBeingManipulated?: boolean }
+  > = {};
   private maskSprites: Record<
     string,
     PIXI.Sprite & {
@@ -60,7 +63,7 @@ export class LayerManager {
       const imgLayer = layer as ImageLayer;
 
       let sprite = this.sprites[layer.id];
-      
+
       if (!sprite) {
         const newSprite = await this.createSprite(imgLayer);
         if (!newSprite) continue;
@@ -75,7 +78,7 @@ export class LayerManager {
         maskSprite,
         activeTool,
         brushMode,
-        brushSize
+        brushSize,
       );
 
       this.updateZIndex(sprite, layers, imgLayer.id);
@@ -110,10 +113,10 @@ export class LayerManager {
       const bitmap = await createImageBitmap(fileRecord.blob);
       const texture = PIXI.Texture.from(bitmap);
       const sprite = new PIXI.Sprite(texture);
-      
+
       sprite.anchor.set(0.5);
       sprite.eventMode = "static";
-      
+
       this.sprites[layer.id] = sprite;
       this.app.stage.addChild(sprite);
 
@@ -156,9 +159,14 @@ export class LayerManager {
               width: texture.width,
               height: texture.height,
             });
-            this.app.renderer.render({ container: new PIXI.Sprite(texture), target: renderTexture });
+            this.app.renderer.render({
+              container: new PIXI.Sprite(texture),
+              target: renderTexture,
+            });
 
-            const newMaskSprite = new PIXI.Sprite(renderTexture) as PIXI.Sprite & {
+            const newMaskSprite = new PIXI.Sprite(
+              renderTexture,
+            ) as PIXI.Sprite & {
               renderTexture?: PIXI.RenderTexture;
               maskFileId?: string;
               baseMaskTexture?: PIXI.RenderTexture;
@@ -167,13 +175,14 @@ export class LayerManager {
             newMaskSprite.eventMode = "none";
             newMaskSprite.maskFileId = layer.maskFileId;
             newMaskSprite.baseMaskTexture = renderTexture;
-            
+
             if (existingMask) {
               this.app.stage.removeChild(existingMask);
               existingMask.destroy({ texture: true });
-              if (existingMask.renderTexture) existingMask.renderTexture.destroy(true);
+              if (existingMask.renderTexture)
+                existingMask.renderTexture.destroy(true);
             }
-            
+
             this.maskSprites[layer.id] = newMaskSprite;
             this.app.stage.addChild(newMaskSprite);
 
@@ -199,7 +208,7 @@ export class LayerManager {
     maskSprite: PIXI.Sprite | undefined,
     activeTool: string,
     brushMode: string,
-    brushSize: number
+    brushSize: number,
   ) {
     sprite.visible = layer.visible;
     sprite.cursor =
@@ -235,16 +244,22 @@ export class LayerManager {
             frame: new PIXI.Rectangle(cx, cy, cw, ch),
           });
         }
-      } else if (layer.originalWidth > 0 && sprite.texture.frame.width !== layer.originalWidth) {
+      } else if (
+        layer.originalWidth > 0 &&
+        sprite.texture.frame.width !== layer.originalWidth
+      ) {
         sprite.texture = new PIXI.Texture({
           source: sprite.texture.source,
-          frame: new PIXI.Rectangle(0, 0, layer.originalWidth, layer.originalHeight),
+          frame: new PIXI.Rectangle(
+            0,
+            0,
+            layer.originalWidth,
+            layer.originalHeight,
+          ),
         });
       }
     }
   }
-
-
 
   private updateZIndex(sprite: PIXI.Sprite, layers: Layer[], id: string) {
     const index = layers.findIndex((l) => l.id === id);

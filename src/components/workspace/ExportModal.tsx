@@ -4,7 +4,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import UPNG from "upng-js";
-import { useLayerStore, useToolStore, useExportStore, useAIStore } from "@/store";
+import {
+  useLayerStore,
+  useToolStore,
+  useExportStore,
+  useAIStore,
+} from "@/store";
 import {
   Lock,
   Unlock,
