@@ -389,8 +389,8 @@ export function setupTransformHandles(
       if (layer) {
         originalW = layer.originalWidth;
         originalH = layer.originalHeight;
-        startCropRect = layer.cropRect
-          ? { ...layer.cropRect }
+        startCropRect = (layer as import("@/types/layer").ImageLayer).cropRect
+          ? { ...(layer as import("@/types/layer").ImageLayer).cropRect! }
           : { x: 0, y: 0, width: originalW, height: originalH };
         currentCropRect = { ...startCropRect };
       }

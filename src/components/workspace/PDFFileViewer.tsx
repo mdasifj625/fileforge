@@ -1,3 +1,4 @@
+import { PDFLayer } from "@/types/layer";
 import { useState, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -32,7 +33,7 @@ export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
 
   const layer = useWorkspaceStore((state) =>
     state.layers.find((l) => l.id === layerId),
-  );
+  ) as PDFLayer | undefined;
   const updateLayerTransform = useWorkspaceStore(
     (state) => state.updateLayerTransform,
   );
@@ -53,7 +54,7 @@ export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
-    const items = Array.from(pageOrder);
+    const items = Array.from(pageOrder) as number[];
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
@@ -64,6 +65,16 @@ export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
     const newOrder = [...pageOrder];
     newOrder.splice(indexToRemove, 1);
     updateLayerTransform(layerId, { pageOrder: newOrder });
+  };
+
+  const handlePreview = (e: React.MouseEvent, pageNum: number) => {
+    e.stopPropagation();
+    setPreviewPageNum(pageNum);
+  };
+
+  const handleRemove = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    removePage(index);
   };
 
   if (!fileUrl) return null;
@@ -93,7 +104,7 @@ export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
                     All pages removed
                   </div>
                 )}
-                {pageOrder.map((pageNum, index) => (
+                {pageOrder.map((pageNum: number, index: number) => (
                   <Draggable
                     key={`page_${pageNum}_${index}`}
                     draggableId={`page_${pageNum}_${index}`}
@@ -113,10 +124,7 @@ export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
                         {/* Hover Overlay */}
                         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex flex-col items-center justify-center gap-3 backdrop-blur-[1px]">
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPreviewPageNum(pageNum);
-                            }}
+                            onClick={(e) => handlePreview(e, pageNum)}
                             className="p-2 bg-white/20 hover:bg-white text-white hover:text-black rounded-full transition-all shadow-sm backdrop-blur-sm"
                             title="Preview Page"
                           >
@@ -126,10 +134,7 @@ export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
 
                         {/* Top Right Simple Delete */}
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removePage(index);
-                          }}
+                          onClick={(e) => handleRemove(e, index)}
                           className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 text-white hover:text-red-400 bg-black/40 hover:bg-black/80 rounded z-30 transition-all pointer-events-auto"
                           title="Remove Page"
                         >

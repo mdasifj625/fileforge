@@ -2,10 +2,7 @@ import { useState, useCallback } from "react";
 import { db } from "@/db";
 import * as Comlink from "comlink";
 import { ImageProcessor } from "@/workers/image.worker";
-import {
-  FileLayer as Layer,
-  FileLayer as ImageLayer,
-} from "@/store/useWorkspaceStore";
+import { Layer, ImageLayer } from "@/types/layer";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 export function useSmartCrop(activeLayer: Layer | undefined) {
@@ -53,7 +50,7 @@ export function useSmartCrop(activeLayer: Layer | undefined) {
           width: bitmap.width,
           height: bitmap.height,
         },
-      });
+      } as ImageLayer);
 
       worker.terminate();
     } catch (e) {

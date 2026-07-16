@@ -39,6 +39,7 @@ export function useCanvasDrop() {
           rotation: 0,
           originalWidth: 0,
           originalHeight: 0,
+          type: "image",
         });
       }
     },

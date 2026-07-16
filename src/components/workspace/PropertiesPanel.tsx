@@ -1,33 +1,27 @@
 "use client";
 
 import React from "react";
-import {
-  useLayerStore,
-  useToolStore,
-  useExportStore,
-  useWorkspaceActions,
-} from "@/store";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { LayerTransformSettings } from "./properties/components/LayerTransformSettings";
 import { DynamicPropertiesPanel } from "@/features/DynamicTools/DynamicPropertiesPanel";
 import { toolRegistry } from "@/lib/toolRegistry";
 import { Undo2, Redo2 } from "lucide-react";
 
 export function PropertiesPanel() {
-  const activeLayerId = useLayerStore((state) => state.activeLayerId);
-  const layers = useLayerStore((state) => state.layers);
-  const activeTool = useToolStore((state) => state.activeTool);
-  const updateLayerTransform = useLayerStore(
+  const activeLayerId = useWorkspaceStore((state) => state.activeLayerId);
+  const layers = useWorkspaceStore((state) => state.layers);
+  const activeTool = useWorkspaceStore((state) => state.activeTool);
+  const updateLayerTransform = useWorkspaceStore(
     (state) => state.updateLayerTransform,
   );
-  const replaceLayer = useLayerStore((state) => state.replaceLayer);
 
-  const pastCount = useLayerStore((s) => s.past?.length || 0);
-  const futureCount = useLayerStore((s) => s.future?.length || 0);
-  const undo = useLayerStore((s) => s.undo);
-  const redo = useLayerStore((s) => s.redo);
-  const triggerExport = useExportStore((s) => s.triggerExport);
-  const hasLayers = useLayerStore((s) => s.layers.length > 0);
-  const { startOver } = useWorkspaceActions();
+  const pastCount = useWorkspaceStore((s) => s.past?.length || 0);
+  const futureCount = useWorkspaceStore((s) => s.future?.length || 0);
+  const undo = useWorkspaceStore((s) => s.undo);
+  const redo = useWorkspaceStore((s) => s.redo);
+  const triggerExport = useWorkspaceStore((s) => s.triggerExport);
+  const hasLayers = useWorkspaceStore((s) => s.layers.length > 0);
+  const startOver = useWorkspaceStore((s) => s.startOver);
 
   const activeLayer = layers.find((l) => l.id === activeLayerId);
 
@@ -38,16 +32,6 @@ export function PropertiesPanel() {
       updateLayerTransform(activeLayer.id, { [key]: num }, false);
     }
   };
-
-  const handleTransformCommit = (key: string, value: string) => {
-    if (!activeLayer) return;
-    const num = parseFloat(value);
-    if (!isNaN(num)) {
-      updateLayerTransform(activeLayer.id, { [key]: num }, true);
-    }
-  };
-
-  const isFiltering = false;
 
   // Check if current tool is a dynamically registered tool
   const activeToolDef = activeTool ? toolRegistry[activeTool] : undefined;
@@ -115,69 +99,6 @@ export function PropertiesPanel() {
                 handleTransformChange={handleTransformChange}
                 updateLayerTransform={updateLayerTransform}
               />
-            )}
-
-            {/* Legacy Features still unmigrated below */}
-
-            {/* Compress/Convert Settings */}
-            {(activeTool === "compress" ||
-              activeTool === "convert" ||
-              activeTool === "video-compress" ||
-              activeTool === "video-convert") && (
-              <div>
-                <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
-                  Ready to{" "}
-                  {activeTool === "compress" || activeTool === "video-compress"
-                    ? "Compress"
-                    : "Convert"}
-                </h3>
-                <p className="text-xs text-muted-foreground mb-4">
-                  All output settings (format, quality, resolution) are
-                  configured during the final step.
-                </p>
-                <div className="bg-primary/10 border border-primary/20 text-primary text-xs p-3 rounded-lg">
-                  Click the{" "}
-                  <strong>
-                    {activeTool === "compress" ? "Compress" : "Export"}
-                  </strong>{" "}
-                  button in the top bar to adjust quality and save your file.
-                </div>
-              </div>
-            )}
-
-            {/* Video Trim Settings */}
-            {activeTool === "video-trim" && (
-              <div>
-                <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
-                  Trim Settings
-                </h3>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Click Export in the top bar to apply trim. Note: For the demo,
-                  trim cuts exactly from 0s to 5s. Full interactive timeline
-                  coming soon!
-                </p>
-                <div className="bg-primary/10 border border-primary/20 text-primary text-xs p-3 rounded-lg">
-                  Click the <strong>Export</strong> button in the top bar to
-                  save this video.
-                </div>
-              </div>
-            )}
-
-            {/* Audio Tools Settings */}
-            {activeTool?.startsWith("audio-") && (
-              <div>
-                <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
-                  Audio Settings
-                </h3>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Adjust your audio options. Audio processing is completely
-                  local via WASM.
-                </p>
-                <div className="bg-primary/10 border border-primary/20 text-primary text-xs p-3 rounded-lg">
-                  Click the <strong>Export</strong> button in the top bar to
-                  process and save this audio file.
-                </div>
-              </div>
             )}
 
             {/* Dynamically Injected Tool UI via Registry */}

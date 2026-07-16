@@ -107,6 +107,7 @@ export function UtilityWorkspaceArea() {
                 originalWidth: 100,
                 originalHeight: 100,
                 opacity: 1,
+                type: "image",
               });
             }
             alert(`Extracted ${extracted.length} files to your workspace!`);

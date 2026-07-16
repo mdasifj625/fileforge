@@ -28,19 +28,17 @@ export function PDFWorkspaceArea() {
       for (const layer of layers) {
         if (!blobs[layer.fileId]) {
           const fileRecord = await db.files.get(layer.fileId);
-          if (fileRecord && fileRecord.type === "application/pdf") {
-            newBlobs[layer.fileId] = fileRecord.blob;
-            changed = true;
-          } else if (
-            activeTool === "pdf-images-to-pdf" &&
+          if (
             fileRecord &&
-            fileRecord.type.startsWith("image/")
+            (fileRecord.type === "application/pdf" ||
+              (activeTool === "pdf-images-to-pdf" &&
+                fileRecord.type.startsWith("image/")))
           ) {
             newBlobs[layer.fileId] = fileRecord.blob;
             changed = true;
+          } else {
+            newBlobs[layer.fileId] = blobs[layer.fileId];
           }
-        } else {
-          newBlobs[layer.fileId] = blobs[layer.fileId];
         }
       }
 
@@ -81,7 +79,7 @@ export function PDFWorkspaceArea() {
           ) {
             const payload = pdfLayers.map((layer) => ({
               blob: blobs[layer.fileId],
-              pageOrder: layer.pageOrder,
+              pageOrder: (layer as import("@/types/layer").PDFLayer).pageOrder,
             }));
             finalBlob = await api.mergePdfs(payload);
             filename = `merged-file-forge-${Date.now()}.pdf`;
@@ -89,7 +87,7 @@ export function PDFWorkspaceArea() {
             // For split, process the first uploaded PDF layer
             finalBlob = await api.splitPdf(
               blobs[pdfLayers[0].fileId],
-              pdfLayers[0].pageOrder,
+              (pdfLayers[0] as import("@/types/layer").PDFLayer).pageOrder,
             );
             filename = `split-file-forge-${Date.now()}.zip`;
           } else if (activeTool === "pdf-images-to-pdf") {
@@ -99,13 +97,13 @@ export function PDFWorkspaceArea() {
           } else if (activeTool === "pdf-watermark") {
             const layer = pdfLayers[0];
             const text =
-              layer.watermarkText ||
+              (layer as import("@/types/layer").PDFLayer).watermarkText ||
               prompt("Enter Watermark Text:") ||
               "CONFIDENTIAL";
             finalBlob = await api.watermarkPdf(
               blobs[layer.fileId],
               text,
-              layer.pageOrder,
+              (layer as import("@/types/layer").PDFLayer).pageOrder,
             );
             filename = `watermarked-file-forge-${Date.now()}.pdf`;
           } else {
@@ -137,6 +135,16 @@ export function PDFWorkspaceArea() {
 
   if (pdfLayers.length === 0) return null;
 
+  let descriptionText =
+    "Drag to reorder or remove pages before exporting. Click Export when done.";
+  if (activeTool === "pdf-split") {
+    descriptionText =
+      "Remove pages you don't want. Click Export to split the remaining pages into separate PDFs.";
+  } else if (activeTool === "pdf-images-to-pdf") {
+    descriptionText =
+      "Drag to reorder your images. Click Export to combine them into a single PDF.";
+  }
+
   return (
     <div className="absolute inset-0 z-40 bg-background/95 backdrop-blur-xl overflow-y-auto p-4 md:p-8 pointer-events-auto">
       <div className="max-w-6xl mx-auto space-y-8 pb-20">
@@ -148,13 +156,7 @@ export function PDFWorkspaceArea() {
                 <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
               )}
             </h2>
-            <p className="text-muted-foreground text-sm">
-              {activeTool === "pdf-split"
-                ? "Remove pages you don't want. Click Export to split the remaining pages into separate PDFs."
-                : activeTool === "pdf-images-to-pdf"
-                  ? "Drag to reorder your images. Click Export to combine them into a single PDF."
-                  : "Drag to reorder or remove pages before exporting. Click Export when done."}
-            </p>
+            <p className="text-muted-foreground text-sm">{descriptionText}</p>
           </div>
         </div>
 

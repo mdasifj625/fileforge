@@ -1,45 +1,13 @@
 import { create } from "zustand";
 
-export interface FileLayer {
-  id: string;
-  fileId: string;
-  type?: string;
-  originalFileId?: string; // Tracks the original file for "Original" filter restore
-  name: string;
-  visible: boolean;
-  locked: boolean;
-  x: number;
-  y: number;
-  scaleX: number;
-  scaleY: number;
-  rotation: number;
-  originalWidth: number;
-  originalHeight: number;
-  pageOrder?: number[]; // For reordering pages within a PDF layer
-  watermarkText?: string | null;
-  maskFileId?: string;
-  cropRect?: { x: number; y: number; width: number; height: number };
-  cropAspectRatio?: number | "original" | "free" | null;
-  opacity?: number;
-  isAiBackgroundRemoved?: boolean;
-  blendMode?:
-    | "normal"
-    | "multiply"
-    | "screen"
-    | "overlay"
-    | "darken"
-    | "lighten"
-    | "color-dodge"
-    | "color-burn"
-    | "hard-light"
-    | "soft-light"
-    | "difference"
-    | "exclusion"
-    | "hue"
-    | "saturation"
-    | "color"
-    | "luminosity";
-}
+import {
+  Layer as FileLayer,
+  ImageLayer,
+  PDFLayer,
+  VideoLayer,
+  AudioLayer,
+} from "@/types/layer";
+export type { FileLayer, ImageLayer, PDFLayer, VideoLayer, AudioLayer };
 
 export interface WorkspaceState {
   past: FileLayer[][];

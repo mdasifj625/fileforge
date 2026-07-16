@@ -3,10 +3,7 @@ import { useToolStore, useAIStore } from "@/store";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useBackgroundRemoval } from "./useBackgroundRemoval";
 import confetti from "canvas-confetti";
-import {
-  FileLayer as Layer,
-  FileLayer as ImageLayer,
-} from "@/store/useWorkspaceStore";
+import { Layer, ImageLayer } from "@/types/layer";
 
 /** Formats milliseconds into a human-readable m:ss or Xs string. */
 function formatTime(ms: number): string {
@@ -261,19 +258,23 @@ export function BackgroundRemovalSettings({
           <div className="grid grid-cols-1 gap-4">
             <button
               onClick={applyAIBackgroundRemoval}
-              disabled={isFiltering || !!activeLayer.isAiBackgroundRemoved}
+              disabled={
+                isFiltering ||
+                !!(activeLayer as ImageLayer).isAiBackgroundRemoved
+              }
               className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
             >
-              {activeLayer.isAiBackgroundRemoved
+              {(activeLayer as ImageLayer).isAiBackgroundRemoved
                 ? "Background Removed"
                 : "Remove Background"}
             </button>
-            {activeLayer.isAiBackgroundRemoved && bgRemovalDuration && (
-              <p className="text-xs text-emerald-500 font-semibold text-center animate-fade-in">
-                ✨ Completed in {formatTime(bgRemovalDuration)}
-              </p>
-            )}
-            {activeLayer.isAiBackgroundRemoved && (
+            {(activeLayer as ImageLayer).isAiBackgroundRemoved &&
+              bgRemovalDuration && (
+                <p className="text-xs text-emerald-500 font-semibold text-center animate-fade-in">
+                  ✨ Completed in {formatTime(bgRemovalDuration)}
+                </p>
+              )}
+            {(activeLayer as ImageLayer).isAiBackgroundRemoved && (
               /* eslint-disable-next-line @next/next/no-html-link-for-pages */
               <a
                 href="/image/crop"
@@ -282,7 +283,7 @@ export function BackgroundRemovalSettings({
                 ✂️ Crop Image
               </a>
             )}
-            {!activeLayer.isAiBackgroundRemoved && (
+            {!(activeLayer as ImageLayer).isAiBackgroundRemoved && (
               <p className="text-xs text-muted-foreground text-center">
                 Uses local AI models to segment and remove the image background.
               </p>
@@ -299,7 +300,7 @@ export function BackgroundRemovalSettings({
               setBrushMode(nextMode);
               if (
                 nextMode === "erase" &&
-                !activeLayer.maskFileId &&
+                !(activeLayer as ImageLayer).maskFileId &&
                 activeLayer.originalWidth
               ) {
                 initializeMaskFile(activeLayer, updateLayerTransform);
@@ -319,7 +320,7 @@ export function BackgroundRemovalSettings({
               setBrushMode(nextMode);
               if (
                 nextMode === "restore" &&
-                !activeLayer.maskFileId &&
+                !(activeLayer as ImageLayer).maskFileId &&
                 activeLayer.originalWidth
               ) {
                 initializeMaskFile(activeLayer, updateLayerTransform);

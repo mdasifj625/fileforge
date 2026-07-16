@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileLayer as ImageLayer } from "@/store/useWorkspaceStore";
+import { ImageLayer } from "@/types/layer";
 import { Link, Unlock, RotateCcw } from "lucide-react";
 
 interface Props {
