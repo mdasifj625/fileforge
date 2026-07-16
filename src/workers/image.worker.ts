@@ -43,7 +43,7 @@ const imageProcessor = {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
-      
+
       let fr = r;
       let fg = g;
       let fb = b;
@@ -64,7 +64,8 @@ const imageProcessor = {
         fg = Math.min(255, r * 0.3 + g * 0.8 + b * 0.1);
         fb = Math.min(255, r * 0.2 + g * 0.3 + b * 0.5);
       } else if (filterType === "solarize") {
-        const threshold = typeof params.threshold === "number" ? params.threshold : 127;
+        const threshold =
+          typeof params.threshold === "number" ? params.threshold : 127;
         fr = r > threshold ? 255 - r : r;
         fg = g > threshold ? 255 - g : g;
         fb = b > threshold ? 255 - b : b;
