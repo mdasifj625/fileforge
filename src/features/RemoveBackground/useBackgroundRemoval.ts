@@ -3,10 +3,9 @@ import { useCallback } from "react";
 import { db } from "@/db";
 import * as Comlink from "comlink";
 import type { AIProcessor } from "@/workers/rmbg.worker";
-import { FileLayer } from "@/store/useWorkspaceStore";
+import { Layer } from "@/types/layer";
 import { PerformanceProfiler } from "@/utils/PerformanceProfiler";
-
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useAIStore } from "@/store";
 
 // Tracks backends that have permanently failed (deadlocked) on this device.
 // Once blacklisted, a backend is never retried — we go straight to the next one.
@@ -95,11 +94,11 @@ function cacheSuccessfulBackend(backend: string) {
 }
 
 export function useBackgroundRemoval(
-  activeLayer: FileLayer | undefined,
-  updateLayerTransform: (id: string, updates: Partial<FileLayer>) => void,
+  activeLayer: Layer | undefined,
+  updateLayerTransform: (id: string, updates: Partial<Layer>) => void,
 ) {
-  const isFiltering = useWorkspaceStore((state) => state.isRemovingBackground);
-  const aiProgress = useWorkspaceStore((state) => state.aiProgress);
+  const isFiltering = useAIStore((state) => state.isRemovingBackground);
+  const aiProgress = useAIStore((state) => state.aiProgress);
   const {
     setIsRemovingBackground,
     setAiProgress,
@@ -107,7 +106,7 @@ export function useBackgroundRemoval(
     setAiProgressBackend,
     triggerBgRemovalSuccess,
     setBgRemovalDuration,
-  } = useWorkspaceStore();
+  } = useAIStore();
 
   const applyAIBackgroundRemoval = useCallback(async () => {
     if (!activeLayer || isFiltering) return;

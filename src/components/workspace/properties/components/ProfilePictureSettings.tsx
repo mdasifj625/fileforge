@@ -1,9 +1,8 @@
-import { BackgroundRemovalSettings } from "../../tools/BackgroundRemovalSettings";
+import { BackgroundRemovalSettings } from "@/features/RemoveBackground/BackgroundRemovalSettings";
+import { Layer } from "@/types/layer";
 
 interface Props {
-  applyAIBackgroundRemoval: () => void;
-  isFiltering: boolean;
-  aiProgress: number | null;
+  layer?: Layer;
 }
 
 const PRESET_COLORS = [
@@ -19,11 +18,7 @@ const PRESET_COLORS = [
   "#000000",
 ];
 
-export function ProfilePictureSettings({
-  applyAIBackgroundRemoval,
-  isFiltering,
-  aiProgress,
-}: Props) {
+export function ProfilePictureSettings({ layer }: Props) {
   return (
     <div>
       <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">
@@ -35,11 +30,7 @@ export function ProfilePictureSettings({
           <p className="text-xs text-muted-foreground mb-3 font-medium">
             1. Remove Background (AI)
           </p>
-          <BackgroundRemovalSettings
-            isFiltering={isFiltering}
-            aiProgress={aiProgress}
-            onApply={applyAIBackgroundRemoval}
-          />
+          <BackgroundRemovalSettings layer={layer} />
         </div>
 
         <div>

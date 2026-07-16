@@ -2,7 +2,8 @@
 
 import React, { useRef } from "react";
 import * as PIXI from "pixi.js";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore, useToolStore } from "@/store";
+import { toolRegistry } from "@/lib/toolRegistry";
 import { PDFWorkspaceArea } from "./PDFWorkspaceArea";
 import { VideoWorkspaceArea } from "./VideoWorkspaceArea";
 import { AudioWorkspaceArea } from "./AudioWorkspaceArea";
@@ -30,8 +31,10 @@ export function CanvasArea() {
       PIXI.Sprite & { renderTexture?: PIXI.RenderTexture; maskFileId?: string }
     >
   >({});
-  const layers = useWorkspaceStore((state) => state.layers);
-  const activeTool = useWorkspaceStore((state) => state.activeTool);
+  const layers = useLayerStore((state) => state.layers);
+  const activeTool = useToolStore((state) => state.activeTool);
+  const activeToolDef = activeTool ? toolRegistry[activeTool] : undefined;
+  const ActiveWorkspaceOverlay = activeToolDef?.WorkspaceOverlayComponent;
 
   const canvasRefs: CanvasRefs = {
     appRef,
@@ -62,7 +65,7 @@ export function CanvasArea() {
       );
       initialPinchDistance.current = dist;
 
-      const { activeLayerId, layers } = useWorkspaceStore.getState();
+      const { activeLayerId, layers } = useLayerStore.getState();
       const layer = layers.find((l) => l.id === activeLayerId);
       if (layer) {
         initialLayerScale.current = { x: layer.scaleX, y: layer.scaleY };
@@ -85,7 +88,7 @@ export function CanvasArea() {
 
       const scale = dist / initialPinchDistance.current;
       const { activeLayerId, updateLayerTransform } =
-        useWorkspaceStore.getState();
+        useLayerStore.getState();
       if (activeLayerId) {
         updateLayerTransform(
           activeLayerId,
@@ -119,7 +122,7 @@ export function CanvasArea() {
       e.preventDefault(); // Block native page scroll and browser zoom
 
       const { activeLayerId, layers, updateLayerTransform } =
-        useWorkspaceStore.getState();
+        useLayerStore.getState();
       const layer = layers.find((l) => l.id === activeLayerId);
       if (!layer) return;
 
@@ -208,14 +211,24 @@ export function CanvasArea() {
         </div>
       )}
 
-      {(activeTool?.startsWith("pdf-") ||
-        activeTool?.startsWith("ai-summarize-pdf") ||
-        activeTool?.startsWith("ai-translate-document")) && (
+      {ActiveWorkspaceOverlay && <ActiveWorkspaceOverlay />}
+      {!ActiveWorkspaceOverlay && activeTool?.startsWith("pdf-") && (
         <PDFWorkspaceArea />
       )}
-      {activeTool?.startsWith("video-") && <VideoWorkspaceArea />}
-      {activeTool?.startsWith("audio-") && <AudioWorkspaceArea />}
-      {activeTool?.startsWith("utility-") && <UtilityWorkspaceArea />}
+      {!ActiveWorkspaceOverlay &&
+        (activeTool?.startsWith("ai-summarize-pdf") ||
+          activeTool?.startsWith("ai-translate-document")) && (
+          <PDFWorkspaceArea />
+        )}
+      {!ActiveWorkspaceOverlay && activeTool?.startsWith("video-") && (
+        <VideoWorkspaceArea />
+      )}
+      {!ActiveWorkspaceOverlay && activeTool?.startsWith("audio-") && (
+        <AudioWorkspaceArea />
+      )}
+      {!ActiveWorkspaceOverlay && activeTool?.startsWith("utility-") && (
+        <UtilityWorkspaceArea />
+      )}
     </div>
   );
 }

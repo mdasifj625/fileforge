@@ -1,6 +1,8 @@
 import React from "react";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useLayerStore, useToolStore, useAIStore } from "@/store";
+import { useBackgroundRemoval } from "./useBackgroundRemoval";
 import confetti from "canvas-confetti";
+import { Layer, ImageLayer } from "@/types/layer";
 
 /** Formats milliseconds into a human-readable m:ss or Xs string. */
 function formatTime(ms: number): string {
@@ -53,27 +55,26 @@ function getStatusMessage(
 }
 
 export function BackgroundRemovalSettings({
-  isFiltering,
-  aiProgress,
-  onApply,
+  layer,
 }: Readonly<{
-  isFiltering: boolean;
-  aiProgress: number | null;
-  onApply: () => void;
+  layer?: Layer;
 }>) {
+  const updateLayerTransform = useLayerStore((s) => s.updateLayerTransform);
+  const brushMode = useToolStore((s) => s.brushMode);
+  const brushSize = useToolStore((s) => s.brushSize);
+  const setBrushMode = useToolStore((s) => s.setBrushMode);
+  const setBrushSize = useToolStore((s) => s.setBrushSize);
+
+  const aiProgressPhase = useAIStore((s) => s.aiProgressPhase);
+  const aiProgressBackend = useAIStore((s) => s.aiProgressBackend);
+  const bgRemovalSuccessTrigger = useAIStore((s) => s.bgRemovalSuccessTrigger);
+  const bgRemovalDuration = useAIStore((s) => s.bgRemovalDuration);
+
   const {
-    activeLayerId,
-    layers,
-    updateLayerTransform,
-    brushMode,
-    brushSize,
-    setBrushMode,
-    setBrushSize,
-    aiProgressPhase,
-    aiProgressBackend,
-    bgRemovalSuccessTrigger,
-    bgRemovalDuration,
-  } = useWorkspaceStore();
+    applyAIBackgroundRemoval,
+    isFiltering,
+    aiProgress,
+  } = useBackgroundRemoval(layer, updateLayerTransform);
 
   const [elapsed, setElapsed] = React.useState(0);
   const [targetSeconds, setTargetSeconds] = React.useState(15);
@@ -129,7 +130,7 @@ export function BackgroundRemovalSettings({
     }
   }, [aiProgressPhase]);
 
-  const activeLayer = layers.find((l) => l.id === activeLayerId);
+  const activeLayer = layer as ImageLayer;
 
   React.useEffect(() => {
     if (bgRemovalSuccessTrigger > 0) {
@@ -218,7 +219,7 @@ export function BackgroundRemovalSettings({
         ) : (
           <div className="grid grid-cols-1 gap-4">
             <button
-              onClick={onApply}
+              onClick={applyAIBackgroundRemoval}
               disabled={isFiltering || !!activeLayer.isAiBackgroundRemoved}
               className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
             >

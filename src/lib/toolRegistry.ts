@@ -1,3 +1,6 @@
+import React from "react";
+import { Layer } from "@/types/layer";
+
 export type UIParamType = "slider" | "toggle" | "select" | "button";
 
 export interface UIParam {
@@ -15,10 +18,12 @@ export interface UIParam {
 export interface ToolDefinition {
   id: string;
   name: string;
-  category: "image" | "pdf" | "video" | "audio" | "utility";
+  category: "image" | "pdf" | "video" | "audio" | "utility" | "ai" | "convert";
   description: string;
   workerAction?: string; // e.g. "processImage", "extractText"
   params: UIParam[];
+  PropertiesComponent?: React.ComponentType<{ layer?: Layer }>;
+  WorkspaceOverlayComponent?: React.ComponentType;
 }
 
 export const toolRegistry: Record<string, ToolDefinition> = {

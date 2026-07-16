@@ -2,8 +2,6 @@
 
 import React from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
-import { BackgroundRemovalSettings } from "./tools/BackgroundRemovalSettings";
-import { useBackgroundRemoval } from "./properties/hooks/useBackgroundRemoval";
 import { useOCR } from "./properties/hooks/useOCR";
 import { useSmartCrop } from "./properties/hooks/useSmartCrop";
 import { useDynamicTool } from "./properties/hooks/useDynamicTool";
@@ -55,11 +53,6 @@ export function PropertiesPanel() {
   };
 
   const {
-    applyAIBackgroundRemoval,
-    isFiltering: isRmbgFiltering,
-    aiProgress: rmbgProgress,
-  } = useBackgroundRemoval(activeLayer, updateLayerTransform);
-  const {
     applyOCR,
     isFiltering: isOcrFiltering,
     aiProgress: ocrProgress,
@@ -73,17 +66,19 @@ export function PropertiesPanel() {
     useDynamicTool(activeLayer, replaceLayer);
 
   const isFiltering =
-    isRmbgFiltering ||
     isOcrFiltering ||
     isSmartCropFiltering ||
     isDynamicToolProcessing;
-  const aiProgress = rmbgProgress ?? ocrProgress;
+  const aiProgress = ocrProgress;
 
   // Check if current tool is a dynamically registered tool
+  const activeToolDef = activeTool ? toolRegistry[activeTool] : undefined;
   const dynamicTool =
     activeTool && activeTool !== "resize"
       ? toolRegistry[activeTool]
       : undefined;
+
+  const ActivePropertiesComponent = activeToolDef?.PropertiesComponent;
 
   return (
     <aside className="w-full h-auto md:h-full md:w-80 shrink-0 bg-background flex flex-col z-20 border-t md:border-t-0 md:border-l border-panel-border transition-all duration-300">
@@ -228,22 +223,14 @@ export function PropertiesPanel() {
               </div>
             )}
 
-            {/* Remove Background */}
-            {activeTool === "ai-remove-background" && (
-              <BackgroundRemovalSettings
-                isFiltering={isFiltering}
-                aiProgress={aiProgress}
-                onApply={applyAIBackgroundRemoval}
-              />
+            {/* Dynamically Injected Tool UI via Registry */}
+            {ActivePropertiesComponent && (
+              <ActivePropertiesComponent layer={activeLayer as any} />
             )}
 
             {/* Profile Picture Maker */}
             {activeTool === "profile-picture" && (
-              <ProfilePictureSettings
-                applyAIBackgroundRemoval={applyAIBackgroundRemoval}
-                isFiltering={isFiltering}
-                aiProgress={aiProgress}
-              />
+              <ProfilePictureSettings layer={activeLayer as any} />
             )}
 
             {/* OCR */}
