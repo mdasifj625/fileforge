@@ -3,19 +3,16 @@ import { useCallback } from "react";
 import { db } from "@/db";
 import * as Comlink from "comlink";
 import type { AIProcessor } from "@/workers/rmbg.worker";
-import { Layer } from "@/types/layer";
+import { FileLayer as Layer } from "@/store/useWorkspaceStore";
 import { PerformanceProfiler } from "@/utils/PerformanceProfiler";
 import { useAIStore } from "@/store";
 
-// Tracks backends that have permanently failed (deadlocked) on this device.
-// Once blacklisted, a backend is never retried — we go straight to the next one.
 const BLACKLIST_KEY = "fileforge:ai_backend_blacklist";
 
 function getBlacklist(): Set<string> {
   try {
     const raw = localStorage.getItem(BLACKLIST_KEY);
     const list = raw ? new Set<string>(JSON.parse(raw)) : new Set<string>();
-    // Self-heal: remove wasm if it was accidentally blacklisted before this guard was added
     if (list.has("wasm")) {
       list.delete("wasm");
       localStorage.setItem(BLACKLIST_KEY, JSON.stringify([...list]));
@@ -27,7 +24,6 @@ function getBlacklist(): Set<string> {
 }
 
 function blacklistBackend(backend: string) {
-  // WASM is the CPU fallback — it always works, just slowly. Never blacklist it.
   if (backend === "wasm") return;
   try {
     const list = getBlacklist();
@@ -38,9 +34,7 @@ function blacklistBackend(backend: string) {
   }
 }
 
-// localStorage key for persisting the last known-good backend.
 const BACKEND_CACHE_KEY = "fileforge:preferred_ai_backend";
-
 const LIMITS_CHECK_KEY = "fileforge:ai_webgpu_limits_failed";
 
 function isWebGPULimitsFailed(): boolean {
@@ -63,7 +57,6 @@ function getPreferredBackends(): string[] {
   const blacklist = getBlacklist();
   const limitsFailed = isWebGPULimitsFailed();
 
-  // Filter out webgpu if it is blacklisted OR if hardware limits are insufficient
   const gpuBackends = ["webgpu"].filter(
     (b) => !blacklist.has(b) && !limitsFailed,
   );
@@ -75,13 +68,11 @@ function getPreferredBackends(): string[] {
       cached !== "wasm" &&
       !limitsFailed
     ) {
-      // Bubble the last GPU winner to the front, always end with wasm
       return [cached, ...gpuBackends.filter((b) => b !== cached), "wasm"];
     }
   } catch {
-    // localStorage unavailable
+    // ignore
   }
-  // Always end with wasm — even if the list is otherwise empty
   return [...gpuBackends, "wasm"];
 }
 
@@ -90,6 +81,69 @@ function cacheSuccessfulBackend(backend: string) {
     localStorage.setItem(BACKEND_CACHE_KEY, backend);
   } catch {
     // ignore
+  }
+}
+
+async function attemptBackend(
+  backend: string,
+  fileBlob: Blob,
+  setAiProgress: (p: number) => void,
+  setAiProgressPhase: (phase: "model" | "inference" | null) => void,
+): Promise<Blob> {
+  const worker = new Worker(
+    new URL("@/workers/rmbg.worker.entry", import.meta.url),
+    { type: "module" },
+  );
+  const api = Comlink.wrap<AIProcessor>(worker);
+
+  let activeInterval: NodeJS.Timeout | null = null;
+  try {
+    await api.loadModel(
+      Comlink.proxy((progress: number) => {
+        if (progress >= 0) {
+          setAiProgress(Math.round(progress * 0.4));
+        }
+      }),
+      backend,
+    );
+
+    setAiProgressPhase("inference");
+    setAiProgress(40);
+
+    const cores =
+      typeof navigator !== "undefined" ? navigator.hardwareConcurrency || 4 : 4;
+    const estDuration =
+      backend === "webgpu"
+        ? Math.max(20000, Math.round(25 * (16 / cores)) * 1000)
+        : Math.max(25000, Math.round(30 * (16 / cores)) * 1000);
+
+    const targetProgress = 95;
+    let currentProgress = 40;
+    const decayFactor = Math.min(
+      0.25,
+      Math.max(0.02, 0.3 / (estDuration / 1000)),
+    );
+
+    activeInterval = setInterval(() => {
+      currentProgress += (targetProgress - currentProgress) * decayFactor;
+      setAiProgress(Math.round(currentProgress));
+    }, 150);
+
+    const quality = backend === "wasm" ? "fast" : "balanced";
+    const maskBlob = await api.removeBackgroundGetMask(
+      fileBlob,
+      undefined,
+      quality,
+    );
+
+    if (activeInterval) clearInterval(activeInterval);
+    setAiProgress(100);
+    worker.terminate();
+    return maskBlob;
+  } catch (e) {
+    if (activeInterval) clearInterval(activeInterval);
+    worker.terminate();
+    throw e;
   }
 }
 
@@ -117,7 +171,6 @@ export function useBackgroundRemoval(
     setBgRemovalDuration(null);
 
     const overallStart = Date.now();
-    let activeInterval: NodeJS.Timeout | null = null;
 
     try {
       const fileRecord = await db.files.get(activeLayer.fileId);
@@ -142,94 +195,34 @@ export function useBackgroundRemoval(
           `Backend = ${backend.toUpperCase()}`,
         );
 
-        const worker = new Worker(
-          new URL("@/workers/rmbg.worker.entry", import.meta.url),
-          { type: "module" },
-        );
-        const api = Comlink.wrap<AIProcessor>(worker);
-
         try {
-          await api.loadModel(
-            Comlink.proxy((progress: number) => {
-              if (progress >= 0) {
-                // Map Phase 1 model download to 0% - 40%
-                setAiProgress(Math.round(progress * 0.4));
-              }
-            }),
+          maskBlob = await attemptBackend(
             backend,
-          );
-
-          // Phase 2: Inference (Actual image segmentation)
-          setAiProgressPhase("inference");
-          setAiProgress(40);
-
-          const cores =
-            typeof navigator !== "undefined"
-              ? navigator.hardwareConcurrency || 4
-              : 4;
-          const estDuration =
-            backend === "webgpu"
-              ? Math.max(20000, Math.round(25 * (16 / cores)) * 1000)
-              : Math.max(25000, Math.round(30 * (16 / cores)) * 1000);
-
-          const startProgress = 40;
-          const targetProgress = 95;
-          let currentProgress = startProgress;
-          // Dynamically scale decayFactor so visual progress bar speed matches hardware-scaled duration
-          const decayFactor = Math.min(
-            0.25,
-            Math.max(0.02, 0.3 / (estDuration / 1000)),
-          );
-
-          activeInterval = setInterval(() => {
-            currentProgress += (targetProgress - currentProgress) * decayFactor;
-            setAiProgress(Math.round(currentProgress));
-          }, 150);
-
-          const quality = backend === "wasm" ? "fast" : "balanced";
-
-          maskBlob = await api.removeBackgroundGetMask(
             fileRecord.blob,
-            undefined,
-            quality,
+            setAiProgress,
+            setAiProgressPhase,
           );
-
-          if (activeInterval) {
-            clearInterval(activeInterval);
-            activeInterval = null;
-          }
-          setAiProgress(100);
-
           cacheSuccessfulBackend(backend);
           profiler.succeed(`Backend ${backend.toUpperCase()}`);
-          worker.terminate();
           break;
         } catch (e: any) {
-          if (activeInterval) {
-            clearInterval(activeInterval);
-            activeInterval = null;
-          }
           const errMsg = e?.message ?? String(e);
-          // If this backend stalled/deadlocked, blacklist it permanently for this device.
-          // Next run will skip it entirely and go straight to the next backend.
           const isDeadlock =
             typeof e?.message === "string" && e.message.includes("stalled");
           if (isDeadlock) {
             blacklistBackend(backend);
             PerformanceProfiler.logInfo(
-              `${backend.toUpperCase()} permanently blacklisted on this device — will be skipped on all future runs`,
+              `${backend.toUpperCase()} permanently blacklisted on this device`,
             );
           }
 
-          // If the worker rejected this backend due to hardware limits checks, cache it
-          // so we skip spawning workers for WebGPU entirely on subsequent runs.
           const isLimitsFailed = errMsg.includes(
             "rejected by the GPU adapter probe",
           );
           if (isLimitsFailed && backend === "webgpu") {
             cacheWebGPULimitsFailed();
             PerformanceProfiler.logInfo(
-              `WebGPU hardware limits check failed — skipped for all future runs on this device`,
+              `WebGPU hardware limits check failed — skipped for all future runs`,
             );
           }
 
@@ -239,7 +232,6 @@ export function useBackgroundRemoval(
             nextBackend?.toUpperCase(),
           );
           lastError = e;
-          worker.terminate();
         }
       }
 
@@ -263,10 +255,8 @@ export function useBackgroundRemoval(
       });
       const durationMs = Date.now() - overallStart;
       setBgRemovalDuration(durationMs);
-      // Trigger achievement confetti
       triggerBgRemovalSuccess();
     } catch (e) {
-      if (activeInterval) clearInterval(activeInterval);
       console.error(e);
       alert("Failed to remove background.");
     } finally {

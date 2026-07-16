@@ -2,11 +2,14 @@ import { useState, useCallback } from "react";
 import { db } from "@/db";
 import * as Comlink from "comlink";
 import { ImageProcessor } from "@/workers/image.worker";
-import { Layer, ImageLayer } from "@/types/layer";
-import { useLayerStore } from "@/store";
+import {
+  FileLayer as Layer,
+  FileLayer as ImageLayer,
+} from "@/store/useWorkspaceStore";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 export function useSmartCrop(activeLayer: Layer | undefined) {
-  const replaceLayer = useLayerStore((s) => s.replaceLayer);
+  const replaceLayer = useWorkspaceStore((s) => s.replaceLayer);
   const [isFiltering, setIsFiltering] = useState(false);
 
   const applySmartCrop = useCallback(async () => {

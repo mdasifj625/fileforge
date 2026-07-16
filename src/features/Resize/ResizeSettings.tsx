@@ -1,139 +1,40 @@
 import React, { useState } from "react";
-import { ImageLayer, Layer } from "@/types/layer";
-import { useLayerStore } from "@/store";
+import {
+  FileLayer as ImageLayer,
+  FileLayer as Layer,
+} from "@/store/useWorkspaceStore";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { Link2, Link2Off } from "lucide-react";
+import { useResizeHandlers } from "./useResizeHandlers";
 
 interface Props {
   layer?: Layer;
 }
 
-export function ResizeSettings({ layer }: Props) {
+export function ResizeSettings({ layer }: Readonly<Props>) {
   if (!layer || layer.type !== "image") return null;
   return <ResizeSettingsInner layer={layer as ImageLayer} />;
 }
 
 function ResizeSettingsInner({ layer }: { layer: ImageLayer }) {
-  const updateLayerTransform = useLayerStore((s) => s.updateLayerTransform);
+  const updateLayerTransform = useWorkspaceStore((s) => s.updateLayerTransform);
   const [lockRatio, setLockRatio] = useState(true);
   const [doNotEnlarge, setDoNotEnlarge] = useState(false);
 
-  const storeWidth = Math.round(layer.originalWidth * Math.abs(layer.scaleX));
-  const storeHeight = Math.round(layer.originalHeight * Math.abs(layer.scaleY));
-  const storeScale = Math.round(Math.abs(layer.scaleX) * 100);
-
-  const [inputWidth, setInputWidth] = useState(storeWidth.toString());
-  const [prevStoreWidth, setPrevStoreWidth] = useState(storeWidth);
-
-  if (storeWidth !== prevStoreWidth) {
-    setPrevStoreWidth(storeWidth);
-    if (parseFloat(inputWidth) !== storeWidth && inputWidth !== "") {
-      setInputWidth(storeWidth.toString());
-    }
-  }
-
-  const [inputHeight, setInputHeight] = useState(storeHeight.toString());
-  const [prevStoreHeight, setPrevStoreHeight] = useState(storeHeight);
-
-  if (storeHeight !== prevStoreHeight) {
-    setPrevStoreHeight(storeHeight);
-    if (parseFloat(inputHeight) !== storeHeight && inputHeight !== "") {
-      setInputHeight(storeHeight.toString());
-    }
-  }
-
-  const [inputScale, setInputScale] = useState(storeScale.toString());
-  const [prevStoreScale, setPrevStoreScale] = useState(storeScale);
-
-  if (storeScale !== prevStoreScale) {
-    setPrevStoreScale(storeScale);
-    if (parseFloat(inputScale) !== storeScale && inputScale !== "") {
-      setInputScale(storeScale.toString());
-    }
-  }
-
-  const handleWidthChange = (valStr: string) => {
-    setInputWidth(valStr);
-    const val = parseFloat(valStr);
-    if (isNaN(val) || val <= 0) return;
-
-    let newScaleX = val / layer.originalWidth;
-    if (doNotEnlarge && newScaleX > 1) newScaleX = 1;
-
-    const signX = layer.scaleX < 0 ? -1 : 1;
-
-    if (lockRatio) {
-      const signY = layer.scaleY < 0 ? -1 : 1;
-      updateLayerTransform(layer.id, {
-        scaleX: newScaleX * signX,
-        scaleY: newScaleX * signY,
-      });
-    } else {
-      updateLayerTransform(layer.id, {
-        scaleX: newScaleX * signX,
-      });
-    }
-  };
-
-  const handleHeightChange = (valStr: string) => {
-    setInputHeight(valStr);
-    const val = Number.parseFloat(valStr);
-    if (Number.isNaN(val) || val <= 0) return;
-
-    let newScaleY = val / layer.originalHeight;
-    if (doNotEnlarge && newScaleY > 1) newScaleY = 1;
-
-    const signY = layer.scaleY < 0 ? -1 : 1;
-
-    if (lockRatio) {
-      const signX = layer.scaleX < 0 ? -1 : 1;
-      updateLayerTransform(layer.id, {
-        scaleX: newScaleY * signX,
-        scaleY: newScaleY * signY,
-      });
-    } else {
-      updateLayerTransform(layer.id, {
-        scaleY: newScaleY * signY,
-      });
-    }
-  };
-
-  const handleScaleChange = (valStr: string | number) => {
-    const isStr = typeof valStr === "string";
-    if (isStr) setInputScale(valStr);
-
-    const val = typeof valStr === "string" ? Number.parseFloat(valStr) : valStr;
-    if (Number.isNaN(val) || val <= 0) return;
-
-    let newScale = val / 100;
-    if (doNotEnlarge && newScale > 1) newScale = 1;
-
-    const signX = layer.scaleX < 0 ? -1 : 1;
-    const signY = layer.scaleY < 0 ? -1 : 1;
-
-    updateLayerTransform(layer.id, {
-      scaleX: newScale * signX,
-      scaleY: newScale * signY,
-    });
-  };
-
-  React.useEffect(() => {
-    if (doNotEnlarge && storeScale > 100) {
-      const signX = layer.scaleX < 0 ? -1 : 1;
-      const signY = layer.scaleY < 0 ? -1 : 1;
-
-      updateLayerTransform(layer.id, {
-        scaleX: 1 * signX,
-        scaleY: 1 * signY,
-      });
-    }
-  }, [
+  const {
+    inputWidth,
+    inputHeight,
+    inputScale,
     storeScale,
+    handleWidthChange,
+    handleHeightChange,
+    handleScaleChange,
+  } = useResizeHandlers({
+    layer,
     doNotEnlarge,
-    layer.id,
-    layer.scaleX,
-    layer.scaleY,
+    lockRatio,
     updateLayerTransform,
-  ]);
+  });
 
   const presets = [
     { label: "25%", value: 25 },

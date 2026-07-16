@@ -1,5 +1,5 @@
 import React from "react";
-import { Layer } from "@/types/layer";
+import { FileLayer as Layer } from "@/store/useWorkspaceStore";
 import { useOCR } from "./useOCR";
 
 interface Props {
@@ -8,6 +8,14 @@ interface Props {
 
 export function OCRSettings({ layer }: Props) {
   const { applyOCR, isFiltering, aiProgress, ocrText } = useOCR(layer);
+
+  let buttonText = "Extract Text";
+  if (isFiltering) {
+    buttonText =
+      aiProgress !== null
+        ? `Extracting... ${Math.round(aiProgress)}%`
+        : "Extracting Text...";
+  }
 
   return (
     <div>
@@ -23,11 +31,7 @@ export function OCRSettings({ layer }: Props) {
           disabled={isFiltering}
           className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
         >
-          {isFiltering
-            ? aiProgress !== null
-              ? `Extracting... ${Math.round(aiProgress)}%`
-              : "Extracting Text..."
-            : "Extract Text"}
+          {buttonText}
         </button>
         <p className="text-xs text-muted-foreground text-center">
           Uses local Tesseract.js model to extract text.

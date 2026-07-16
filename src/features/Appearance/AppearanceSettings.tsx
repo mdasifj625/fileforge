@@ -1,13 +1,13 @@
 import React from "react";
-import { Layer } from "@/types/layer";
-import { useLayerStore } from "@/store";
+import { FileLayer as Layer } from "@/store/useWorkspaceStore";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 interface Props {
   layer?: Layer;
 }
 
-export function AppearanceSettings({ layer }: Props) {
-  const updateLayerTransform = useLayerStore((s) => s.updateLayerTransform);
+export function AppearanceSettings({ layer }: Readonly<Props>) {
+  const updateLayerTransform = useWorkspaceStore((s) => s.updateLayerTransform);
 
   if (!layer) return null;
 

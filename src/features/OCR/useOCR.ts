@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { db } from "@/db";
 import * as Comlink from "comlink";
 import type { AIProcessor } from "@/workers/rmbg.worker";
-import { Layer } from "@/types/layer";
+import { FileLayer as Layer } from "@/store/useWorkspaceStore";
 
 export function useOCR(activeLayer: Layer | undefined) {
   const [isFiltering, setIsFiltering] = useState(false);

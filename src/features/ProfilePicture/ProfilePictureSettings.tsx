@@ -1,5 +1,5 @@
 import { BackgroundRemovalSettings } from "@/features/RemoveBackground/BackgroundRemovalSettings";
-import { Layer } from "@/types/layer";
+import { FileLayer as Layer } from "@/store/useWorkspaceStore";
 
 interface Props {
   layer?: Layer;

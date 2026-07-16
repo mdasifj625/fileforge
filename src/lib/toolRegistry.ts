@@ -1,5 +1,5 @@
 import React from "react";
-import { Layer } from "@/types/layer";
+import { FileLayer } from "@/store/useWorkspaceStore";
 import { removeBackgroundTool } from "@/features/RemoveBackground";
 import { ocrTool } from "@/features/OCR";
 import { cropTool } from "@/features/Crop";
@@ -7,6 +7,15 @@ import { resizeTool } from "@/features/Resize";
 import { watermarkTool } from "@/features/Watermark";
 import { appearanceTool } from "@/features/Appearance";
 import { profilePictureTool } from "@/features/ProfilePicture";
+import { compressTool, videoCompressTool } from "@/features/Compress";
+import { convertTool, videoConvertTool } from "@/features/Convert";
+import { videoTrimTool } from "@/features/VideoTrim";
+import {
+  audioTrimTool,
+  audioMergeTool,
+  audioConvertTool,
+  audioAdjustTool,
+} from "@/features/Audio";
 
 export type UIParamType = "slider" | "toggle" | "select" | "button";
 
@@ -27,9 +36,9 @@ export interface ToolDefinition {
   name: string;
   category: "image" | "pdf" | "video" | "audio" | "utility" | "ai" | "convert";
   description: string;
-  workerAction?: string; // e.g. "processImage", "extractText"
+  workerAction?: string;
   params: UIParam[];
-  PropertiesComponent?: React.ComponentType<{ layer?: Layer }>;
+  PropertiesComponent?: React.ComponentType<{ layer?: FileLayer }>;
   WorkspaceOverlayComponent?: React.ComponentType;
 }
 
@@ -126,5 +135,14 @@ export const toolRegistry: Record<string, ToolDefinition> = {
   "pdf-watermark": watermarkTool,
   appearance: appearanceTool,
   "profile-picture": profilePictureTool,
-  // We can scale this effortlessly to the 100+ tools mapped out
+
+  compress: compressTool,
+  "video-compress": videoCompressTool,
+  convert: convertTool,
+  "video-convert": videoConvertTool,
+  "video-trim": videoTrimTool,
+  "audio-trim": audioTrimTool,
+  "audio-merge": audioMergeTool,
+  "audio-convert": audioConvertTool,
+  "audio-adjust": audioAdjustTool,
 };

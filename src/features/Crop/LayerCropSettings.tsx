@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ImageLayer } from "@/types/layer";
+import { FileLayer as ImageLayer } from "@/store/useWorkspaceStore";
 import { Link, Unlock, RotateCcw } from "lucide-react";
 
 interface Props {
@@ -138,9 +138,7 @@ export function LayerCropSettings({
                   const cropRatio =
                     currentRect.width / (currentRect.height || 1);
                   let maxW = layer.originalWidth;
-                  let maxH = layer.originalWidth / cropRatio;
-                  if (maxH > layer.originalHeight) {
-                    maxH = layer.originalHeight;
+                  if (layer.originalWidth / cropRatio > layer.originalHeight) {
                     maxW = layer.originalHeight * cropRatio;
                   }
                   return Math.round((currentRect.width / maxW) * 100);
@@ -155,9 +153,7 @@ export function LayerCropSettings({
               value={(() => {
                 const cropRatio = currentRect.width / (currentRect.height || 1);
                 let maxW = layer.originalWidth;
-                let maxH = layer.originalWidth / cropRatio;
-                if (maxH > layer.originalHeight) {
-                  maxH = layer.originalHeight;
+                if (layer.originalWidth / cropRatio > layer.originalHeight) {
                   maxW = layer.originalHeight * cropRatio;
                 }
                 return Math.round((currentRect.width / maxW) * 100);
@@ -168,7 +164,7 @@ export function LayerCropSettings({
                 let maxW = layer.originalWidth;
                 let maxH = layer.originalWidth / cropRatio;
 
-                if (maxH > layer.originalHeight) {
+                if (layer.originalWidth / cropRatio > layer.originalHeight) {
                   maxH = layer.originalHeight;
                   maxW = layer.originalHeight * cropRatio;
                 }

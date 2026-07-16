@@ -1,16 +1,21 @@
 import React from "react";
-import { useLayerStore, useToolStore, useAIStore } from "@/store";
+import { useToolStore, useAIStore } from "@/store";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useBackgroundRemoval } from "./useBackgroundRemoval";
 import confetti from "canvas-confetti";
-import { Layer, ImageLayer } from "@/types/layer";
+import {
+  FileLayer as Layer,
+  FileLayer as ImageLayer,
+} from "@/store/useWorkspaceStore";
 
 /** Formats milliseconds into a human-readable m:ss or Xs string. */
 function formatTime(ms: number): string {
-  const totalSecs = Math.floor(ms / 1000);
-  if (totalSecs < 60) return `${totalSecs}s`;
-  const mins = Math.floor(totalSecs / 60);
-  const secs = totalSecs % 60;
-  return `${mins}m ${secs.toString().padStart(2, "0")}s`;
+  if (ms < 1000) return `${ms}ms`;
+  const s = ms / 1000;
+  if (s < 60) return `${s.toFixed(1)}s`;
+  const m = Math.floor(s / 60);
+  const remainingS = Math.floor(s % 60);
+  return `${m}:${remainingS.toString().padStart(2, "0")}`;
 }
 
 /** Formats a target in whole seconds into m:ss or Xs. */
@@ -21,37 +26,76 @@ function formatTargetTime(secs: number): string {
   return `${mins}m ${s.toString().padStart(2, "0")}s`;
 }
 
+function getModelPhaseMessage(p: number): string {
+  if (p < 30) return "🚚 Fetching model weights from cache network...";
+  if (p < 60) return "🧠 Downloading neural network attention layers...";
+  if (p < 90)
+    return "⚡ Allocating VRAM buffers and checking GPU hardware limits...";
+  return "⚙️ Compiling ONNX hardware acceleration graph pipelines...";
+}
+
+function getWebGpuInferenceMessage(p: number): string {
+  if (p < 25) return "🚀 Initializing WebGPU hardware adapter context...";
+  if (p < 50)
+    return "🔍 Running fast subject detection on raw pixel tensor arrays...";
+  if (p < 75)
+    return "✨ Isolating background boundary edges using BEN2 models...";
+  return "🎭 Applying anti-aliased transparency alpha map channels...";
+}
+
+function getWasmInferenceMessage(p: number): string {
+  if (p < 20) return "🐌 Falling back to WebAssembly CPU execution...";
+  if (p < 40) return "🧵 Initializing multi-threaded WASM processing layers...";
+  if (p < 60)
+    return "🧩 Processing pixel array chunks sequentially (slower)...";
+  if (p < 80) return "🌟 Segmenting subject boundaries & matte masks...";
+  return "🎨 Finalizing image matte transparency details...";
+}
+
 function getStatusMessage(
   phase: "model" | "inference" | null,
   progress: number | null,
   backend: string | null,
 ) {
   const p = progress || 0;
-  if (phase === "model") {
-    if (p < 30) return "🚚 Fetching model weights from cache network...";
-    if (p < 60) return "🧠 Downloading neural network attention layers...";
-    if (p < 90)
-      return "⚡ Allocating VRAM buffers and checking GPU hardware limits...";
-    return "⚙️ Compiling ONNX hardware acceleration graph pipelines...";
-  } else if (phase === "inference") {
-    if (backend === "webgpu") {
-      if (p < 25) return "🚀 Initializing WebGPU hardware adapter context...";
-      if (p < 50)
-        return "🔍 Running fast subject detection on raw pixel tensor arrays...";
-      if (p < 75)
-        return "✨ Isolating background boundary edges using BEN2 models...";
-      return "🎭 Applying anti-aliased transparency alpha map channels...";
-    } else {
-      if (p < 20) return "🐌 Falling back to WebAssembly CPU execution...";
-      if (p < 40)
-        return "🧵 Initializing multi-threaded WASM processing layers...";
-      if (p < 60)
-        return "🧩 Processing pixel array chunks sequentially (slower)...";
-      if (p < 80) return "🌟 Segmenting subject boundaries & matte masks...";
-      return "🎨 Finalizing image matte transparency details...";
-    }
+  if (phase === "model") return getModelPhaseMessage(p);
+  if (phase === "inference") {
+    if (backend === "webgpu") return getWebGpuInferenceMessage(p);
+    return getWasmInferenceMessage(p);
   }
   return "⚡ Initializing AI removal system...";
+}
+
+function initializeMaskFile(
+  activeLayer: ImageLayer,
+  updateLayerTransform: (id: string, transform: Partial<Layer>) => void,
+) {
+  const canvas = document.createElement("canvas");
+  canvas.width = activeLayer.originalWidth;
+  canvas.height = activeLayer.originalHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const maskFileId = crypto.randomUUID();
+    import("@/db").then(({ db }) => {
+      db.files
+        .put({
+          id: maskFileId,
+          blob,
+          name: `manual-mask-${Date.now()}`,
+          type: "image/png",
+          size: blob.size,
+          createdAt: Date.now(),
+        })
+        .then(() => {
+          updateLayerTransform(activeLayer.id, { maskFileId });
+        });
+    });
+  });
 }
 
 export function BackgroundRemovalSettings({
@@ -59,7 +103,7 @@ export function BackgroundRemovalSettings({
 }: Readonly<{
   layer?: Layer;
 }>) {
-  const updateLayerTransform = useLayerStore((s) => s.updateLayerTransform);
+  const updateLayerTransform = useWorkspaceStore((s) => s.updateLayerTransform);
   const brushMode = useToolStore((s) => s.brushMode);
   const brushSize = useToolStore((s) => s.brushSize);
   const setBrushMode = useToolStore((s) => s.setBrushMode);
@@ -258,35 +302,7 @@ export function BackgroundRemovalSettings({
                 !activeLayer.maskFileId &&
                 activeLayer.originalWidth
               ) {
-                const canvas = document.createElement("canvas");
-                canvas.width = activeLayer.originalWidth;
-                canvas.height = activeLayer.originalHeight;
-                const ctx = canvas.getContext("2d");
-                if (ctx) {
-                  ctx.fillStyle = "white";
-                  ctx.fillRect(0, 0, canvas.width, canvas.height);
-                  canvas.toBlob((blob) => {
-                    if (blob) {
-                      const maskFileId = crypto.randomUUID();
-                      import("@/db").then(({ db }) => {
-                        db.files
-                          .put({
-                            id: maskFileId,
-                            blob,
-                            name: `manual-mask-${Date.now()}`,
-                            type: "image/png",
-                            size: blob.size,
-                            createdAt: Date.now(),
-                          })
-                          .then(() => {
-                            updateLayerTransform(activeLayer.id, {
-                              maskFileId,
-                            });
-                          });
-                      });
-                    }
-                  });
-                }
+                initializeMaskFile(activeLayer, updateLayerTransform);
               }
             }}
             className={`flex-1 text-[10px] uppercase tracking-widest font-bold py-2 rounded-md transition-all ${
@@ -306,35 +322,7 @@ export function BackgroundRemovalSettings({
                 !activeLayer.maskFileId &&
                 activeLayer.originalWidth
               ) {
-                const canvas = document.createElement("canvas");
-                canvas.width = activeLayer.originalWidth;
-                canvas.height = activeLayer.originalHeight;
-                const ctx = canvas.getContext("2d");
-                if (ctx) {
-                  ctx.fillStyle = "white";
-                  ctx.fillRect(0, 0, canvas.width, canvas.height);
-                  canvas.toBlob((blob) => {
-                    if (blob) {
-                      const maskFileId = crypto.randomUUID();
-                      import("@/db").then(({ db }) => {
-                        db.files
-                          .put({
-                            id: maskFileId,
-                            blob,
-                            name: `manual-mask-${Date.now()}`,
-                            type: "image/png",
-                            size: blob.size,
-                            createdAt: Date.now(),
-                          })
-                          .then(() => {
-                            updateLayerTransform(activeLayer.id, {
-                              maskFileId,
-                            });
-                          });
-                      });
-                    }
-                  });
-                }
+                initializeMaskFile(activeLayer, updateLayerTransform);
               }
             }}
             className={`flex-1 text-[10px] uppercase tracking-widest font-bold py-2 rounded-md transition-all ${

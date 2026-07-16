@@ -3,6 +3,7 @@ import { create } from "zustand";
 export interface FileLayer {
   id: string;
   fileId: string;
+  type?: string;
   originalFileId?: string; // Tracks the original file for "Original" filter restore
   name: string;
   visible: boolean;
