@@ -70,11 +70,8 @@ export function BackgroundRemovalSettings({
   const bgRemovalSuccessTrigger = useAIStore((s) => s.bgRemovalSuccessTrigger);
   const bgRemovalDuration = useAIStore((s) => s.bgRemovalDuration);
 
-  const {
-    applyAIBackgroundRemoval,
-    isFiltering,
-    aiProgress,
-  } = useBackgroundRemoval(layer, updateLayerTransform);
+  const { applyAIBackgroundRemoval, isFiltering, aiProgress } =
+    useBackgroundRemoval(layer, updateLayerTransform);
 
   const [elapsed, setElapsed] = React.useState(0);
   const [targetSeconds, setTargetSeconds] = React.useState(15);

@@ -1,18 +1,14 @@
 import React from "react";
+import { Layer } from "@/types/layer";
+import { useOCR } from "./useOCR";
 
 interface Props {
-  applyOCR: () => void;
-  isFiltering: boolean;
-  aiProgress: number | null;
-  ocrText: string | null;
+  layer?: Layer;
 }
 
-export function OCRSettings({
-  applyOCR,
-  isFiltering,
-  aiProgress,
-  ocrText,
-}: Props) {
+export function OCRSettings({ layer }: Props) {
+  const { applyOCR, isFiltering, aiProgress, ocrText } = useOCR(layer);
+
   return (
     <div>
       <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">

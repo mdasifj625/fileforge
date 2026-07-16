@@ -1,5 +1,7 @@
 import React from "react";
 import { Layer } from "@/types/layer";
+import { removeBackgroundTool } from "@/features/RemoveBackground";
+import { ocrTool } from "@/features/OCR";
 
 export type UIParamType = "slider" | "toggle" | "select" | "button";
 
@@ -84,5 +86,7 @@ export const toolRegistry: Record<string, ToolDefinition> = {
     workerAction: "processImage",
     params: [],
   },
+  "ai-remove-background": removeBackgroundTool,
+  "ai-ocr": ocrTool,
   // We can scale this effortlessly to the 100+ tools mapped out
 };

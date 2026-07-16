@@ -2,9 +2,9 @@ import { useState, useCallback } from "react";
 import { db } from "@/db";
 import * as Comlink from "comlink";
 import type { AIProcessor } from "@/workers/rmbg.worker";
-import { FileLayer } from "@/store/useWorkspaceStore";
+import { Layer } from "@/types/layer";
 
-export function useOCR(activeLayer: FileLayer | undefined) {
+export function useOCR(activeLayer: Layer | undefined) {
   const [isFiltering, setIsFiltering] = useState(false);
   const [aiProgress, setAiProgress] = useState<number | null>(null);
   const [ocrText, setOcrText] = useState<string | null>(null);

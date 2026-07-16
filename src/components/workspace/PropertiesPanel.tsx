@@ -2,14 +2,12 @@
 
 import React from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
-import { useOCR } from "./properties/hooks/useOCR";
 import { useSmartCrop } from "./properties/hooks/useSmartCrop";
 import { useDynamicTool } from "./properties/hooks/useDynamicTool";
 import { LayerTransformSettings } from "./properties/components/LayerTransformSettings";
 import { LayerCropSettings } from "./properties/components/LayerCropSettings";
 import { LayerAppearanceSettings } from "./properties/components/LayerAppearanceSettings";
 import { LayerResizeSettings } from "./properties/components/LayerResizeSettings";
-import { OCRSettings } from "./properties/components/OCRSettings";
 import { SmartCropSettings } from "./properties/components/SmartCropSettings";
 import { WatermarkSettings } from "./properties/components/WatermarkSettings";
 import { ProfilePictureSettings } from "./properties/components/ProfilePictureSettings";
@@ -52,12 +50,6 @@ export function PropertiesPanel() {
     }
   };
 
-  const {
-    applyOCR,
-    isFiltering: isOcrFiltering,
-    aiProgress: ocrProgress,
-    ocrText,
-  } = useOCR(activeLayer);
   const { applySmartCrop, isFiltering: isSmartCropFiltering } = useSmartCrop(
     activeLayer,
     replaceLayer,
@@ -66,10 +58,8 @@ export function PropertiesPanel() {
     useDynamicTool(activeLayer, replaceLayer);
 
   const isFiltering =
-    isOcrFiltering ||
     isSmartCropFiltering ||
     isDynamicToolProcessing;
-  const aiProgress = ocrProgress;
 
   // Check if current tool is a dynamically registered tool
   const activeToolDef = activeTool ? toolRegistry[activeTool] : undefined;
@@ -225,22 +215,12 @@ export function PropertiesPanel() {
 
             {/* Dynamically Injected Tool UI via Registry */}
             {ActivePropertiesComponent && (
-              <ActivePropertiesComponent layer={activeLayer as any} />
+              <ActivePropertiesComponent layer={activeLayer} />
             )}
 
             {/* Profile Picture Maker */}
             {activeTool === "profile-picture" && (
-              <ProfilePictureSettings layer={activeLayer as any} />
-            )}
-
-            {/* OCR */}
-            {activeTool === "ai-ocr" && (
-              <OCRSettings
-                applyOCR={applyOCR}
-                isFiltering={isFiltering}
-                aiProgress={aiProgress}
-                ocrText={ocrText}
-              />
+              <ProfilePictureSettings layer={activeLayer} />
             )}
 
             {/* Watermark Settings */}

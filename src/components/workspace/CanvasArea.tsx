@@ -87,8 +87,7 @@ export function CanvasArea() {
       );
 
       const scale = dist / initialPinchDistance.current;
-      const { activeLayerId, updateLayerTransform } =
-        useLayerStore.getState();
+      const { activeLayerId, updateLayerTransform } = useLayerStore.getState();
       if (activeLayerId) {
         updateLayerTransform(
           activeLayerId,
