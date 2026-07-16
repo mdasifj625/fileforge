@@ -77,7 +77,7 @@ Tools MUST be placed in the correct category route. Misrouting causes broken nav
 
 - **`/image/[tool]`** — ANY tool that takes an image as input and outputs a processed image. This includes AI-powered image tools:
   - Remove Background → `/image/remove-background`
-  - Smart Crop → `/image/smart-crop`
+  - Profile Picture Maker → `/image/profile-picture`
   - Magic Eraser → `/image/magic-eraser`
   - Image Upscale → `/image/upscale`
 - **`/ai/[tool]`** — ONLY text/document AI tools that don't fit neatly into another media category:

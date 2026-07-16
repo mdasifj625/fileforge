@@ -35,11 +35,21 @@ export function useSmartCrop(
         createdAt: Date.now(),
       });
 
+      const bitmap = await createImageBitmap(newBlob);
       const newLayerId = crypto.randomUUID();
+
       replaceLayer(activeLayer.id, {
         ...activeLayer,
         id: newLayerId,
         fileId: newFileId,
+        originalWidth: bitmap.width,
+        originalHeight: bitmap.height,
+        cropRect: {
+          x: 0,
+          y: 0,
+          width: bitmap.width,
+          height: bitmap.height,
+        },
       });
 
       worker.terminate();

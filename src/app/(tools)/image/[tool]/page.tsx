@@ -6,52 +6,42 @@ import { TOOL_MENUS } from "@/config/tools";
 
 // Define the valid tools for this category to prevent 404s
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
+  "remove-background": {
+    title: "Remove Background",
+    description: "Automatically remove backgrounds using AI.",
+  },
   compress: {
     title: "Compress Image",
     description: "Reduce image file size with minimal quality loss.",
+  },
+  convert: {
+    title: "Convert Image",
+    description: "Change image format (e.g. PNG to JPG).",
+  },
+  upscale: {
+    title: "Image Upscale",
+    description: "Upscale images to higher resolutions without quality loss.",
+  },
+  "magic-eraser": {
+    title: "Magic Eraser",
+    description: "Remove unwanted objects from images using AI.",
   },
   resize: { title: "Resize Image", description: "Change image dimensions." },
   crop: {
     title: "Crop Image",
     description: "Crop and extract parts of an image.",
   },
-  "smart-crop": {
-    title: "Smart Crop",
-    description: "Automatically trim transparent or empty borders from images.",
-  },
-  rotate: { title: "Rotate Image", description: "Rotate or flip images." },
-  convert: {
-    title: "Convert Image",
-    description: "Change image format (e.g. PNG to JPG).",
+  watermark: {
+    title: "Add Watermark",
+    description: "Stamp your images with a logo or text.",
   },
   filters: {
     title: "Filters & Effects",
     description: "Apply Instagram-like filters and effects to your photos.",
   },
-  "remove-background": {
-    title: "Remove Background",
-    description: "Automatically remove backgrounds using AI.",
-  },
-  "blur-background": {
-    title: "Blur Background",
-    description: "Apply a depth-of-field blur to your image.",
-  },
-  watermark: {
-    title: "Add Watermark",
-    description: "Stamp your images with a logo or text.",
-  },
-  "magic-eraser": {
-    title: "Magic Eraser",
-    description: "Remove unwanted objects from images using AI.",
-  },
-  upscale: {
-    title: "Image Upscale",
-    description: "Upscale images to higher resolutions without quality loss.",
-  },
-  metadata: { title: "Edit Metadata", description: "View or strip EXIF data." },
-  compare: {
-    title: "Compare Images",
-    description: "Side-by-side visual difference tool.",
+  "profile-picture": {
+    title: "Profile Picture Maker",
+    description: "Create stunning profile pictures with AI.",
   },
 };
 
@@ -116,13 +106,11 @@ export default async function ImageToolPage({
       toolId={
         resolvedParams.tool === "remove-background"
           ? "ai-remove-background"
-          : resolvedParams.tool === "smart-crop"
-            ? "smart-crop"
-            : resolvedParams.tool === "magic-eraser"
-              ? "ai-magic-eraser"
-              : resolvedParams.tool === "upscale"
-                ? "ai-upscale"
-                : resolvedParams.tool
+          : resolvedParams.tool === "magic-eraser"
+            ? "ai-magic-eraser"
+            : resolvedParams.tool === "upscale"
+              ? "ai-upscale"
+              : resolvedParams.tool
       }
       title={title}
       category="image"

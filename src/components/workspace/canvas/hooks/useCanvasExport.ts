@@ -42,23 +42,22 @@ export function useCanvasExport({
       const origScaleY = sprite.scale.y;
       const origRot = sprite.rotation;
 
-      // Reset transforms to be centered for extraction but KEEP the scale
-      const targetWidth = Math.round(
-        sprite.texture.frame.width * Math.abs(origScaleX),
-      );
-      const targetHeight = Math.round(
-        sprite.texture.frame.height * Math.abs(origScaleY),
-      );
+      // Extract at true 1:1 resolution (preserving flips)
+      const targetWidth = sprite.texture.frame.width;
+      const targetHeight = sprite.texture.frame.height;
+
+      const flipX = origScaleX < 0 ? -1 : 1;
+      const flipY = origScaleY < 0 ? -1 : 1;
 
       sprite.x = targetWidth / 2;
       sprite.y = targetHeight / 2;
-      sprite.scale.set(origScaleX, origScaleY);
+      sprite.scale.set(flipX, flipY);
       sprite.rotation = 0;
 
       if (maskS) {
         maskS.x = sprite.x;
         maskS.y = sprite.y;
-        maskS.scale.set(origScaleX, origScaleY);
+        maskS.scale.set(flipX, flipY);
         maskS.rotation = 0;
       }
 

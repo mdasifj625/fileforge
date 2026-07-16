@@ -2,17 +2,16 @@ export const TOOL_MENUS = [
   {
     title: "Image",
     items: [
+      { name: "Remove Background", href: "/image/remove-background" },
       { name: "Compress", href: "/image/compress" },
-      { name: "Crop", href: "/image/crop" },
-      { name: "Resize", href: "/image/resize" },
       { name: "Convert", href: "/image/convert" },
-      { name: "Rotate & Flip", href: "/image/rotate" },
+      { name: "Image Upscale", href: "/image/upscale" },
+      { name: "Magic Eraser", href: "/image/magic-eraser" },
+      { name: "Resize", href: "/image/resize" },
+      { name: "Crop", href: "/image/crop" },
       { name: "Watermark", href: "/image/watermark" },
       { name: "Filters & Effects", href: "/image/filters" },
-      { name: "Remove Background", href: "/image/remove-background" },
-      { name: "Smart Crop", href: "/image/smart-crop" },
-      { name: "Magic Eraser", href: "/image/magic-eraser" },
-      { name: "Image Upscale", href: "/image/upscale" },
+      { name: "Profile Picture Maker", href: "/image/profile-picture" },
     ],
   },
   {

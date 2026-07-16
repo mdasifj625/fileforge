@@ -14,6 +14,7 @@ import { LayerResizeSettings } from "./properties/components/LayerResizeSettings
 import { OCRSettings } from "./properties/components/OCRSettings";
 import { SmartCropSettings } from "./properties/components/SmartCropSettings";
 import { WatermarkSettings } from "./properties/components/WatermarkSettings";
+import { ProfilePictureSettings } from "./properties/components/ProfilePictureSettings";
 import { DynamicPropertiesPanel } from "./properties/components/DynamicPropertiesPanel";
 import { toolRegistry } from "@/lib/toolRegistry";
 import { Undo2, Redo2 } from "lucide-react";
@@ -145,10 +146,17 @@ export function PropertiesPanel() {
 
             {/* Crop Settings */}
             {activeTool === "crop" && activeLayer.originalWidth > 0 && (
-              <LayerCropSettings
-                activeLayer={activeLayer}
-                updateLayerTransform={updateLayerTransform}
-              />
+              <>
+                <LayerCropSettings
+                  activeLayer={activeLayer}
+                  updateLayerTransform={updateLayerTransform}
+                />
+                <div className="my-6 border-t border-panel-border"></div>
+                <SmartCropSettings
+                  applySmartCrop={applySmartCrop}
+                  isFiltering={isFiltering}
+                />
+              </>
             )}
 
             {/* Resize Settings */}
@@ -229,6 +237,15 @@ export function PropertiesPanel() {
               />
             )}
 
+            {/* Profile Picture Maker */}
+            {activeTool === "profile-picture" && (
+              <ProfilePictureSettings
+                applyAIBackgroundRemoval={applyAIBackgroundRemoval}
+                isFiltering={isFiltering}
+                aiProgress={aiProgress}
+              />
+            )}
+
             {/* OCR */}
             {activeTool === "ai-ocr" && (
               <OCRSettings
@@ -236,14 +253,6 @@ export function PropertiesPanel() {
                 isFiltering={isFiltering}
                 aiProgress={aiProgress}
                 ocrText={ocrText}
-              />
-            )}
-
-            {/* Smart Crop */}
-            {activeTool === "smart-crop" && (
-              <SmartCropSettings
-                applySmartCrop={applySmartCrop}
-                isFiltering={isFiltering}
               />
             )}
 
