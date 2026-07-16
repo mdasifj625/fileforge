@@ -1,5 +1,6 @@
 import { ToolPageLayout } from "@/components/workspace/ToolPageLayout";
 import { notFound } from "next/navigation";
+import { TOOL_MENUS } from "@/config/tools";
 
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
   "qr-generator": {
@@ -39,6 +40,14 @@ const VALID_TOOLS: Record<string, { title: string; description: string }> = {
     title: "Hash Generator",
     description: "Generate MD5, SHA-1, SHA-256 hashes.",
   },
+  "color-converter": {
+    title: "Color Converter",
+    description: "Convert colors between HEX, RGB, HSL, and more.",
+  },
+  regex: {
+    title: "Regex Tester",
+    description: "Test and debug regular expressions.",
+  },
 };
 
 export function generateStaticParams() {
@@ -57,10 +66,15 @@ export default async function UtilityToolPage({
     notFound();
   }
 
-  const relatedTools = Object.keys(VALID_TOOLS)
-    .filter((k) => k !== resolvedParams.tool)
-    .slice(0, 5)
-    .map((k) => ({ title: VALID_TOOLS[k].title, href: `/utility/${k}` }));
+  const categoryMenu = TOOL_MENUS.find(
+    (m) => m.title.toLowerCase() === "utility",
+  );
+  const relatedTools = categoryMenu
+    ? categoryMenu.items
+        .filter((item) => !item.href.endsWith(`/${resolvedParams.tool}`))
+        .slice(0, 5)
+        .map((item) => ({ title: item.name, href: item.href }))
+    : [];
 
   return (
     <ToolPageLayout

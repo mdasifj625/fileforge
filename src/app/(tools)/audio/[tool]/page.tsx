@@ -1,5 +1,6 @@
 import { ToolPageLayout } from "@/components/workspace/ToolPageLayout";
 import { notFound } from "next/navigation";
+import { TOOL_MENUS } from "@/config/tools";
 
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
   trim: { title: "Trim Audio", description: "Cut and trim audio length." },
@@ -14,6 +15,10 @@ const VALID_TOOLS: Record<string, { title: string; description: string }> = {
   normalize: {
     title: "Normalize Audio",
     description: "Adjust audio volume to a standard level.",
+  },
+  adjust: {
+    title: "Volume & Speed",
+    description: "Adjust audio volume and playback speed.",
   },
 };
 
@@ -33,10 +38,15 @@ export default async function AudioToolPage({
     notFound();
   }
 
-  const relatedTools = Object.keys(VALID_TOOLS)
-    .filter((k) => k !== resolvedParams.tool)
-    .slice(0, 5)
-    .map((k) => ({ title: VALID_TOOLS[k].title, href: `/audio/${k}` }));
+  const categoryMenu = TOOL_MENUS.find(
+    (m) => m.title.toLowerCase() === "audio",
+  );
+  const relatedTools = categoryMenu
+    ? categoryMenu.items
+        .filter((item) => !item.href.endsWith(`/${resolvedParams.tool}`))
+        .slice(0, 5)
+        .map((item) => ({ title: item.name, href: item.href }))
+    : [];
 
   return (
     <ToolPageLayout

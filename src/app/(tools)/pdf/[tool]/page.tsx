@@ -1,5 +1,6 @@
 import { ToolPageLayout } from "@/components/workspace/ToolPageLayout";
 import { notFound } from "next/navigation";
+import { TOOL_MENUS } from "@/config/tools";
 
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
   merge: {
@@ -70,10 +71,13 @@ export default async function PDFToolPage({
     notFound();
   }
 
-  const relatedTools = Object.keys(VALID_TOOLS)
-    .filter((k) => k !== resolvedParams.tool)
-    .slice(0, 5)
-    .map((k) => ({ title: VALID_TOOLS[k].title, href: `/pdf/${k}` }));
+  const categoryMenu = TOOL_MENUS.find((m) => m.title.toLowerCase() === "pdf");
+  const relatedTools = categoryMenu
+    ? categoryMenu.items
+        .filter((item) => !item.href.endsWith(`/${resolvedParams.tool}`))
+        .slice(0, 5)
+        .map((item) => ({ title: item.name, href: item.href }))
+    : [];
 
   return (
     <ToolPageLayout

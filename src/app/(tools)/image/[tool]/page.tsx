@@ -2,6 +2,7 @@ import { ToolPageLayout } from "@/components/workspace/ToolPageLayout";
 import { notFound } from "next/navigation";
 import { getToolContent } from "@/lib/contentParser";
 import { Metadata } from "next";
+import { TOOL_MENUS } from "@/config/tools";
 
 // Define the valid tools for this category to prevent 404s
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
@@ -22,6 +23,10 @@ const VALID_TOOLS: Record<string, { title: string; description: string }> = {
   convert: {
     title: "Convert Image",
     description: "Change image format (e.g. PNG to JPG).",
+  },
+  filters: {
+    title: "Filters & Effects",
+    description: "Apply Instagram-like filters and effects to your photos.",
   },
   "remove-background": {
     title: "Remove Background",
@@ -96,10 +101,15 @@ export default async function ImageToolPage({
   const contentData = getToolContent("image", resolvedParams.tool);
   const title = contentData?.title || toolData.title;
 
-  const relatedTools = Object.keys(VALID_TOOLS)
-    .filter((k) => k !== resolvedParams.tool)
-    .slice(0, 5)
-    .map((k) => ({ title: VALID_TOOLS[k].title, href: `/image/${k}` }));
+  const categoryMenu = TOOL_MENUS.find(
+    (m) => m.title.toLowerCase() === "image",
+  );
+  const relatedTools = categoryMenu
+    ? categoryMenu.items
+        .filter((item) => !item.href.endsWith(`/${resolvedParams.tool}`))
+        .slice(0, 5)
+        .map((item) => ({ title: item.name, href: item.href }))
+    : [];
 
   return (
     <ToolPageLayout

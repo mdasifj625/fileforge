@@ -1,5 +1,6 @@
 import { ToolPageLayout } from "@/components/workspace/ToolPageLayout";
 import { notFound } from "next/navigation";
+import { TOOL_MENUS } from "@/config/tools";
 
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
   compress: {
@@ -13,6 +14,14 @@ const VALID_TOOLS: Record<string, { title: string; description: string }> = {
   convert: {
     title: "Video Converter",
     description: "Convert videos to MP4, WebM, or GIF format instantly.",
+  },
+  "extract-audio": {
+    title: "Extract Audio",
+    description: "Extract audio tracks from video files.",
+  },
+  "gif-creator": {
+    title: "GIF Creator",
+    description: "Create animated GIFs from your videos.",
   },
 };
 
@@ -32,10 +41,15 @@ export default async function VideoToolPage({
     notFound();
   }
 
-  const relatedTools = Object.keys(VALID_TOOLS)
-    .filter((k) => k !== resolvedParams.tool)
-    .slice(0, 5)
-    .map((k) => ({ title: VALID_TOOLS[k].title, href: `/video/${k}` }));
+  const categoryMenu = TOOL_MENUS.find(
+    (m) => m.title.toLowerCase() === "video",
+  );
+  const relatedTools = categoryMenu
+    ? categoryMenu.items
+        .filter((item) => !item.href.endsWith(`/${resolvedParams.tool}`))
+        .slice(0, 5)
+        .map((item) => ({ title: item.name, href: item.href }))
+    : [];
 
   return (
     <ToolPageLayout
