@@ -347,6 +347,15 @@ export function BackgroundRemovalSettings({
                 ✨ Completed in {(bgRemovalDuration / 1000).toFixed(1)}s
               </p>
             )}
+            {activeLayer.isAiBackgroundRemoved && (
+              /* eslint-disable-next-line @next/next/no-html-link-for-pages */
+              <a
+                href="/image/crop"
+                className="bg-panel border border-panel-border hover:border-primary/50 hover:bg-primary/5 text-foreground text-xs py-2.5 rounded-lg transition-all text-center font-bold flex items-center justify-center gap-2 mt-1"
+              >
+                ✂️ Crop Image
+              </a>
+            )}
             {!activeLayer.isAiBackgroundRemoved && (
               <p className="text-xs text-muted-foreground text-center">
                 Uses local AI models to segment and remove the image background.

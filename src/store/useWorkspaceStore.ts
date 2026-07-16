@@ -83,6 +83,9 @@ export interface WorkspaceState {
   triggerBgRemovalSuccess: () => void;
   bgRemovalDuration: number | null;
   setBgRemovalDuration: (val: number | null) => void;
+  isHydrated: boolean;
+  hydrateLayers: () => void;
+  startOver: () => void;
 }
 
 const saveHistory = (state: WorkspaceState, newLayers: FileLayer[]) => {
@@ -91,6 +94,21 @@ const saveHistory = (state: WorkspaceState, newLayers: FileLayer[]) => {
     future: [],
     layers: newLayers,
   };
+};
+
+const getInitialLayers = (): FileLayer[] => {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = sessionStorage.getItem("fileforge_layers");
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+const getInitialActiveLayerId = (): string | null => {
+  if (typeof window === "undefined") return null;
+  return sessionStorage.getItem("fileforge_active_layer_id");
 };
 
 export const useWorkspaceStore = create<WorkspaceState>((set) => ({
@@ -111,6 +129,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   aiProgressBackend: null,
   bgRemovalSuccessTrigger: 0,
   bgRemovalDuration: null,
+  isHydrated: false,
 
   setIsRemovingBackground: (val) => set({ isRemovingBackground: val }),
   setAiProgress: (val) => set({ aiProgress: val }),
@@ -121,6 +140,23 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
       bgRemovalSuccessTrigger: state.bgRemovalSuccessTrigger + 1,
     })),
   setBgRemovalDuration: (val) => set({ bgRemovalDuration: val }),
+  hydrateLayers: () =>
+    set({
+      layers: getInitialLayers(),
+      activeLayerId: getInitialActiveLayerId(),
+      isHydrated: true,
+    }),
+  startOver: () => {
+    import("@/db").then(({ db }) => {
+      db.files.clear().catch(console.error);
+    });
+    set({
+      layers: [],
+      activeLayerId: null,
+      past: [],
+      future: [],
+    });
+  },
   setBrushMode: (mode) => set({ brushMode: mode }),
   setBrushSize: (size) => set({ brushSize: size }),
   triggerExport: () =>
@@ -185,3 +221,22 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
       };
     }),
 }));
+
+if (typeof window !== "undefined") {
+  useWorkspaceStore.subscribe((state) => {
+    if (!state.isHydrated) return;
+    try {
+      sessionStorage.setItem("fileforge_layers", JSON.stringify(state.layers));
+      if (state.activeLayerId) {
+        sessionStorage.setItem(
+          "fileforge_active_layer_id",
+          state.activeLayerId,
+        );
+      } else {
+        sessionStorage.removeItem("fileforge_active_layer_id");
+      }
+    } catch {
+      // ignore
+    }
+  });
+}

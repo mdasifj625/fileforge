@@ -21,6 +21,12 @@ export function WorkspaceLayout({
   const triggerExport = useWorkspaceStore((s) => s.triggerExport);
   const hasLayers = useWorkspaceStore((s) => s.layers.length > 0);
   const activeTool = useWorkspaceStore((s) => s.activeTool);
+  const hydrateLayers = useWorkspaceStore((s) => s.hydrateLayers);
+  const startOver = useWorkspaceStore((s) => s.startOver);
+
+  useEffect(() => {
+    hydrateLayers();
+  }, [hydrateLayers]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -77,8 +83,15 @@ export function WorkspaceLayout({
             </button>
           </div>
 
-          {/* Right Side: Export */}
-          <div className="flex items-center">
+          {/* Right Side: Start Over & Export */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={startOver}
+              disabled={!hasLayers}
+              className="px-4 py-2 text-sm font-semibold bg-panel border border-panel-border hover:border-primary/50 text-foreground rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-panel-border"
+            >
+              Start Over
+            </button>
             <button
               onClick={triggerExport}
               disabled={!hasLayers}

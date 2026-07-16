@@ -540,8 +540,20 @@ export function useTransformOverlay(
     app.ticker.add(updateOverlay);
 
     return () => {
-      app.ticker.remove(updateOverlay);
-      overlay.removeChildren();
+      try {
+        if (app && app.ticker) {
+          app.ticker.remove(updateOverlay);
+        }
+      } catch {
+        // ignore
+      }
+      try {
+        if (overlay) {
+          overlay.removeChildren();
+        }
+      } catch {
+        // ignore
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeLayerId, activeTool, spriteUpdateTick, theme]);
