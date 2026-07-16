@@ -51,11 +51,11 @@ export function WorkspaceLayout({
   return (
     <div className="flex flex-col md:flex-row h-full min-h-[80vh] w-full overflow-hidden bg-background text-foreground">
       {/* Center Canvas Area (PixiJS WebGL preview will go here) */}
-      <div className="order-1 md:order-1 flex-none md:flex-1 h-[55vh] min-h-[400px] md:h-auto md:min-h-0 flex flex-col relative overflow-hidden bg-panel md:border-r border-panel-border">
-        {/* Top bar can contain tool title, export button, undo/redo */}
-        <header className="h-14 border-b border-panel-border flex items-center justify-between px-3 md:px-5 bg-background/50 backdrop-blur-md z-10 shrink-0 relative">
-          {/* Left Side: Empty or Tool specific breadcrumbs later */}
-          <div className="hidden md:flex items-center gap-2 md:w-auto">
+      <div className="order-1 md:order-1 flex-none md:flex-1 h-[calc(45vh-4rem)] md:h-auto flex flex-col relative overflow-hidden bg-panel md:border-r border-panel-border">
+        {/* Top bar — hidden on mobile, shown on desktop */}
+        <header className="hidden md:flex h-14 border-b border-panel-border items-center justify-between px-5 bg-background/50 backdrop-blur-md z-10 shrink-0 relative">
+          {/* Left Side: Tool title */}
+          <div className="flex items-center gap-2">
             {title && (
               <h1 className="text-sm font-bold text-foreground truncate max-w-[200px] md:max-w-none">
                 {title}
@@ -64,7 +64,7 @@ export function WorkspaceLayout({
           </div>
 
           {/* Center: Undo / Redo */}
-          <div className="flex items-center gap-1 md:absolute md:left-1/2 md:-translate-x-1/2">
+          <div className="flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
             <button
               onClick={undo}
               disabled={pastCount === 0}

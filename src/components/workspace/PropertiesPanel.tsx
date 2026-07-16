@@ -16,6 +16,7 @@ import { SmartCropSettings } from "./properties/components/SmartCropSettings";
 import { WatermarkSettings } from "./properties/components/WatermarkSettings";
 import { DynamicPropertiesPanel } from "./properties/components/DynamicPropertiesPanel";
 import { toolRegistry } from "@/lib/toolRegistry";
+import { Undo2, Redo2 } from "lucide-react";
 
 export function PropertiesPanel() {
   const {
@@ -25,6 +26,14 @@ export function PropertiesPanel() {
     replaceLayer,
     activeTool,
   } = useWorkspaceStore();
+
+  const pastCount = useWorkspaceStore((s) => s.past?.length || 0);
+  const futureCount = useWorkspaceStore((s) => s.future?.length || 0);
+  const undo = useWorkspaceStore((s) => s.undo);
+  const redo = useWorkspaceStore((s) => s.redo);
+  const triggerExport = useWorkspaceStore((s) => s.triggerExport);
+  const hasLayers = useWorkspaceStore((s) => s.layers.length > 0);
+  const startOver = useWorkspaceStore((s) => s.startOver);
 
   const activeLayer = layers.find((l) => l.id === activeLayerId);
 
@@ -74,8 +83,47 @@ export function PropertiesPanel() {
 
   return (
     <aside className="w-full h-auto md:h-full md:w-80 shrink-0 bg-background flex flex-col z-20 border-t md:border-t-0 md:border-l border-panel-border transition-all duration-300">
-      <div className="h-14 shrink-0 border-b border-panel-border flex items-center px-5 bg-background/50 backdrop-blur-md select-none">
-        <h2 className="text-sm font-bold text-foreground uppercase tracking-widest">
+      {/* Header — mobile: action buttons row; desktop: 'Properties' label */}
+      <div className="h-14 shrink-0 border-b border-panel-border flex items-center px-3 md:px-5 bg-background/50 backdrop-blur-md select-none">
+        {/* Mobile-only: Undo/Redo left, Start Over + Export right */}
+        <div className="flex md:hidden items-center justify-between w-full gap-2">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={undo}
+              disabled={pastCount === 0}
+              className="p-2 w-9 h-9 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+              title="Undo"
+            >
+              <Undo2 size={16} />
+            </button>
+            <button
+              onClick={redo}
+              disabled={futureCount === 0}
+              className="p-2 w-9 h-9 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+              title="Redo"
+            >
+              <Redo2 size={16} />
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={startOver}
+              disabled={!hasLayers}
+              className="px-3 py-1.5 text-xs font-semibold bg-panel border border-panel-border hover:border-primary/50 text-foreground rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-panel-border"
+            >
+              Start Over
+            </button>
+            <button
+              onClick={triggerExport}
+              disabled={!hasLayers}
+              className="px-4 py-1.5 text-xs font-bold bg-primary hover:bg-primary-hover text-primary-foreground rounded-lg transition-all shadow-sm shadow-primary/20 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:bg-primary"
+            >
+              {activeTool === "compress" ? "Compress" : "Export"}
+            </button>
+          </div>
+        </div>
+        {/* Desktop-only: Properties label */}
+        <h2 className="hidden md:block text-sm font-bold text-foreground uppercase tracking-widest">
           Properties
         </h2>
       </div>

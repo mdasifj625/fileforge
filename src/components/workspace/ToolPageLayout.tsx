@@ -68,7 +68,7 @@ export function ToolPageLayout({
         </div>
 
         {/* How it works (Redesigned) */}
-        <section className="w-full bg-panel/50 border-b border-panel-border py-32 backdrop-blur-sm">
+        <section className="order-4 md:order-3 w-full bg-panel/50 border-b border-panel-border py-32 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-20">
               <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
@@ -126,7 +126,7 @@ export function ToolPageLayout({
 
         {/* SEO Content Section */}
         {content && (
-          <section className="w-full bg-background py-24 border-y border-panel-border">
+          <section className="order-5 md:order-4 w-full bg-background py-24 border-y border-panel-border">
             <div className="max-w-4xl mx-auto px-6 prose dark:prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary-hover prose-strong:text-foreground">
               <ReactMarkdown>{content}</ReactMarkdown>
             </div>
@@ -134,8 +134,8 @@ export function ToolPageLayout({
         )}
 
         {/* FAQ & Related Tools */}
-        <section className="w-full max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-3 gap-16">
-          <div className="md:col-span-2">
+        <section className="order-3 md:order-5 w-full max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-3 gap-16">
+          <div className="md:col-span-2 order-last md:order-first">
             <h2 className="text-3xl font-bold mb-8">
               Frequently Asked Questions
             </h2>
@@ -183,7 +183,7 @@ export function ToolPageLayout({
             </div>
           </div>
 
-          <div>
+          <div className="order-first md:order-last">
             <h2 className="text-2xl font-bold mb-8">Related Tools</h2>
             <div className="flex flex-col gap-3">
               {(

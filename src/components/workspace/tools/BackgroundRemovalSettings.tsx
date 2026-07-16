@@ -2,6 +2,23 @@ import React from "react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import confetti from "canvas-confetti";
 
+/** Formats milliseconds into a human-readable m:ss or Xs string. */
+function formatTime(ms: number): string {
+  const totalSecs = Math.floor(ms / 1000);
+  if (totalSecs < 60) return `${totalSecs}s`;
+  const mins = Math.floor(totalSecs / 60);
+  const secs = totalSecs % 60;
+  return `${mins}m ${secs.toString().padStart(2, "0")}s`;
+}
+
+/** Formats a target in whole seconds into m:ss or Xs. */
+function formatTargetTime(secs: number): string {
+  if (secs < 60) return `${secs}s`;
+  const mins = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${mins}m ${s.toString().padStart(2, "0")}s`;
+}
+
 function getStatusMessage(
   phase: "model" | "inference" | null,
   progress: number | null,
@@ -127,7 +144,8 @@ export function BackgroundRemovalSettings({
 
   if (!activeLayer) return null;
 
-  const currentSecs = (elapsed / 1000).toFixed(1);
+  const elapsedFormatted = formatTime(elapsed);
+  const targetFormatted = formatTargetTime(targetSeconds);
 
   let subStatusText = "⚡ Initializing...";
   if (aiProgressPhase === "model") {
@@ -159,67 +177,80 @@ export function BackgroundRemovalSettings({
         }}
       />
 
-      <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">
-        <span>Background Removal</span>
-        {isFiltering && (
-          <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <div className="pt-6">
+        {isFiltering ? (
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-1 items-center text-center">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  {aiProgressPhase === "model"
+                    ? "Phase 1: Loading AI"
+                    : "Phase 2: Segmenting Subject"}
+                </span>
+                <span className="font-mono text-xs text-foreground tabular-nums font-bold">
+                  Elapsed: {elapsedFormatted} / ~{targetFormatted}
+                </span>
+              </div>
+
+              {/* Glowing infinite loading track */}
+              <div className="w-full bg-panel border border-panel-border rounded-full h-3 overflow-hidden relative">
+                <div className="animate-slide-glowing rounded-full" />
+              </div>
+
+              <div className="flex justify-between items-center text-[10px] text-muted-foreground">
+                <span>{subStatusText}</span>
+                <span className="capitalize font-semibold text-primary font-mono">
+                  {aiProgressBackend || "CPU"} Mode
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs text-foreground bg-panel border border-panel-border p-3 rounded-lg text-center font-medium animate-pulse">
+              {bufferAdded
+                ? "🔬 Refining high-fidelity subject edge detail..."
+                : getStatusMessage(
+                    aiProgressPhase,
+                    aiProgress,
+                    aiProgressBackend,
+                  )}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            <button
+              onClick={onApply}
+              disabled={isFiltering || !!activeLayer.isAiBackgroundRemoved}
+              className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
+            >
+              {activeLayer.isAiBackgroundRemoved
+                ? "Background Removed"
+                : "Remove Background"}
+            </button>
+            {activeLayer.isAiBackgroundRemoved && bgRemovalDuration && (
+              <p className="text-xs text-emerald-500 font-semibold text-center animate-fade-in">
+                ✨ Completed in {formatTime(bgRemovalDuration)}
+              </p>
+            )}
+            {activeLayer.isAiBackgroundRemoved && (
+              /* eslint-disable-next-line @next/next/no-html-link-for-pages */
+              <a
+                href="/image/crop"
+                className="bg-panel border border-panel-border hover:border-primary/50 hover:bg-primary/5 text-foreground text-xs py-2.5 rounded-lg transition-all text-center font-bold flex items-center justify-center gap-2 mt-1"
+              >
+                ✂️ Crop Image
+              </a>
+            )}
+            {!activeLayer.isAiBackgroundRemoved && (
+              <p className="text-xs text-muted-foreground text-center">
+                Uses local AI models to segment and remove the image background.
+              </p>
+            )}
+          </div>
         )}
-      </h3>
+      </div>
 
-      <div className="mb-6">
-        <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
-          Manual Brush
-        </h3>
-
+      <div className="mt-6 pt-6 border-t border-panel-border">
         <div className="flex bg-panel rounded-lg p-1 border border-panel-border mb-4">
-          <button
-            onClick={() => {
-              const nextMode = brushMode === "restore" ? "none" : "restore";
-              setBrushMode(nextMode);
-              if (
-                nextMode === "restore" &&
-                !activeLayer.maskFileId &&
-                activeLayer.originalWidth
-              ) {
-                const canvas = document.createElement("canvas");
-                canvas.width = activeLayer.originalWidth;
-                canvas.height = activeLayer.originalHeight;
-                const ctx = canvas.getContext("2d");
-                if (ctx) {
-                  ctx.fillStyle = "white";
-                  ctx.fillRect(0, 0, canvas.width, canvas.height);
-                  canvas.toBlob((blob) => {
-                    if (blob) {
-                      const maskFileId = crypto.randomUUID();
-                      import("@/db").then(({ db }) => {
-                        db.files
-                          .put({
-                            id: maskFileId,
-                            blob,
-                            name: `manual-mask-${Date.now()}`,
-                            type: "image/png",
-                            size: blob.size,
-                            createdAt: Date.now(),
-                          })
-                          .then(() => {
-                            updateLayerTransform(activeLayer.id, {
-                              maskFileId,
-                            });
-                          });
-                      });
-                    }
-                  });
-                }
-              }
-            }}
-            className={`flex-1 text-[10px] uppercase tracking-widest font-bold py-2 rounded-md transition-all ${
-              brushMode === "restore"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Restore
-          </button>
           <button
             onClick={() => {
               const nextMode = brushMode === "erase" ? "none" : "erase";
@@ -268,8 +299,55 @@ export function BackgroundRemovalSettings({
           >
             Erase
           </button>
+          <button
+            onClick={() => {
+              const nextMode = brushMode === "restore" ? "none" : "restore";
+              setBrushMode(nextMode);
+              if (
+                nextMode === "restore" &&
+                !activeLayer.maskFileId &&
+                activeLayer.originalWidth
+              ) {
+                const canvas = document.createElement("canvas");
+                canvas.width = activeLayer.originalWidth;
+                canvas.height = activeLayer.originalHeight;
+                const ctx = canvas.getContext("2d");
+                if (ctx) {
+                  ctx.fillStyle = "white";
+                  ctx.fillRect(0, 0, canvas.width, canvas.height);
+                  canvas.toBlob((blob) => {
+                    if (blob) {
+                      const maskFileId = crypto.randomUUID();
+                      import("@/db").then(({ db }) => {
+                        db.files
+                          .put({
+                            id: maskFileId,
+                            blob,
+                            name: `manual-mask-${Date.now()}`,
+                            type: "image/png",
+                            size: blob.size,
+                            createdAt: Date.now(),
+                          })
+                          .then(() => {
+                            updateLayerTransform(activeLayer.id, {
+                              maskFileId,
+                            });
+                          });
+                      });
+                    }
+                  });
+                }
+              }
+            }}
+            className={`flex-1 text-[10px] uppercase tracking-widest font-bold py-2 rounded-md transition-all ${
+              brushMode === "restore"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Restore
+          </button>
         </div>
-
         {brushMode !== "none" && (
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
@@ -289,78 +367,6 @@ export function BackgroundRemovalSettings({
               onChange={(e) => setBrushSize(parseInt(e.target.value))}
               className="w-full accent-primary"
             />
-          </div>
-        )}
-      </div>
-
-      <div className="pt-6 border-t border-panel-border">
-        {isFiltering ? (
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col gap-1 items-center text-center">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  {aiProgressPhase === "model"
-                    ? "Phase 1: Loading AI"
-                    : "Phase 2: Segmenting Subject"}
-                </span>
-                <span className="font-mono text-xs text-foreground tabular-nums font-bold">
-                  Elapsed: {currentSecs}s / ~{targetSeconds}s
-                </span>
-              </div>
-
-              {/* Glowing infinite loading track */}
-              <div className="w-full bg-panel border border-panel-border rounded-full h-3 overflow-hidden relative">
-                <div className="animate-slide-glowing rounded-full" />
-              </div>
-
-              <div className="flex justify-between items-center text-[10px] text-muted-foreground">
-                <span>{subStatusText}</span>
-                <span className="capitalize font-semibold text-primary font-mono">
-                  {aiProgressBackend || "CPU"} Mode
-                </span>
-              </div>
-            </div>
-
-            <p className="text-xs text-foreground bg-panel border border-panel-border p-3 rounded-lg text-center font-medium animate-pulse">
-              {bufferAdded
-                ? "🔬 Refining high-fidelity subject edge detail..."
-                : getStatusMessage(
-                    aiProgressPhase,
-                    aiProgress,
-                    aiProgressBackend,
-                  )}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
-            <button
-              onClick={onApply}
-              disabled={isFiltering || !!activeLayer.isAiBackgroundRemoved}
-              className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
-            >
-              {activeLayer.isAiBackgroundRemoved
-                ? "Background Removed"
-                : "Remove Background"}
-            </button>
-            {activeLayer.isAiBackgroundRemoved && bgRemovalDuration && (
-              <p className="text-xs text-emerald-500 font-semibold text-center animate-fade-in">
-                ✨ Completed in {(bgRemovalDuration / 1000).toFixed(1)}s
-              </p>
-            )}
-            {activeLayer.isAiBackgroundRemoved && (
-              /* eslint-disable-next-line @next/next/no-html-link-for-pages */
-              <a
-                href="/image/crop"
-                className="bg-panel border border-panel-border hover:border-primary/50 hover:bg-primary/5 text-foreground text-xs py-2.5 rounded-lg transition-all text-center font-bold flex items-center justify-center gap-2 mt-1"
-              >
-                ✂️ Crop Image
-              </a>
-            )}
-            {!activeLayer.isAiBackgroundRemoved && (
-              <p className="text-xs text-muted-foreground text-center">
-                Uses local AI models to segment and remove the image background.
-              </p>
-            )}
           </div>
         )}
       </div>
