@@ -1,11 +1,11 @@
 import { useState } from "react";
 import * as Comlink from "comlink";
-import { FileLayer } from "@/store/useWorkspaceStore";
+import { Layer } from "@/types/layer";
 import { toolRegistry } from "@/lib/toolRegistry";
 
 export function useDynamicTool(
-  activeLayer: FileLayer | undefined,
-  replaceLayer: (id: string, layer: FileLayer) => void,
+  activeLayer: Layer | undefined,
+  replaceLayer: (id: string, newLayer: Layer) => void,
 ) {
   const [isProcessing, setIsProcessing] = useState(false);
 

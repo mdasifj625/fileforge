@@ -1,33 +1,33 @@
 import { useState } from "react";
-import { FileLayer } from "@/store/useWorkspaceStore";
+import { ImageLayer } from "@/types/layer";
 import { Link, Unlock, RotateCcw } from "lucide-react";
 
 interface Props {
-  activeLayer: FileLayer;
-  updateLayerTransform: (id: string, updates: Partial<FileLayer>) => void;
+  layer: ImageLayer;
+  updateLayerTransform: (id: string, updates: Partial<ImageLayer>) => void;
 }
 
 export function LayerCropSettings({
-  activeLayer,
+  layer,
   updateLayerTransform,
 }: Readonly<Props>) {
   const [lockAspect, setLockAspect] = useState(false);
 
-  const currentRect = activeLayer.cropRect || {
+  const currentRect = layer.cropRect || {
     x: 0,
     y: 0,
-    width: activeLayer.originalWidth,
-    height: activeLayer.originalHeight,
+    width: layer.originalWidth,
+    height: layer.originalHeight,
   };
 
   const handleReset = () => {
-    updateLayerTransform(activeLayer.id, {
+    updateLayerTransform(layer.id, {
       cropAspectRatio: "free",
       cropRect: {
         x: 0,
         y: 0,
-        width: activeLayer.originalWidth,
-        height: activeLayer.originalHeight,
+        width: layer.originalWidth,
+        height: layer.originalHeight,
       },
     });
   };
@@ -37,7 +37,7 @@ export function LayerCropSettings({
     if (lockAspect && currentRect.width > 0) {
       newH = (val / currentRect.width) * currentRect.height;
     }
-    updateLayerTransform(activeLayer.id, {
+    updateLayerTransform(layer.id, {
       cropRect: { ...currentRect, width: val, height: newH },
     });
   };
@@ -47,7 +47,7 @@ export function LayerCropSettings({
     if (lockAspect && currentRect.height > 0) {
       newW = (val / currentRect.height) * currentRect.width;
     }
-    updateLayerTransform(activeLayer.id, {
+    updateLayerTransform(layer.id, {
       cropRect: { ...currentRect, width: newW, height: val },
     });
   };
@@ -73,7 +73,7 @@ export function LayerCropSettings({
             Constraint
           </label>
           <select
-            value={activeLayer.cropAspectRatio || "free"}
+            value={layer.cropAspectRatio || "free"}
             onChange={(e) => {
               const val = e.target.value;
               let ratio: number | "original" | "free" | null = null;
@@ -86,7 +86,7 @@ export function LayerCropSettings({
               if (ratio !== "free" && ratio !== null) {
                 const targetRatio =
                   ratio === "original"
-                    ? activeLayer.originalWidth / activeLayer.originalHeight
+                    ? layer.originalWidth / layer.originalHeight
                     : ratio;
 
                 let newW = newCropRect.width;
@@ -109,7 +109,7 @@ export function LayerCropSettings({
                 };
               }
 
-              updateLayerTransform(activeLayer.id, {
+              updateLayerTransform(layer.id, {
                 cropAspectRatio: ratio,
                 cropRect: newCropRect,
               });
@@ -137,11 +137,11 @@ export function LayerCropSettings({
                 {(() => {
                   const cropRatio =
                     currentRect.width / (currentRect.height || 1);
-                  let maxW = activeLayer.originalWidth;
-                  let maxH = activeLayer.originalWidth / cropRatio;
-                  if (maxH > activeLayer.originalHeight) {
-                    maxH = activeLayer.originalHeight;
-                    maxW = activeLayer.originalHeight * cropRatio;
+                  let maxW = layer.originalWidth;
+                  let maxH = layer.originalWidth / cropRatio;
+                  if (maxH > layer.originalHeight) {
+                    maxH = layer.originalHeight;
+                    maxW = layer.originalHeight * cropRatio;
                   }
                   return Math.round((currentRect.width / maxW) * 100);
                 })()}
@@ -154,23 +154,23 @@ export function LayerCropSettings({
               max={100}
               value={(() => {
                 const cropRatio = currentRect.width / (currentRect.height || 1);
-                let maxW = activeLayer.originalWidth;
-                let maxH = activeLayer.originalWidth / cropRatio;
-                if (maxH > activeLayer.originalHeight) {
-                  maxH = activeLayer.originalHeight;
-                  maxW = activeLayer.originalHeight * cropRatio;
+                let maxW = layer.originalWidth;
+                let maxH = layer.originalWidth / cropRatio;
+                if (maxH > layer.originalHeight) {
+                  maxH = layer.originalHeight;
+                  maxW = layer.originalHeight * cropRatio;
                 }
                 return Math.round((currentRect.width / maxW) * 100);
               })()}
               onChange={(e) => {
                 const percentage = parseFloat(e.target.value);
                 const cropRatio = currentRect.width / (currentRect.height || 1);
-                let maxW = activeLayer.originalWidth;
-                let maxH = activeLayer.originalWidth / cropRatio;
+                let maxW = layer.originalWidth;
+                let maxH = layer.originalWidth / cropRatio;
 
-                if (maxH > activeLayer.originalHeight) {
-                  maxH = activeLayer.originalHeight;
-                  maxW = activeLayer.originalHeight * cropRatio;
+                if (maxH > layer.originalHeight) {
+                  maxH = layer.originalHeight;
+                  maxW = layer.originalHeight * cropRatio;
                 }
 
                 const newWidth = (percentage / 100) * maxW;
@@ -184,12 +184,12 @@ export function LayerCropSettings({
 
                 if (newX < 0) newX = 0;
                 if (newY < 0) newY = 0;
-                if (newX + newWidth > activeLayer.originalWidth)
-                  newX = activeLayer.originalWidth - newWidth;
-                if (newY + newHeight > activeLayer.originalHeight)
-                  newY = activeLayer.originalHeight - newHeight;
+                if (newX + newWidth > layer.originalWidth)
+                  newX = layer.originalWidth - newWidth;
+                if (newY + newHeight > layer.originalHeight)
+                  newY = layer.originalHeight - newHeight;
 
-                updateLayerTransform(activeLayer.id, {
+                updateLayerTransform(layer.id, {
                   cropRect: {
                     x: newX,
                     y: newY,

@@ -1,27 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ToolDefinition } from "@/lib/toolRegistry";
+import { useDynamicTool } from "./useDynamicTool";
+import { useLayerStore } from "@/store";
 
 interface DynamicPropertiesPanelProps {
   tool: ToolDefinition;
-  isProcessing: boolean;
-  onApply: (toolId: string, params: Record<string, unknown>) => void;
 }
 
 export function DynamicPropertiesPanel({
   tool,
-  isProcessing,
-  onApply,
 }: DynamicPropertiesPanelProps) {
-  // Initialize state with default values from registry
-  const [paramsState, setParamsState] = useState<Record<string, unknown>>(
-    () => {
-      const defaultState: Record<string, unknown> = {};
-      tool.params.forEach((param) => {
-        defaultState[param.key] = param.defaultValue ?? 0;
-      });
-      return defaultState;
-    },
+  const activeLayerId = useLayerStore((s) => s.activeLayerId);
+  const layers = useLayerStore((s) => s.layers);
+  const activeLayer = layers.find((l) => l.id === activeLayerId);
+  const replaceLayer = useLayerStore((s) => s.replaceLayer);
+
+  const { applyDynamicTool, isProcessing } = useDynamicTool(
+    activeLayer,
+    replaceLayer
   );
+  // Initialize state with default values from registry
+  const [paramsState, setParamsState] = useState<Record<string, unknown>>({});
+
+  useEffect(() => {
+    const defaultState: Record<string, unknown> = {};
+    tool.params.forEach((param) => {
+      defaultState[param.key] = param.defaultValue ?? 0;
+    });
+    setParamsState(defaultState);
+  }, [tool]);
 
   const handleParamChange = (key: string, value: unknown) => {
     setParamsState((prev) => ({
@@ -78,7 +85,7 @@ export function DynamicPropertiesPanel({
 
       <button
         className="w-full bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
-        onClick={() => onApply(tool.id, paramsState)}
+        onClick={() => applyDynamicTool(tool.id, paramsState)}
         disabled={isProcessing}
       >
         {isProcessing ? "Processing..." : "Apply " + tool.name}

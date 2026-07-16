@@ -2,12 +2,13 @@ import { useState, useCallback } from "react";
 import { db } from "@/db";
 import * as Comlink from "comlink";
 import { ImageProcessor } from "@/workers/image.worker";
-import { FileLayer } from "@/store/useWorkspaceStore";
+import { Layer, ImageLayer } from "@/types/layer";
+import { useLayerStore } from "@/store";
 
 export function useSmartCrop(
-  activeLayer: FileLayer | undefined,
-  replaceLayer: (id: string, newLayer: FileLayer) => void,
+  activeLayer: Layer | undefined,
 ) {
+  const replaceLayer = useLayerStore((s) => s.replaceLayer);
   const [isFiltering, setIsFiltering] = useState(false);
 
   const applySmartCrop = useCallback(async () => {
@@ -38,8 +39,9 @@ export function useSmartCrop(
       const bitmap = await createImageBitmap(newBlob);
       const newLayerId = crypto.randomUUID();
 
-      replaceLayer(activeLayer.id, {
-        ...activeLayer,
+      const activeImgLayer = activeLayer as ImageLayer;
+      replaceLayer(activeImgLayer.id, {
+        ...activeImgLayer,
         id: newLayerId,
         fileId: newFileId,
         originalWidth: bitmap.width,

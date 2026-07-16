@@ -1,19 +1,29 @@
 import React from "react";
-import { FileLayer } from "@/store/useWorkspaceStore";
+import { Layer } from "@/types/layer";
+import { useLayerStore } from "@/store";
 
 interface Props {
-  activeLayer: FileLayer;
-  handleTransformChange: (key: string, value: string) => void;
-  handleTransformCommit: (key: string, value: string) => void;
-  updateLayerTransform: (id: string, updates: Partial<FileLayer>) => void;
+  layer?: Layer;
 }
 
-export function LayerAppearanceSettings({
-  activeLayer,
-  handleTransformChange,
-  handleTransformCommit,
-  updateLayerTransform,
-}: Props) {
+export function AppearanceSettings({ layer }: Props) {
+  const updateLayerTransform = useLayerStore((s) => s.updateLayerTransform);
+
+  if (!layer) return null;
+
+  const handleTransformChange = (key: string, value: string) => {
+    const num = parseFloat(value);
+    if (!isNaN(num)) {
+      updateLayerTransform(layer.id, { [key]: num }, false);
+    }
+  };
+
+  const handleTransformCommit = (key: string, value: string) => {
+    const num = parseFloat(value);
+    if (!isNaN(num)) {
+      updateLayerTransform(layer.id, { [key]: num }, true);
+    }
+  };
   return (
     <div>
       <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center gap-2">
@@ -27,7 +37,7 @@ export function LayerAppearanceSettings({
               Opacity
             </label>
             <span className="text-xs font-mono text-foreground">
-              {Math.round((activeLayer.opacity ?? 1) * 100)}%
+              {Math.round((layer.opacity ?? 1) * 100)}%
             </span>
           </div>
           <input
@@ -35,7 +45,7 @@ export function LayerAppearanceSettings({
             min="0"
             max="1"
             step="0.01"
-            value={activeLayer.opacity ?? 1}
+            value={layer.opacity ?? 1}
             onChange={(e) => handleTransformChange("opacity", e.target.value)}
             onPointerUp={(e) =>
               handleTransformCommit(
@@ -52,10 +62,10 @@ export function LayerAppearanceSettings({
             Blend Mode
           </label>
           <select
-            value={activeLayer.blendMode || "normal"}
+            value={layer.blendMode || "normal"}
             onChange={(e) =>
-              updateLayerTransform(activeLayer.id, {
-                blendMode: e.target.value as FileLayer["blendMode"],
+              updateLayerTransform(layer.id, {
+                blendMode: e.target.value as Layer["blendMode"],
               })
             }
             className="w-full bg-panel border border-panel-border rounded-lg p-2 text-xs text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"

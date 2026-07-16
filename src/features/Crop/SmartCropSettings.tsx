@@ -1,11 +1,14 @@
 import React from "react";
+import { Layer } from "@/types/layer";
+import { useSmartCrop } from "./useSmartCrop";
 
 interface Props {
-  applySmartCrop: () => void;
-  isFiltering: boolean;
+  layer?: Layer;
 }
 
-export function SmartCropSettings({ applySmartCrop, isFiltering }: Props) {
+export function SmartCropSettings({ layer }: Props) {
+  const { applySmartCrop, isFiltering } = useSmartCrop(layer);
+
   return (
     <div>
       <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-widest flex items-center justify-between gap-2">

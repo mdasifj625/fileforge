@@ -1,36 +1,28 @@
 "use client";
 
 import React from "react";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
-import { useSmartCrop } from "./properties/hooks/useSmartCrop";
-import { useDynamicTool } from "./properties/hooks/useDynamicTool";
+import { useLayerStore, useToolStore, useExportStore, useWorkspaceActions } from "@/store";
 import { LayerTransformSettings } from "./properties/components/LayerTransformSettings";
-import { LayerCropSettings } from "./properties/components/LayerCropSettings";
-import { LayerAppearanceSettings } from "./properties/components/LayerAppearanceSettings";
-import { LayerResizeSettings } from "./properties/components/LayerResizeSettings";
-import { SmartCropSettings } from "./properties/components/SmartCropSettings";
-import { WatermarkSettings } from "./properties/components/WatermarkSettings";
-import { ProfilePictureSettings } from "./properties/components/ProfilePictureSettings";
-import { DynamicPropertiesPanel } from "./properties/components/DynamicPropertiesPanel";
+import { DynamicPropertiesPanel } from "@/features/DynamicTools/DynamicPropertiesPanel";
 import { toolRegistry } from "@/lib/toolRegistry";
 import { Undo2, Redo2 } from "lucide-react";
 
 export function PropertiesPanel() {
-  const {
-    activeLayerId,
-    layers,
-    updateLayerTransform,
-    replaceLayer,
-    activeTool,
-  } = useWorkspaceStore();
+  const activeLayerId = useLayerStore((state) => state.activeLayerId);
+  const layers = useLayerStore((state) => state.layers);
+  const activeTool = useToolStore((state) => state.activeTool);
+  const updateLayerTransform = useLayerStore(
+    (state) => state.updateLayerTransform,
+  );
+  const replaceLayer = useLayerStore((state) => state.replaceLayer);
 
-  const pastCount = useWorkspaceStore((s) => s.past?.length || 0);
-  const futureCount = useWorkspaceStore((s) => s.future?.length || 0);
-  const undo = useWorkspaceStore((s) => s.undo);
-  const redo = useWorkspaceStore((s) => s.redo);
-  const triggerExport = useWorkspaceStore((s) => s.triggerExport);
-  const hasLayers = useWorkspaceStore((s) => s.layers.length > 0);
-  const startOver = useWorkspaceStore((s) => s.startOver);
+  const pastCount = useLayerStore((s) => s.past?.length || 0);
+  const futureCount = useLayerStore((s) => s.future?.length || 0);
+  const undo = useLayerStore((s) => s.undo);
+  const redo = useLayerStore((s) => s.redo);
+  const triggerExport = useExportStore((s) => s.triggerExport);
+  const hasLayers = useLayerStore((s) => s.layers.length > 0);
+  const { startOver } = useWorkspaceActions();
 
   const activeLayer = layers.find((l) => l.id === activeLayerId);
 
@@ -50,16 +42,7 @@ export function PropertiesPanel() {
     }
   };
 
-  const { applySmartCrop, isFiltering: isSmartCropFiltering } = useSmartCrop(
-    activeLayer,
-    replaceLayer,
-  );
-  const { applyDynamicTool, isProcessing: isDynamicToolProcessing } =
-    useDynamicTool(activeLayer, replaceLayer);
-
-  const isFiltering =
-    isSmartCropFiltering ||
-    isDynamicToolProcessing;
+  const isFiltering = false;
 
   // Check if current tool is a dynamically registered tool
   const activeToolDef = activeTool ? toolRegistry[activeTool] : undefined;
@@ -129,28 +112,7 @@ export function PropertiesPanel() {
               />
             )}
 
-            {/* Crop Settings */}
-            {activeTool === "crop" && activeLayer.originalWidth > 0 && (
-              <>
-                <LayerCropSettings
-                  activeLayer={activeLayer}
-                  updateLayerTransform={updateLayerTransform}
-                />
-                <div className="my-6 border-t border-panel-border"></div>
-                <SmartCropSettings
-                  applySmartCrop={applySmartCrop}
-                  isFiltering={isFiltering}
-                />
-              </>
-            )}
-
-            {/* Resize Settings */}
-            {activeTool === "resize" && activeLayer.originalWidth > 0 && (
-              <LayerResizeSettings
-                activeLayer={activeLayer}
-                updateLayerTransform={updateLayerTransform}
-              />
-            )}
+            {/* Legacy Features still unmigrated below */}
 
             {/* Compress/Convert Settings */}
             {(activeTool === "compress" ||
@@ -218,35 +180,10 @@ export function PropertiesPanel() {
               <ActivePropertiesComponent layer={activeLayer} />
             )}
 
-            {/* Profile Picture Maker */}
-            {activeTool === "profile-picture" && (
-              <ProfilePictureSettings layer={activeLayer} />
-            )}
-
-            {/* Watermark Settings */}
-            {activeTool === "pdf-watermark" && (
-              <WatermarkSettings
-                activeLayer={activeLayer}
-                updateLayerTransform={updateLayerTransform}
-              />
-            )}
-
-            {/* Appearance Settings */}
-            {activeTool === "layers" && (
-              <LayerAppearanceSettings
-                activeLayer={activeLayer}
-                handleTransformChange={handleTransformChange}
-                handleTransformCommit={handleTransformCommit}
-                updateLayerTransform={updateLayerTransform}
-              />
-            )}
-
             {/* Dynamic Tools (Vintage, Sepia, etc) */}
             {dynamicTool && (
               <DynamicPropertiesPanel
                 tool={dynamicTool}
-                isProcessing={isFiltering}
-                onApply={applyDynamicTool}
               />
             )}
           </div>

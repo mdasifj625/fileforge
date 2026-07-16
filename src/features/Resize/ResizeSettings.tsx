@@ -1,26 +1,26 @@
 import React, { useState } from "react";
-import { FileLayer } from "@/store/useWorkspaceStore";
+import { ImageLayer, Layer } from "@/types/layer";
+import { useLayerStore } from "@/store";
 import { Link2, Link2Off } from "lucide-react";
 
 interface Props {
-  activeLayer: FileLayer;
-  updateLayerTransform: (id: string, updates: Partial<FileLayer>) => void;
+  layer?: Layer;
 }
 
-export function LayerResizeSettings({
-  activeLayer,
-  updateLayerTransform,
-}: Readonly<Props>) {
+export function ResizeSettings({ layer }: Props) {
+  const updateLayerTransform = useLayerStore((s) => s.updateLayerTransform);
   const [lockRatio, setLockRatio] = useState(true);
   const [doNotEnlarge, setDoNotEnlarge] = useState(false);
 
+  if (!layer || layer.type !== "image") return null;
+
   const storeWidth = Math.round(
-    activeLayer.originalWidth * Math.abs(activeLayer.scaleX),
+    layer.originalWidth * Math.abs(layer.scaleX),
   );
   const storeHeight = Math.round(
-    activeLayer.originalHeight * Math.abs(activeLayer.scaleY),
+    layer.originalHeight * Math.abs(layer.scaleY),
   );
-  const storeScale = Math.round(Math.abs(activeLayer.scaleX) * 100);
+  const storeScale = Math.round(Math.abs(layer.scaleX) * 100);
 
   const [inputWidth, setInputWidth] = useState(storeWidth.toString());
   const [prevStoreWidth, setPrevStoreWidth] = useState(storeWidth);
@@ -57,19 +57,19 @@ export function LayerResizeSettings({
     const val = parseFloat(valStr);
     if (isNaN(val) || val <= 0) return;
 
-    let newScaleX = val / activeLayer.originalWidth;
+    let newScaleX = val / layer.originalWidth;
     if (doNotEnlarge && newScaleX > 1) newScaleX = 1;
 
-    const signX = activeLayer.scaleX < 0 ? -1 : 1;
+    const signX = layer.scaleX < 0 ? -1 : 1;
 
     if (lockRatio) {
-      const signY = activeLayer.scaleY < 0 ? -1 : 1;
-      updateLayerTransform(activeLayer.id, {
+      const signY = layer.scaleY < 0 ? -1 : 1;
+      updateLayerTransform(layer.id, {
         scaleX: newScaleX * signX,
         scaleY: newScaleX * signY,
       });
     } else {
-      updateLayerTransform(activeLayer.id, {
+      updateLayerTransform(layer.id, {
         scaleX: newScaleX * signX,
       });
     }
@@ -80,19 +80,19 @@ export function LayerResizeSettings({
     const val = Number.parseFloat(valStr);
     if (Number.isNaN(val) || val <= 0) return;
 
-    let newScaleY = val / activeLayer.originalHeight;
+    let newScaleY = val / layer.originalHeight;
     if (doNotEnlarge && newScaleY > 1) newScaleY = 1;
 
-    const signY = activeLayer.scaleY < 0 ? -1 : 1;
+    const signY = layer.scaleY < 0 ? -1 : 1;
 
     if (lockRatio) {
-      const signX = activeLayer.scaleX < 0 ? -1 : 1;
-      updateLayerTransform(activeLayer.id, {
+      const signX = layer.scaleX < 0 ? -1 : 1;
+      updateLayerTransform(layer.id, {
         scaleX: newScaleY * signX,
         scaleY: newScaleY * signY,
       });
     } else {
-      updateLayerTransform(activeLayer.id, {
+      updateLayerTransform(layer.id, {
         scaleY: newScaleY * signY,
       });
     }
@@ -108,10 +108,10 @@ export function LayerResizeSettings({
     let newScale = val / 100;
     if (doNotEnlarge && newScale > 1) newScale = 1;
 
-    const signX = activeLayer.scaleX < 0 ? -1 : 1;
-    const signY = activeLayer.scaleY < 0 ? -1 : 1;
+    const signX = layer.scaleX < 0 ? -1 : 1;
+    const signY = layer.scaleY < 0 ? -1 : 1;
 
-    updateLayerTransform(activeLayer.id, {
+    updateLayerTransform(layer.id, {
       scaleX: newScale * signX,
       scaleY: newScale * signY,
     });
@@ -119,10 +119,10 @@ export function LayerResizeSettings({
 
   React.useEffect(() => {
     if (doNotEnlarge && storeScale > 100) {
-      const signX = activeLayer.scaleX < 0 ? -1 : 1;
-      const signY = activeLayer.scaleY < 0 ? -1 : 1;
+      const signX = layer.scaleX < 0 ? -1 : 1;
+      const signY = layer.scaleY < 0 ? -1 : 1;
 
-      updateLayerTransform(activeLayer.id, {
+      updateLayerTransform(layer.id, {
         scaleX: 1 * signX,
         scaleY: 1 * signY,
       });
@@ -130,9 +130,9 @@ export function LayerResizeSettings({
   }, [
     storeScale,
     doNotEnlarge,
-    activeLayer.id,
-    activeLayer.scaleX,
-    activeLayer.scaleY,
+    layer.id,
+    layer.scaleX,
+    layer.scaleY,
     updateLayerTransform,
   ]);
 

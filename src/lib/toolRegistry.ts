@@ -2,6 +2,11 @@ import React from "react";
 import { Layer } from "@/types/layer";
 import { removeBackgroundTool } from "@/features/RemoveBackground";
 import { ocrTool } from "@/features/OCR";
+import { cropTool } from "@/features/Crop";
+import { resizeTool } from "@/features/Resize";
+import { watermarkTool } from "@/features/Watermark";
+import { appearanceTool } from "@/features/Appearance";
+import { profilePictureTool } from "@/features/ProfilePicture";
 
 export type UIParamType = "slider" | "toggle" | "select" | "button";
 
@@ -78,15 +83,12 @@ export const toolRegistry: Record<string, ToolDefinition> = {
     workerAction: "processImage",
     params: [],
   },
-  resize: {
-    id: "resize",
-    name: "Resize Image",
-    category: "image",
-    description: "Resize your image by scaling its dimensions.",
-    workerAction: "processImage",
-    params: [],
-  },
   "ai-remove-background": removeBackgroundTool,
   "ai-ocr": ocrTool,
+  crop: cropTool,
+  resize: resizeTool,
+  "pdf-watermark": watermarkTool,
+  appearance: appearanceTool,
+  "profile-picture": profilePictureTool,
   // We can scale this effortlessly to the 100+ tools mapped out
 };

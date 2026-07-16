@@ -1,0 +1,16 @@
+import dynamic from "next/dynamic";
+import { ToolDefinition } from "@/lib/toolRegistry";
+
+const CropSettings = dynamic(
+  () => import("./CropSettings").then((mod) => mod.CropSettings),
+  { ssr: false }
+);
+
+export const cropTool: ToolDefinition = {
+  id: "crop",
+  name: "Crop Image",
+  category: "image",
+  description: "Crop and resize the image canvas with Smart Crop support.",
+  params: [],
+  PropertiesComponent: CropSettings,
+};
