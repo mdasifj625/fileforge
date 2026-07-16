@@ -1,23 +1,12 @@
 import * as PIXI from "pixi.js";
 import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
+import { LayerManager } from "@/lib/pixi/LayerManager";
+import { TransformOverlayManager } from "@/lib/pixi/TransformOverlayManager";
 
 export interface CanvasRefs {
   appRef: React.MutableRefObject<PIXI.Application | null>;
   containerRef: React.MutableRefObject<HTMLDivElement | null>;
-  spritesRef: React.MutableRefObject<
-    Record<string, PIXI.Sprite & { isBeingManipulated?: boolean }>
-  >;
-  maskSpritesRef: React.MutableRefObject<
-    Record<
-      string,
-      PIXI.Sprite & {
-        renderTexture?: PIXI.RenderTexture;
-        maskFileId?: string;
-        baseMaskTexture?: PIXI.RenderTexture;
-      }
-    >
-  >;
-  transformOverlayRef: React.MutableRefObject<PIXI.Container | null>;
-  gridRef: React.MutableRefObject<PIXI.Graphics | null>;
+  layerManagerRef: React.MutableRefObject<LayerManager | null>;
+  transformOverlayManagerRef: React.MutableRefObject<TransformOverlayManager | null>;
   brushControllerRef: React.MutableRefObject<MaskBrushController | null>;
 }

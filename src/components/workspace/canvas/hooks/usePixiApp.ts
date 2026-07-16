@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import * as PIXI from "pixi.js";
 import { CanvasRefs } from "../types";
 import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
+import { LayerManager } from "@/lib/pixi/LayerManager";
+import { TransformOverlayManager } from "@/lib/pixi/TransformOverlayManager";
 import { useLayerStore, useToolStore, useExportStore, useAIStore } from "@/store";
 
 export function usePixiApp({
   containerRef,
   appRef,
-  transformOverlayRef,
+  layerManagerRef,
+  transformOverlayManagerRef,
   brushControllerRef,
 }: CanvasRefs) {
   const [isPixiReady, setIsPixiReady] = useState(false);
@@ -54,11 +57,11 @@ export function usePixiApp({
       app.renderer.on("resize", resizeHandler);
       resizeHandler(); // initial center
 
-      // Initialize Transform Overlay Container (Always on top)
-      const transformOverlay = new PIXI.Container();
-      transformOverlay.zIndex = 9999;
-      app.stage.addChild(transformOverlay);
-      transformOverlayRef.current = transformOverlay;
+      const layerManager = new LayerManager(app);
+      layerManagerRef.current = layerManager;
+
+      const transformOverlayManager = new TransformOverlayManager(app);
+      transformOverlayManagerRef.current = transformOverlayManager;
 
       app.stage.sortableChildren = true;
       appRef.current = app;

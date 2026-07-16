@@ -18,26 +18,16 @@ export function CanvasArea() {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application>(null);
   const brushControllerRef = useRef<MaskBrushController | null>(null);
-  const spritesRef = useRef<
-    Record<string, PIXI.Sprite & { isBeingManipulated?: boolean }>
-  >({});
-  const transformOverlayRef = useRef<PIXI.Container>(null);
-  const gridRef = useRef<PIXI.Graphics>(null);
-  const maskSpritesRef = useRef<
-    Record<
-      string,
-      PIXI.Sprite & { renderTexture?: PIXI.RenderTexture; maskFileId?: string }
-    >
-  >({});
+  const layerManagerRef = useRef<any>(null);
+  const transformOverlayManagerRef = useRef<any>(null);
+  
   const layers = useLayerStore((s) => s.layers);
 
   const canvasRefs: CanvasRefs = {
     appRef,
     containerRef,
-    spritesRef,
-    maskSpritesRef,
-    transformOverlayRef,
-    gridRef,
+    layerManagerRef,
+    transformOverlayManagerRef,
     brushControllerRef,
   };
 
