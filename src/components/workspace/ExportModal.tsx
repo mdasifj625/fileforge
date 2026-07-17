@@ -23,8 +23,7 @@ import {
 type Format = "image/png" | "image/jpeg" | "image/webp";
 
 export function ExportModal() {
-  const layers = useLayerStore((s) => s.layers);
-  const activeLayerId = useLayerStore((s) => s.activeLayerId);
+  const activeLayerName = useLayerStore((s) => s.layers.find((l) => l.id === s.activeLayerId)?.name);
   const { exportImageBlob, setExportImageBlob } = useExportStore();
   const activeTool = useToolStore((s) => s.activeTool);
 
@@ -33,13 +32,11 @@ export function ExportModal() {
   // Automatically select the default export format when opened
   useEffect(() => {
     if (exportImageBlob) {
-      const activeLayer = layers.find((l) => l.id === activeLayerId);
       if (
-        activeLayer &&
-        activeLayer.name &&
+        activeLayerName &&
         activeTool !== "ai-remove-background"
       ) {
-        const name = activeLayer.name.toLowerCase();
+        const name = activeLayerName.toLowerCase();
         if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
           // eslint-disable-next-line react-hooks/set-state-in-effect
           setFormat("image/jpeg");
@@ -52,7 +49,7 @@ export function ExportModal() {
 
       setFormat("image/png");
     }
-  }, [exportImageBlob, activeLayerId, layers, activeTool]);
+  }, [exportImageBlob, activeLayerName, activeTool]);
 
   const [quality, setQuality] = useState(100);
   const [scale, setScale] = useState(1);

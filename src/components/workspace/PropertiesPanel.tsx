@@ -13,7 +13,7 @@ import { Undo2, Redo2 } from "lucide-react";
 
 export function PropertiesPanel() {
   const activeLayerId = useLayerStore((s) => s.activeLayerId);
-  const layers = useLayerStore((s) => s.layers);
+  const activeLayer = useLayerStore((s) => s.layers.find((l) => l.id === s.activeLayerId));
   const activeTool = useToolStore((s) => s.activeTool);
   const updateLayerTransform = useLayerStore(
     (state) => state.updateLayerTransform,
@@ -26,8 +26,6 @@ export function PropertiesPanel() {
   const triggerExport = useExportStore((s) => s.triggerExport);
   const hasLayers = useLayerStore((s) => s.layers.length > 0);
   const { startOver } = useWorkspaceActions();
-
-  const activeLayer = layers.find((l) => l.id === activeLayerId);
 
   const handleTransformChange = (key: string, value: string) => {
     if (!activeLayer) return;

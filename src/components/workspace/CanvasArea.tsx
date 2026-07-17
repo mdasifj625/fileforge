@@ -23,7 +23,7 @@ export function CanvasArea() {
   const layerManagerRef = useRef<LayerManager | null>(null);
   const transformOverlayManagerRef = useRef<TransformOverlayManager | null>(null);
 
-  const layers = useLayerStore((s) => s.layers);
+  const hasLayers = useLayerStore((s) => s.layers.length > 0);
 
   const canvasRefs: CanvasRefs = {
     appRef,
@@ -71,7 +71,7 @@ export function CanvasArea() {
         </div>
       )}
 
-      {layers.length === 0 && !isDragActive && (
+      {!hasLayers && !isDragActive && (
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
           <button
             onClick={open}
