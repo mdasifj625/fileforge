@@ -17,14 +17,14 @@ File Forge is a local-first, privacy-focused file processing workspace. It allow
 - **Time Travel:** Fully integrated Undo/Redo history system that tracks complex state transformations and retains original native file references.
 - **Privacy First:** No server uploads, no data collection.
 - **Standalone Tools & SEO:** Dedicated dynamic routes (e.g., `/image/crop`, `/image/remove-background`, `/video/compress`) that offer focused workspaces optimized for mobile and desktop, featuring rich SEO content directly embedded for discoverability. Image-processing AI tools are co-located in the `/image/` category for intuitive discoverability; purely document/text AI tools (OCR, Face Detection, etc.) remain in the `/ai/` category.
-- **Blazing Fast:** Leveraging `Comlink` for worker RPC and `PixiJS` (WebGL) for 60fps real-time previews.
+- **Blazing Fast:** Leveraging `Comlink` for worker RPC, `PixiJS` (WebGL) for real-time previews, and zero-lag React bindings (via imperative Zustand subscriptions) to eliminate UI freezing during 60fps canvas manipulations.
 
 ## Tech Stack
 
 - **Framework:** Next.js (App Router)
 - **Database / Auth:** MongoDB (Mongoose) / Supabase Auth
 - **Styling:** Tailwind CSS + Radix UI
-- **State:** Zustand + Dexie.js (for massive Blob storage)
+- **State:** Modular Zustand (independent slices for Layers, Tools, AI, Export) + Dexie.js (for massive Blob storage)
 - **Workers:** Comlink + WASM (FFmpeg, OpenCV, ONNX)
 - **Package Manager:** Yarn
 

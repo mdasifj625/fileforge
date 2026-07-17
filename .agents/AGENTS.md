@@ -37,7 +37,7 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 
 - **FFmpeg & Shared Memory**: When using `@ffmpeg/ffmpeg`, the worker utilizes `SharedArrayBuffer`. When casting FFmpeg outputs (which are `Uint8Array<ArrayBufferLike>`) to standard Blobs, ALWAYS explicitly cast to `Uint8Array<ArrayBuffer>`.
 - **AI Models (Transformers.js)**: Transformers.js and the `AutoProcessor` library occasionally reference DOM globals like `document` which do not exist in Web Workers, causing `ReferenceError` crashes. NEVER remove the `import "./polyfill"` line at the top of AI workers.
-- **AI Hardware Acceleration**: ALWAYS explicitly handle multi-tiered hardware acceleration (`webgpu` -> `webnn` -> `wasm`) inside the worker orchestrator (`rmbg.worker.ts`) before passing the chosen device to the model plugin.
+- **AI Hardware Acceleration**: ALWAYS explicitly handle multi-tiered hardware acceleration (`webgpu` -> `webnn` -> `wasm`) inside the worker orchestrator (`ben2.worker.ts`) before passing the chosen device to the model plugin.
   - **Asynchronous GPU Probing**: Probe GPU adapters asynchronously during module execution using `getOrProbeBackends()` instead of using top-level await which halts Comlink initialization. Ensure device has sufficient `maxBufferSize` (>= 256MB) and `maxStorageBufferBindingSize` (> 128MB) before enabling WebGPU to avoid attention graph compilation crashes.
   - **Dtype Selection**: Load `fp16` only if `shader-f16` is supported on the GPU, falling back to `fp32` on older hardware to prevent silent graph compilation deadlocks. Keep WASM on default `fp32` weights.
   - **Failure Blacklisting**: If a backend stalls/crashes, write it immediately to `localStorage` blacklist (`fileforge:ai_backend_blacklist`) to skip it permanently on the device on future runs. WASM must never be blacklisted.
@@ -63,7 +63,7 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 ### 8. Premium UI & Tool Aesthetics
 
 - **Master Sliders**: When building transform or crop controls, favor unified "Master Sliders" (e.g., a single slider that scales width and height proportionally from the center) rather than multiple individual X/Y offset sliders. It yields a more professional feel.
-- **Canvas Visuals**: Features like cropping should always include premium graphical hints, such as drawing a "Rule of Thirds" grid on the PixiJS bounds box (`useTransformOverlay.ts`) and utilizing stylized handles (thick L-shapes or pills) rather than standard small squares.
+- **Canvas Visuals**: Features like cropping should always include premium graphical hints, such as drawing a "Rule of Thirds" grid on the PixiJS bounds box (`TransformOverlayManager.ts`) and utilizing stylized handles (thick L-shapes or pills) rather than standard small squares.
 - **Responsive Layout**: If you create a new workspace tool, ensure the layout remains clean on mobile devices. Navigation bars should dynamically show the active tool on small viewports so users don't lose context.
 
 ### 9. Export & Modal Architecture
