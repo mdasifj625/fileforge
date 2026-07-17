@@ -100,7 +100,17 @@ Components like `PropertiesPanel` utilize `useShallow` to select *only* the spec
 
 ---
 
-## 5. The Dynamic Tool Registry
+## 5. Routing & SEO Content Architecture
+
+File Forge implements a highly DRY (Don't Repeat Yourself) route structure and a robust MDX-based content system to maximize discoverability without cluttering the UI codebase.
+
+- **Unified Tool Routes**: Dynamic routes (`/image/[tool]`, `/video/[tool]`, etc.) act as generic wrappers. The `ToolPageLayout.tsx` orchestrates the navigation and layout, while the specific tool definition simply dictates which tools to load.
+- **DRY Related Tools**: To prevent repetition, a centralized `getRelatedTools` utility (`src/lib/toolUtils.ts`) dynamically resolves cross-linking (e.g., suggesting "Magic Eraser" on the "Remove Background" page) by pulling from the global `TOOL_MENUS` config.
+- **next-mdx-remote**: SEO content is loaded from `.mdx` files located in `src/content/tools/`. The content is securely compiled on the server using `next-mdx-remote` and passed as a `seoContent` React Node to the client layout, enabling interactive rich-text documentation directly inside tool workspaces.
+
+---
+
+## 6. The Dynamic Tool Registry
 
 Writing redundant React components (sliders, toggles) for every new filter (Sepia, Vintage, Blur) is inefficient. File Forge utilizes a `toolRegistry.ts`.
 
@@ -110,21 +120,21 @@ Writing redundant React components (sliders, toggles) for every new filter (Sepi
 
 ---
 
-## 6. Persistence & Memory Safety
+## 7. Persistence & Memory Safety
 
-### 6.1 Dexie.js (IndexedDB)
+### 7.1 Dexie.js (IndexedDB)
 Holding massive `File` objects or ArrayBuffers in Redux/Zustand RAM will quickly crash the browser (often hitting the 2GB/4GB V8 heap limit).
 - **Blob Normalization**: `File` objects are instantly converted to generic `Blob`s and dumped into IndexedDB via `dexie`.
 - **Reference Pointers**: The Zustand `useLayerStore` only keeps a lightweight UUID (`fileId`), never the actual Blob.
 
-### 6.2 MongoDB & Supabase (Backend)
-- **Identity Layer**: Powered entirely by `@supabase/auth-helpers-nextjs` for seamless Magic Links, OAuth, and JWT validation.
+### 7.2 MongoDB & Supabase (Backend)
+- **Identity Layer**: Powered by `@supabase/supabase-js` for seamless Auth.
 - **Database Layer**: MongoDB (Mongoose) is used for storing rich user profiles, active subscriptions, and user workspaces.
 - **Hot-Reload Caching**: A global Mongoose connection cache (`src/lib/mongodb.ts`) ensures that Next.js Server Actions don't exhaust connection pools during local development.
 
 ---
 
-## 7. Complete Project Directory Structure
+## 8. Complete Project Directory Structure
 
 ```text
 src/
