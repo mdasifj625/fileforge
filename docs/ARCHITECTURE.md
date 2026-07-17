@@ -59,3 +59,38 @@ A unified, semantic CSS-variable system (`globals.css`) using `oklch` ensures ul
 - **`CanvasArea.tsx`**: A pure DOM wrapper that initializes PixiJS via `usePixiApp`.
 - **`PropertiesPanel.tsx`**: Dynamically displays tool-specific UI parameters based on `toolRegistry`.
 - **`src/features/`**: Complex logic is extracted into standalone feature folders (e.g., `RemoveBackground`, `OCR`, `Crop`) to keep the main workspace clean.
+
+## Project Structure
+
+File Forge is organized to scale across multiple AI and media domains without coupling UI code to complex processing logic.
+
+```text
+src/
+├── app/                  # Next.js App Router (Pages, Layouts, API Routes)
+│   ├── (tools)/          # Grouped routes for image/, video/, ai/, pdf/
+│   ├── globals.css       # Semantic OKLCH CSS variables
+│   └── layout.tsx        # Root layout, fonts, and theme providers
+├── components/           # Reusable UI components
+│   ├── ui/               # Radix/Tailwind generic components (buttons, dialogs)
+│   └── workspace/        # Core workspace layouts (CanvasArea, ExportModal, PropertiesPanel)
+├── config/               # Navigation menus, tool lists, and site metadata
+├── db/                   # Dexie.js setup for IndexedDB Blob persistence
+├── features/             # Feature-specific logic hooks & UI sub-components
+│   ├── RemoveBackground/ # BEN2 background removal hooks
+│   ├── OCR/              # Text extraction hooks
+│   └── DynamicTools/     # Auto-generated UI for registry tools
+├── hooks/                # Global React hooks (useBlobStorage, etc)
+├── lib/                  # Framework-agnostic utilities
+│   ├── pixi/             # WebGL LayerManager and TransformOverlayManager
+│   ├── mongodb.ts        # Mongoose cached connection
+│   └── toolRegistry.ts   # JSON definitions for dynamic tools
+├── store/                # Zustand state slices
+│   ├── index.ts          # Aggregated store actions (startOver)
+│   ├── useLayerStore.ts  # Canvas layers and transforms
+│   └── useToolStore.ts   # Active tool and theme
+└── workers/              # Isolated Web Workers (Comlink + WASM)
+    ├── plugins/          # Interfaces for AI models (PipelinePlugin)
+    ├── ben2.worker.ts    # Background removal worker
+    ├── ocr.worker.ts     # Tesseract worker
+    └── audio.worker.ts   # FFmpeg audio worker
+```
