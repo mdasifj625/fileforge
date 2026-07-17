@@ -38,6 +38,23 @@ yarn install
 yarn dev
 ```
 
+## Testing
+
+```bash
+# Run unit tests (Vitest)
+yarn test
+
+# Run e2e tests (Playwright)
+yarn test:e2e
+```
+
+## Architecture Highlights
+
+File Forge employs a strictly decoupled architecture designed for raw browser performance:
+1. **WebGL Canvas Engine:** Powered by PixiJS (`LayerManager`) and completely detached from the React render tree during interactions for 0-lag dragging/scaling.
+2. **Worker Orchestration:** Intense tasks (BEN2 AI, OCR, FFmpeg) are routed via `Comlink` to strictly isolated Web Workers to prevent memory crashes on the main thread.
+3. **Modular Zustand State:** The global store is partitioned into independent slices (`useLayerStore`, `useToolStore`, `useAIStore`, `useExportStore`) to prevent global re-renders.
+
 ## Documentation
 
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md): Detailed overview of the system design, Canvas Engine, and State Management.
