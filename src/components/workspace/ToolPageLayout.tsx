@@ -5,7 +5,6 @@ import { WorkspaceLayout } from "./WorkspaceLayout";
 import { useToolStore } from "@/store/useToolStore";
 import { TOOL_MENUS } from "@/config/tools";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
 import GoogleAd from "@/components/ads/GoogleAd";
 import StickyBottomAd from "@/components/ads/StickyBottomAd";
 import Navigation from "@/components/Navigation";
@@ -17,7 +16,7 @@ interface ToolPageLayoutProps {
   title: string;
   category: "image" | "pdf" | "video" | "audio" | "ai" | "convert" | "utility";
   relatedTools?: { title: string; href: string }[];
-  content?: string;
+  seoContent?: React.ReactNode;
   children?: React.ReactNode;
 }
 
@@ -26,7 +25,7 @@ export function ToolPageLayout({
   title,
   category,
   relatedTools,
-  content,
+  seoContent,
   children,
 }: ToolPageLayoutProps) {
   const setActiveTool = useToolStore((s) => s.setActiveTool);
@@ -125,10 +124,10 @@ export function ToolPageLayout({
         </section>
 
         {/* SEO Content Section */}
-        {content && (
+        {seoContent && (
           <section className="order-5 md:order-4 w-full bg-background py-24 border-y border-panel-border">
             <div className="max-w-4xl mx-auto px-6 prose dark:prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary-hover prose-strong:text-foreground">
-              <ReactMarkdown>{content}</ReactMarkdown>
+              {seoContent}
             </div>
           </section>
         )}

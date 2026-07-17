@@ -1,6 +1,7 @@
 import { ToolPageLayout } from "@/components/workspace/ToolPageLayout";
 import { notFound } from "next/navigation";
 import { getToolContent } from "@/lib/contentParser";
+import { MDXRemote } from "next-mdx-remote/rsc";
 import { Metadata } from "next";
 import { TOOL_MENUS } from "@/config/tools";
 
@@ -76,6 +77,7 @@ export async function generateMetadata({
   };
 }
 
+
 export default async function ImageToolPage({
   params,
 }: {
@@ -114,7 +116,7 @@ export default async function ImageToolPage({
       }
       title={title}
       category="image"
-      content={contentData?.content}
+      seoContent={contentData?.content ? <MDXRemote source={contentData.content} /> : undefined}
       relatedTools={relatedTools}
     />
   );

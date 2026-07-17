@@ -16,7 +16,7 @@ export function getToolContent(
   category: string,
   toolId: string,
 ): ToolContent | null {
-  const filePath = path.join(CONTENT_DIR, category, `${toolId}.md`);
+  const filePath = path.join(CONTENT_DIR, category, `${toolId}.mdx`);
   if (!fs.existsSync(filePath)) {
     return null;
   }
