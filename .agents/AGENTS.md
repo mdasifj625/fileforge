@@ -55,23 +55,28 @@ To maintain architecture stability and a premium user experience, ALL AI agents 
 - **Logic / UI Split**: Always extract heavy logical operations (`useEffect` hooks, Web Worker bindings) into custom files inside a `hooks/` subdirectory (e.g., `usePixiApp.ts`, `useBackgroundRemoval.ts`). Extract pure UI blocks into their own files within a `components/` subdirectory.
 - **Orchestrator Pattern**: Main component files should act purely as lightweight orchestrators that stitch together custom logic hooks and UI sub-components.
 
-### 7. Adding New Tools (toolRegistry)
+### 7. Zero-Lag React & Zustand Subscriptions
+
+- **Never subscribe to massive arrays during 60fps renders**: `useLayerStore((s) => s.layers)` is strictly forbidden in massive UI components (like `CanvasArea` or `ExportModal`) if they do not explicitly map over the layers. If you only need the active layer, you MUST use `useShallow`: `const activeLayer = useLayerStore(useShallow((s) => s.layers.find(l => l.id === s.activeLayerId)))`.
+- **Bypass React for Canvas Syncing**: PixiJS `LayerManager` and `TransformOverlayManager` updates must NOT be driven by `useEffect` dependencies on the state. Always use imperative `useLayerStore.subscribe(...)` outside of the React render cycle (as done in `useCanvasRender.ts`) to achieve zero-lag 60fps dragging and scaling.
+
+### 8. Adding New Tools (toolRegistry)
 
 - **Do Not Write Redundant React Components**: If you are adding a basic image filter, audio effect, or video transformation that just requires simple sliders, dropdowns, or toggles, DO NOT write a custom UI component.
 - **Use the Registry**: Simply add the tool definition into `src/lib/toolRegistry.ts`. The `DynamicPropertiesPanel` will automatically render the UI, and `useDynamicTool` will route the parameters to the correct Web Worker.
 
-### 8. Premium UI & Tool Aesthetics
+### 9. Premium UI & Tool Aesthetics
 
 - **Master Sliders**: When building transform or crop controls, favor unified "Master Sliders" (e.g., a single slider that scales width and height proportionally from the center) rather than multiple individual X/Y offset sliders. It yields a more professional feel.
 - **Canvas Visuals**: Features like cropping should always include premium graphical hints, such as drawing a "Rule of Thirds" grid on the PixiJS bounds box (`TransformOverlayManager.ts`) and utilizing stylized handles (thick L-shapes or pills) rather than standard small squares.
 - **Responsive Layout**: If you create a new workspace tool, ensure the layout remains clean on mobile devices. Navigation bars should dynamically show the active tool on small viewports so users don't lose context.
 
-### 9. Export & Modal Architecture
+### 10. Export & Modal Architecture
 
 - **React Portals for Modals**: When building global overlays like the `ExportModal`, ALWAYS use `createPortal(..., document.body)` and apply `z-[100]`. Due to the `ToolPageLayout` and `WorkspaceLayout` heavily utilizing internal `z-10` to `z-50` stacking contexts for the canvas and navigation bars, nesting a fixed modal inside the workspace DOM will cause it to be clipped or trapped behind navigation headers.
 - **Mobile History Management**: If a modal occupies the full screen on mobile devices, use the browser's `history.pushState` API upon opening and listen for `popstate` events to close the modal. This ensures that users who swipe back on their phones or press the physical back button will gracefully exit the modal rather than accidentally navigating away from the tool page and losing their work.
 
-### 10. Route Taxonomy — Image AI vs. Document AI
+### 11. Route Taxonomy — Image AI vs. Document AI
 
 Tools MUST be placed in the correct category route. Misrouting causes broken nav, wrong Related Tools suggestions, and incorrect `category` prop in `ToolPageLayout`.
 
@@ -88,7 +93,7 @@ Tools MUST be placed in the correct category route. Misrouting causes broken nav
 
 When adding a new AI tool that processes images, add it to `VALID_TOOLS` in `src/app/(tools)/image/[tool]/page.tsx` and update `src/config/tools.ts` under the `Image` menu. Do NOT add image tools to the AI page or AI menu.
 
-### 11. `startOver` Reset Contract
+### 12. `startOver` Reset Contract
 
 The `startOver()` action in `src/store/index.ts` is the **canonical full-reset**. It MUST always:
 
