@@ -1,6 +1,7 @@
 import { ToolPageLayout } from "@/components/workspace/ToolPageLayout";
 import { notFound } from "next/navigation";
 import { TOOL_MENUS } from "@/config/tools";
+import { getRelatedTools } from "@/lib/toolUtils";
 
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
   ocr: {
@@ -37,13 +38,7 @@ export default async function AIToolPage({
     notFound();
   }
 
-  const categoryMenu = TOOL_MENUS.find((m) => m.title.toLowerCase() === "ai");
-  const relatedTools = categoryMenu
-    ? categoryMenu.items
-        .filter((item) => !item.href.endsWith(`/${resolvedParams.tool}`))
-        .slice(0, 5)
-        .map((item) => ({ title: item.name, href: item.href }))
-    : [];
+  const relatedTools = getRelatedTools("ai", resolvedParams.tool);
 
   return (
     <ToolPageLayout

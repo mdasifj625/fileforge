@@ -1,6 +1,7 @@
 import { ToolPageLayout } from "@/components/workspace/ToolPageLayout";
 import { notFound } from "next/navigation";
 import { TOOL_MENUS } from "@/config/tools";
+import { getRelatedTools } from "@/lib/toolUtils";
 
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
   compress: {
@@ -41,15 +42,7 @@ export default async function VideoToolPage({
     notFound();
   }
 
-  const categoryMenu = TOOL_MENUS.find(
-    (m) => m.title.toLowerCase() === "video",
-  );
-  const relatedTools = categoryMenu
-    ? categoryMenu.items
-        .filter((item) => !item.href.endsWith(`/${resolvedParams.tool}`))
-        .slice(0, 5)
-        .map((item) => ({ title: item.name, href: item.href }))
-    : [];
+  const relatedTools = getRelatedTools("video", resolvedParams.tool);
 
   return (
     <ToolPageLayout

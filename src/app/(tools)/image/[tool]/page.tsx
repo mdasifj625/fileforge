@@ -4,6 +4,7 @@ import { getToolContent } from "@/lib/contentParser";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { Metadata } from "next";
 import { TOOL_MENUS } from "@/config/tools";
+import { getRelatedTools } from "@/lib/toolUtils";
 
 // Define the valid tools for this category to prevent 404s
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
@@ -93,15 +94,7 @@ export default async function ImageToolPage({
   const contentData = getToolContent("image", resolvedParams.tool);
   const title = contentData?.title || toolData.title;
 
-  const categoryMenu = TOOL_MENUS.find(
-    (m) => m.title.toLowerCase() === "image",
-  );
-  const relatedTools = categoryMenu
-    ? categoryMenu.items
-        .filter((item) => !item.href.endsWith(`/${resolvedParams.tool}`))
-        .slice(0, 5)
-        .map((item) => ({ title: item.name, href: item.href }))
-    : [];
+  const relatedTools = getRelatedTools("image", resolvedParams.tool);
 
   return (
     <ToolPageLayout

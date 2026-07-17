@@ -3,7 +3,6 @@
 import React, { useEffect } from "react";
 import { WorkspaceLayout } from "./WorkspaceLayout";
 import { useToolStore } from "@/store/useToolStore";
-import { TOOL_MENUS } from "@/config/tools";
 import Link from "next/link";
 import GoogleAd from "@/components/ads/GoogleAd";
 import StickyBottomAd from "@/components/ads/StickyBottomAd";
@@ -185,15 +184,7 @@ export function ToolPageLayout({
           <div className="order-first md:order-last">
             <h2 className="text-2xl font-bold mb-8">Related Tools</h2>
             <div className="flex flex-col gap-3">
-              {(
-                relatedTools ||
-                TOOL_MENUS.find((m) => m.title.toLowerCase() === category)
-                  ?.items.filter(
-                    (tool) => tool.href !== `/${category}/${toolId}`,
-                  )
-                  .map((rt) => ({ title: rt.name, href: rt.href })) ||
-                []
-              ).map((rt) => (
+              {(relatedTools || []).map((rt) => (
                 <Link
                   key={rt.href}
                   href={rt.href}

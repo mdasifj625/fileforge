@@ -1,6 +1,7 @@
 import { ToolPageLayout } from "@/components/workspace/ToolPageLayout";
 import { notFound } from "next/navigation";
 import { TOOL_MENUS } from "@/config/tools";
+import { getRelatedTools } from "@/lib/toolUtils";
 
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {
   trim: { title: "Trim Audio", description: "Cut and trim audio length." },
@@ -38,15 +39,7 @@ export default async function AudioToolPage({
     notFound();
   }
 
-  const categoryMenu = TOOL_MENUS.find(
-    (m) => m.title.toLowerCase() === "audio",
-  );
-  const relatedTools = categoryMenu
-    ? categoryMenu.items
-        .filter((item) => !item.href.endsWith(`/${resolvedParams.tool}`))
-        .slice(0, 5)
-        .map((item) => ({ title: item.name, href: item.href }))
-    : [];
+  const relatedTools = getRelatedTools("audio", resolvedParams.tool);
 
   return (
     <ToolPageLayout
