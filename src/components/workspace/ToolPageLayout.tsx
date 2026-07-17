@@ -22,6 +22,7 @@ interface ToolPageLayoutProps {
 export function ToolPageLayout({
   toolId,
   title,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   category,
   relatedTools,
   seoContent,

@@ -4,12 +4,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import UPNG from "upng-js";
-import {
-  useLayerStore,
-  useToolStore,
-  useExportStore,
-  useAIStore,
-} from "@/store";
+import { useLayerStore, useToolStore, useExportStore } from "@/store";
 import {
   Lock,
   Unlock,
@@ -23,7 +18,9 @@ import {
 type Format = "image/png" | "image/jpeg" | "image/webp";
 
 export function ExportModal() {
-  const activeLayerName = useLayerStore((s) => s.layers.find((l) => l.id === s.activeLayerId)?.name);
+  const activeLayerName = useLayerStore(
+    (s) => s.layers.find((l) => l.id === s.activeLayerId)?.name,
+  );
   const { exportImageBlob, setExportImageBlob } = useExportStore();
   const activeTool = useToolStore((s) => s.activeTool);
 
@@ -32,10 +29,7 @@ export function ExportModal() {
   // Automatically select the default export format when opened
   useEffect(() => {
     if (exportImageBlob) {
-      if (
-        activeLayerName &&
-        activeTool !== "ai-remove-background"
-      ) {
+      if (activeLayerName && activeTool !== "ai-remove-background") {
         const name = activeLayerName.toLowerCase();
         if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
           // eslint-disable-next-line react-hooks/set-state-in-effect

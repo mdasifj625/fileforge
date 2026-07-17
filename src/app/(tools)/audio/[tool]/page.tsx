@@ -1,6 +1,5 @@
 import { ToolPageLayout } from "@/components/workspace/ToolPageLayout";
 import { notFound } from "next/navigation";
-import { TOOL_MENUS } from "@/config/tools";
 import { getRelatedTools } from "@/lib/toolUtils";
 
 const VALID_TOOLS: Record<string, { title: string; description: string }> = {

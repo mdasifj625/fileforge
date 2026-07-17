@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { getToolContent } from "@/lib/contentParser";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { Metadata } from "next";
-import { TOOL_MENUS } from "@/config/tools";
 import { getRelatedTools } from "@/lib/toolUtils";
 
 // Define the valid tools for this category to prevent 404s
@@ -78,7 +77,6 @@ export async function generateMetadata({
   };
 }
 
-
 export default async function ImageToolPage({
   params,
 }: {
@@ -99,17 +97,19 @@ export default async function ImageToolPage({
   return (
     <ToolPageLayout
       toolId={
-        resolvedParams.tool === "remove-background"
-          ? "ai-remove-background"
-          : resolvedParams.tool === "magic-eraser"
-            ? "ai-magic-eraser"
-            : resolvedParams.tool === "upscale"
-              ? "ai-upscale"
-              : resolvedParams.tool
+        {
+          "remove-background": "ai-remove-background",
+          "magic-eraser": "ai-magic-eraser",
+          upscale: "ai-upscale",
+        }[resolvedParams.tool] || resolvedParams.tool
       }
       title={title}
       category="image"
-      seoContent={contentData?.content ? <MDXRemote source={contentData.content} /> : undefined}
+      seoContent={
+        contentData?.content ? (
+          <MDXRemote source={contentData.content} />
+        ) : undefined
+      }
       relatedTools={relatedTools}
     />
   );

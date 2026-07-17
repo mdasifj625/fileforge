@@ -1,10 +1,5 @@
 import { useEffect, useRef } from "react";
-import {
-  useLayerStore,
-  useToolStore,
-  useExportStore,
-  useAIStore,
-} from "@/store";
+import { useLayerStore } from "@/store";
 
 export function useCanvasGestures(
   containerRef: React.RefObject<HTMLDivElement | null>,

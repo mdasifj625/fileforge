@@ -12,8 +12,9 @@ import { FeatureErrorBoundary } from "@/components/FeatureErrorBoundary";
 import { Undo2, Redo2 } from "lucide-react";
 
 export function PropertiesPanel() {
-  const activeLayerId = useLayerStore((s) => s.activeLayerId);
-  const activeLayer = useLayerStore((s) => s.layers.find((l) => l.id === s.activeLayerId));
+  const activeLayer = useLayerStore((s) =>
+    s.layers.find((l) => l.id === s.activeLayerId),
+  );
   const activeTool = useToolStore((s) => s.activeTool);
   const updateLayerTransform = useLayerStore(
     (state) => state.updateLayerTransform,

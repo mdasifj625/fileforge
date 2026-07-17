@@ -51,7 +51,7 @@ export class LayerManager {
     this.maskSprites = {};
   }
 
-  public async syncLayers(layers: Layer[], activeLayerId: string | null) {
+  public async syncLayers(layers: Layer[], _activeLayerId: string | null) {
     this.cleanupDeletedLayers(layers);
 
     const activeTool = useToolStore.getState().activeTool || "";

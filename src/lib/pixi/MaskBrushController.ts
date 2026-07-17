@@ -1,10 +1,5 @@
 import * as PIXI from "pixi.js";
-import {
-  useLayerStore,
-  useToolStore,
-  useExportStore,
-  useAIStore,
-} from "@/store";
+import { useLayerStore, useToolStore } from "@/store";
 
 export class MaskBrushController {
   private app: PIXI.Application;
@@ -54,7 +49,6 @@ export class MaskBrushController {
   }
 
   private onPointerDown = (e: PIXI.FederatedPointerEvent) => {
-    const store = useLayerStore.getState();
     if (
       useToolStore.getState().activeTool !== "ai-remove-background" ||
       useToolStore.getState().brushMode === "none"
@@ -116,7 +110,6 @@ export class MaskBrushController {
   private draw(e: PIXI.FederatedPointerEvent) {
     if (!this.renderTexture || this.renderTexture.destroyed || !this.sprite)
       return;
-    const store = useLayerStore.getState();
 
     // Calculate local position relative to the unscaled texture
     const localPos = this.sprite.toLocal(e.global);

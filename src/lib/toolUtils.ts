@@ -1,11 +1,10 @@
 import { TOOL_MENUS } from "@/config/tools";
-import { getToolContent } from "@/lib/contentParser";
 
 export function getRelatedTools(category: string, toolId: string) {
   const categoryMenu = TOOL_MENUS.find(
     (m) => m.title.toLowerCase() === category.toLowerCase(),
   );
-  
+
   if (!categoryMenu) return [];
 
   return categoryMenu.items

@@ -29,7 +29,7 @@ function drawHandle(
   handleFillColor: number,
   handleStrokeColor: number,
   handleStrokeAlpha: number,
-  overlayColor: number,
+  _overlayColor: number,
 ) {
   if (isCropMode) {
     if (pos.x === 0 || pos.y === 0) {
@@ -61,7 +61,7 @@ function drawHandle(
 
     handle.rect(offset, offset, size, size);
     handle.fill({ color: handleFillColor });
-    handle.stroke({ width: 1.5, color: overlayColor, alpha: 1 });
+    handle.stroke({ width: 1.5, color: _overlayColor, alpha: 1 });
   }
 
   handle.hitArea = new PIXI.Rectangle(-24, -24, 48, 48);
@@ -78,7 +78,7 @@ function updateCropGrid(
   width: number,
   height: number,
   isDark: boolean,
-  overlayColor: number,
+  _overlayColor: number,
 ) {
   boundsBox.clear();
 
@@ -183,7 +183,7 @@ export class TransformOverlayManager {
 
     this.container.visible = true;
 
-    const overlayColor = theme === "dark" ? 0xffffff : 0x0ea5e9;
+    const _overlayColor = theme === "dark" ? 0xffffff : 0x0ea5e9;
     const overlayAlpha = theme === "dark" ? 0.3 : 0.8;
     const handleFillColor = theme === "dark" ? 0x000000 : 0xffffff;
     const handleStrokeColor = theme === "dark" ? 0x333333 : 0xffffff;
@@ -225,7 +225,7 @@ export class TransformOverlayManager {
       );
       this.border.stroke({
         width: 1.5,
-        color: overlayColor,
+        color: _overlayColor,
         alpha: overlayAlpha,
       });
     }
@@ -239,7 +239,7 @@ export class TransformOverlayManager {
         scaledWidth,
         scaledHeight,
         isDark,
-        overlayColor,
+        _overlayColor,
       );
       this.cropGrid.x = stagePos.x;
       this.cropGrid.y = stagePos.y;
@@ -253,10 +253,14 @@ export class TransformOverlayManager {
       this.rotationHandle.clear();
       this.rotationHandle.moveTo(0, -scaledHeight / 2);
       this.rotationHandle.lineTo(0, rotY);
-      this.rotationHandle.stroke({ width: 1, color: overlayColor, alpha: 0.5 });
+      this.rotationHandle.stroke({
+        width: 1,
+        color: _overlayColor,
+        alpha: 0.5,
+      });
       this.rotationHandle.circle(0, rotY, 5);
       this.rotationHandle.fill({ color: handleFillColor });
-      this.rotationHandle.stroke({ width: 1.5, color: overlayColor });
+      this.rotationHandle.stroke({ width: 1.5, color: _overlayColor });
       this.rotationHandle.x = stagePos.x;
       this.rotationHandle.y = stagePos.y;
       this.rotationHandle.rotation = layer.rotation || 0;
@@ -287,7 +291,7 @@ export class TransformOverlayManager {
           handleFillColor,
           handleStrokeColor,
           handleStrokeAlpha,
-          overlayColor,
+          _overlayColor,
         );
         this.handles[pos.id] = handle;
         this.container.addChild(handle);
@@ -300,7 +304,7 @@ export class TransformOverlayManager {
           handleFillColor,
           handleStrokeColor,
           handleStrokeAlpha,
-          overlayColor,
+          _overlayColor,
         );
       }
 

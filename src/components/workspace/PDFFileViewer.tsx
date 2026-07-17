@@ -9,12 +9,7 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
-import {
-  useLayerStore,
-  useToolStore,
-  useExportStore,
-  useAIStore,
-} from "@/store";
+import { useLayerStore } from "@/store";
 import { Trash2, Eye, X } from "lucide-react";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;

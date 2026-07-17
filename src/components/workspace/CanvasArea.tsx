@@ -21,7 +21,9 @@ export function CanvasArea() {
   const appRef = useRef<PIXI.Application>(null);
   const brushControllerRef = useRef<MaskBrushController | null>(null);
   const layerManagerRef = useRef<LayerManager | null>(null);
-  const transformOverlayManagerRef = useRef<TransformOverlayManager | null>(null);
+  const transformOverlayManagerRef = useRef<TransformOverlayManager | null>(
+    null,
+  );
 
   const hasLayers = useLayerStore((s) => s.layers.length > 0);
 
