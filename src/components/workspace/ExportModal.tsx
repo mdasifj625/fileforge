@@ -16,6 +16,41 @@ import {
 } from "lucide-react";
 
 type Format = "image/png" | "image/jpeg" | "image/webp";
+type FitMode = "stretch" | "contain" | "cover";
+
+const calculateDrawRect = (
+  cw: number,
+  ch: number,
+  iw: number,
+  ih: number,
+  fit: FitMode,
+) => {
+  if (fit === "stretch") return { x: 0, y: 0, w: cw, h: ch };
+  const imgRatio = iw / ih;
+  const canvasRatio = cw / ch;
+  let drawWidth = cw,
+    drawHeight = ch,
+    offsetX = 0,
+    offsetY = 0;
+  if (fit === "contain") {
+    if (imgRatio > canvasRatio) {
+      drawHeight = cw / imgRatio;
+      offsetY = (ch - drawHeight) / 2;
+    } else {
+      drawWidth = ch * imgRatio;
+      offsetX = (cw - drawWidth) / 2;
+    }
+  } else if (fit === "cover") {
+    if (imgRatio > canvasRatio) {
+      drawWidth = ch * imgRatio;
+      offsetX = (cw - drawWidth) / 2;
+    } else {
+      drawHeight = cw / imgRatio;
+      offsetY = (ch - drawHeight) / 2;
+    }
+  }
+  return { x: offsetX, y: offsetY, w: drawWidth, h: drawHeight };
+};
 
 export function ExportModal() {
   const activeLayerName = useLayerStore(
@@ -60,9 +95,9 @@ export function ExportModal() {
     return (bytes / 1024).toFixed(1) + " KB";
   };
   const [isProcessing, setIsProcessing] = useState(false);
-  const [fitMode, setFitMode] = useState<"stretch" | "contain" | "cover">(
-    "stretch",
-  );
+  type FitMode = "stretch" | "contain" | "cover";
+
+  const [fitMode, setFitMode] = useState<FitMode>("stretch");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -76,13 +111,7 @@ export function ExportModal() {
   const origHeightRef = useRef(0);
 
   const updatePreview = React.useCallback(
-    (
-      w: number,
-      h: number,
-      f: Format,
-      q: number,
-      fit: "stretch" | "contain" | "cover",
-    ) => {
+    (w: number, h: number, f: Format, q: number, fit: FitMode) => {
       const img = originalImageRef.current;
       if (!img || w <= 0 || h <= 0) return;
 
@@ -104,40 +133,8 @@ export function ExportModal() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
 
-      if (fit === "stretch") {
-        ctx.drawImage(img, 0, 0, w, h);
-      } else {
-        const imgRatio = img.width / img.height;
-        const canvasRatio = w / h;
-
-        let drawWidth = w;
-        let drawHeight = h;
-        let offsetX = 0;
-        let offsetY = 0;
-
-        if (fit === "contain") {
-          if (imgRatio > canvasRatio) {
-            drawWidth = w;
-            drawHeight = w / imgRatio;
-            offsetY = (h - drawHeight) / 2;
-          } else {
-            drawHeight = h;
-            drawWidth = h * imgRatio;
-            offsetX = (w - drawWidth) / 2;
-          }
-        } else if (fit === "cover") {
-          if (imgRatio > canvasRatio) {
-            drawHeight = h;
-            drawWidth = h * imgRatio;
-            offsetX = (w - drawWidth) / 2;
-          } else {
-            drawWidth = w;
-            drawHeight = w / imgRatio;
-            offsetY = (h - drawHeight) / 2;
-          }
-        }
-        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-      }
+      const rect = calculateDrawRect(w, h, img.width, img.height, fit);
+      ctx.drawImage(img, rect.x, rect.y, rect.w, rect.h);
 
       if (f === "image/png" && q < 100) {
         // Use UPNG.js for lossy PNG compression (quantization)
@@ -231,12 +228,11 @@ export function ExportModal() {
     if (!previewBlob) return;
     setIsProcessing(true);
     try {
-      const ext =
-        format === "image/jpeg"
-          ? "jpg"
-          : format === "image/webp"
-            ? "webp"
-            : "png";
+      const extMap: Record<string, string> = {
+        "image/jpeg": "jpg",
+        "image/webp": "webp",
+      };
+      const ext = extMap[format] || "png";
 
       const a = document.createElement("a");
       const finalUrl = URL.createObjectURL(previewBlob);

@@ -36,6 +36,17 @@ export function usePixiApp({
 
       // Center the stage dynamically. We ONLY update position on resize.
       // We do NOT scale the stage, because individual layers already handle their own scale in useLayerRenderer.
+      const recenterLayers = () => {
+        const { layers } = useLayerStore.getState();
+        for (const layer of layers) {
+          if (layer.x === 0 && layer.y === 0) {
+            useLayerStore
+              .getState()
+              .updateLayerTransform(layer.id, { x: 0, y: 0 }, false);
+          }
+        }
+      };
+
       resizeHandler = () => {
         if (app?.screen) {
           app.stage.position.set(app.screen.width / 2, app.screen.height / 2);
@@ -43,14 +54,7 @@ export function usePixiApp({
           // Re-center any sprite that is logically at origin (0,0) — these are
           // layers that were placed at the canvas center and must track the new
           // stage origin when the canvas container resizes (e.g. mobile height change).
-          const { layers } = useLayerStore.getState();
-          layers.forEach((layer) => {
-            if (layer.x === 0 && layer.y === 0) {
-              useLayerStore
-                .getState()
-                .updateLayerTransform(layer.id, { x: 0, y: 0 }, false);
-            }
-          });
+          recenterLayers();
         }
       };
 

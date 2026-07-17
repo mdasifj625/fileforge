@@ -22,6 +22,32 @@ function getHandlesConfig(isCropMode: boolean) {
       ];
 }
 
+function getHandleCursor(posId: string) {
+  if (posId === "tl" || posId === "br") return "nwse-resize";
+  if (posId === "tr" || posId === "bl") return "nesw-resize";
+  if (posId === "t" || posId === "b") return "ns-resize";
+  return "ew-resize";
+}
+
+function drawCropHandle(handle: PIXI.Graphics, pos: { x: number; y: number }) {
+  if (pos.x === 0 || pos.y === 0) {
+    if (pos.x === 0) {
+      handle.roundRect(-16, -2.5, 32, 5, 2.5);
+    } else {
+      handle.roundRect(-2.5, -16, 5, 32, 2.5);
+    }
+  } else {
+    const th = 5;
+    const len = 24;
+    const hX = pos.x === -1 ? -th / 2 : -len + th / 2;
+    const hY = -th / 2;
+    handle.roundRect(hX, hY, len, th, 2.5);
+    const vX = -th / 2;
+    const vY = pos.y === -1 ? -th / 2 : -len + th / 2;
+    handle.roundRect(vX, vY, th, len, 2.5);
+  }
+}
+
 function drawHandle(
   handle: PIXI.Graphics,
   pos: { id: string; x: number; y: number },
@@ -32,22 +58,7 @@ function drawHandle(
   _overlayColor: number,
 ) {
   if (isCropMode) {
-    if (pos.x === 0 || pos.y === 0) {
-      if (pos.x === 0) {
-        handle.roundRect(-16, -2.5, 32, 5, 2.5);
-      } else {
-        handle.roundRect(-2.5, -16, 5, 32, 2.5);
-      }
-    } else {
-      const th = 5;
-      const len = 24;
-      const hX = pos.x === -1 ? -th / 2 : -len + th / 2;
-      const hY = -th / 2;
-      handle.roundRect(hX, hY, len, th, 2.5);
-      const vX = -th / 2;
-      const vY = pos.y === -1 ? -th / 2 : -len + th / 2;
-      handle.roundRect(vX, vY, th, len, 2.5);
-    }
+    drawCropHandle(handle, pos);
     handle.fill({ color: handleFillColor });
     handle.stroke({
       width: 1.5,
@@ -58,7 +69,6 @@ function drawHandle(
     const isEdge = pos.x === 0 || pos.y === 0;
     const size = isEdge ? 7 : 9;
     const offset = isEdge ? -3.5 : -4.5;
-
     handle.rect(offset, offset, size, size);
     handle.fill({ color: handleFillColor });
     handle.stroke({ width: 1.5, color: _overlayColor, alpha: 1 });
@@ -66,11 +76,7 @@ function drawHandle(
 
   handle.hitArea = new PIXI.Rectangle(-24, -24, 48, 48);
   handle.eventMode = "static";
-
-  if (pos.id === "tl" || pos.id === "br") handle.cursor = "nwse-resize";
-  else if (pos.id === "tr" || pos.id === "bl") handle.cursor = "nesw-resize";
-  else if (pos.id === "t" || pos.id === "b") handle.cursor = "ns-resize";
-  else handle.cursor = "ew-resize";
+  handle.cursor = getHandleCursor(pos.id);
 }
 
 function updateCropGrid(
@@ -162,6 +168,27 @@ export class TransformOverlayManager {
     this.container.destroy({ children: true });
   }
 
+  private calculateDimensions(layer: ImageLayer, isCropMode: boolean) {
+    let activeWidth = layer.originalWidth * Math.abs(layer.scaleX);
+    let activeHeight = layer.originalHeight * Math.abs(layer.scaleY);
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (isCropMode && layer.cropRect && layer.originalWidth > 0) {
+      activeWidth = layer.cropRect.width * Math.abs(layer.scaleX);
+      activeHeight = layer.cropRect.height * Math.abs(layer.scaleY);
+      offsetX =
+        (layer.cropRect.x - (layer.originalWidth - layer.cropRect.width) / 2) *
+        Math.abs(layer.scaleX);
+      offsetY =
+        (layer.cropRect.y -
+          (layer.originalHeight - layer.cropRect.height) / 2) *
+        Math.abs(layer.scaleY);
+    }
+
+    return { activeWidth, activeHeight, offsetX, offsetY };
+  }
+
   public update(
     activeLayerId: string | null,
     theme: string,
@@ -191,25 +218,8 @@ export class TransformOverlayManager {
     const isCropMode = activeTool === "crop";
     const isDark = theme === "dark";
 
-    let activeWidth = layer.originalWidth * Math.abs(layer.scaleX);
-    let activeHeight = layer.originalHeight * Math.abs(layer.scaleY);
-    let offsetX = 0;
-    let offsetY = 0;
-
-    if (isCropMode) {
-      if (layer.cropRect && layer.originalWidth > 0) {
-        activeWidth = layer.cropRect.width * Math.abs(layer.scaleX);
-        activeHeight = layer.cropRect.height * Math.abs(layer.scaleY);
-        offsetX =
-          (layer.cropRect.x -
-            (layer.originalWidth - layer.cropRect.width) / 2) *
-          Math.abs(layer.scaleX);
-        offsetY =
-          (layer.cropRect.y -
-            (layer.originalHeight - layer.cropRect.height) / 2) *
-          Math.abs(layer.scaleY);
-      }
-    }
+    const { activeWidth, activeHeight, offsetX, offsetY } =
+      this.calculateDimensions(layer, isCropMode);
 
     const stagePos = { x: layer.x + offsetX, y: layer.y + offsetY };
     const scaledWidth = activeWidth * (zoom / 100);
@@ -269,6 +279,30 @@ export class TransformOverlayManager {
       this.rotationHandle.cursor = "crosshair";
     }
 
+    this.updateHandles(
+      isCropMode,
+      handleFillColor,
+      handleStrokeColor,
+      handleStrokeAlpha,
+      _overlayColor,
+      scaledWidth,
+      scaledHeight,
+      stagePos,
+      layer,
+    );
+  }
+
+  private updateHandles(
+    isCropMode: boolean,
+    handleFillColor: number,
+    handleStrokeColor: number,
+    handleStrokeAlpha: number,
+    _overlayColor: number,
+    scaledWidth: number,
+    scaledHeight: number,
+    stagePos: { x: number; y: number },
+    layer: ImageLayer,
+  ) {
     const expectedHandles = getHandlesConfig(isCropMode);
 
     // Remove unused handles

@@ -26,48 +26,50 @@ const WEBGPU_MIN_BUFFER_SIZE = 256 * 1024 * 1024; // 256 MB
 // Global cache for backend probing outcome to avoid repeating logs across worker reinstantiations.
 let preferredBackends: string[] | null = null;
 
-async function probeBackends(): Promise<string[]> {
-  const backends: string[] = [];
+async function probeWebGPU(backends: string[]): Promise<void> {
+  if (typeof navigator === "undefined" || !(navigator as any).gpu) return;
+  try {
+    const adapter = await (navigator as any).gpu.requestAdapter();
+    if (!adapter) return;
 
-  if (typeof navigator !== "undefined" && (navigator as any).gpu) {
-    try {
-      const adapter = await (navigator as any).gpu.requestAdapter();
-      if (adapter) {
-        const bufferSize = adapter.limits?.maxBufferSize ?? 0;
-        const storageSize = adapter.limits?.maxStorageBufferBindingSize ?? 0;
-        const features: string[] = [...(adapter.features ?? [])];
-        const hasF16 = features.includes("shader-f16");
+    const bufferSize = adapter.limits?.maxBufferSize ?? 0;
+    const storageSize = adapter.limits?.maxStorageBufferBindingSize ?? 0;
+    const features: string[] = [...(adapter.features ?? [])];
+    const hasF16 = features.includes("shader-f16");
 
-        PerformanceProfiler.logGPUAdapter({
-          vendor: adapter.info?.vendor ?? "unknown",
-          architecture: adapter.info?.architecture ?? "unknown",
-          description: adapter.info?.description ?? "unknown",
-          maxBufferSize: bufferSize,
-          maxStorageBufferBindingSize: storageSize,
-          features,
-        });
+    PerformanceProfiler.logGPUAdapter({
+      vendor: adapter.info?.vendor ?? "unknown",
+      architecture: adapter.info?.architecture ?? "unknown",
+      description: adapter.info?.description ?? "unknown",
+      maxBufferSize: bufferSize,
+      maxStorageBufferBindingSize: storageSize,
+      features,
+    });
 
-        const storageBindingSizeLimit = 128 * 1024 * 1024; // 128 MB
-        if (
-          bufferSize >= WEBGPU_MIN_BUFFER_SIZE &&
-          storageSize > storageBindingSizeLimit
-        ) {
-          backends.push("webgpu");
-          PerformanceProfiler.logInfo(
-            `WebGPU accepted — shader-f16: ${hasF16 ? "✅ Yes" : "❌ No"}`,
-          );
-        } else {
-          PerformanceProfiler.logInfo(
-            `WebGPU skipped — limits insufficient for BEN2. maxBufferSize: ${(bufferSize / 1024 / 1024).toFixed(0)} MB (req: 256 MB), maxStorageBufferBindingSize: ${(storageSize / 1024 / 1024).toFixed(0)} MB (req: > 128 MB)`,
-          );
-        }
-      }
-    } catch (e) {
+    const storageBindingSizeLimit = 128 * 1024 * 1024; // 128 MB
+    if (
+      bufferSize >= WEBGPU_MIN_BUFFER_SIZE &&
+      storageSize > storageBindingSizeLimit
+    ) {
+      backends.push("webgpu");
       PerformanceProfiler.logInfo(
-        `WebGPU adapter probe failed: ${(e as any)?.message ?? e}`,
+        `WebGPU accepted — shader-f16: ${hasF16 ? "✅ Yes" : "❌ No"}`,
+      );
+    } else {
+      PerformanceProfiler.logInfo(
+        `WebGPU skipped — limits insufficient for BEN2. maxBufferSize: ${(bufferSize / 1024 / 1024).toFixed(0)} MB (req: 256 MB), maxStorageBufferBindingSize: ${(storageSize / 1024 / 1024).toFixed(0)} MB (req: > 128 MB)`,
       );
     }
+  } catch (e) {
+    PerformanceProfiler.logInfo(
+      `WebGPU adapter probe failed: ${(e as any)?.message ?? e}`,
+    );
   }
+}
+
+async function probeBackends(): Promise<string[]> {
+  const backends: string[] = [];
+  await probeWebGPU(backends);
 
   if (typeof navigator !== "undefined" && (navigator as any).ml) {
     backends.push("webnn-npu", "webnn-gpu", "webnn");

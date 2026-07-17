@@ -133,70 +133,88 @@ export class LayerManager {
     }
   }
 
+  private clearMask(layerId: string, sprite: PIXI.Sprite) {
+    if (this.maskSprites[layerId]) {
+      this.app.stage.removeChild(this.maskSprites[layerId]);
+      this.maskSprites[layerId].destroy({ texture: true });
+      if (this.maskSprites[layerId].renderTexture) {
+        this.maskSprites[layerId].renderTexture?.destroy(true);
+      }
+      delete this.maskSprites[layerId];
+    }
+    sprite.mask = null;
+  }
+
+  private async loadMaskSprite(
+    layer: ImageLayer,
+    sprite: PIXI.Sprite,
+    existingMask: PIXI.Sprite | undefined,
+  ) {
+    try {
+      const maskRecord = await db.files.get(layer.maskFileId!);
+      if (!maskRecord) return;
+      const bitmap = await createImageBitmap(maskRecord.blob);
+      const texture = PIXI.Texture.from(bitmap);
+      const renderTexture = PIXI.RenderTexture.create({
+        width: texture.width,
+        height: texture.height,
+      });
+      this.app.renderer.render({
+        container: new PIXI.Sprite(texture),
+        target: renderTexture,
+      });
+
+      const newMaskSprite = new PIXI.Sprite(renderTexture) as PIXI.Sprite & {
+        renderTexture?: PIXI.RenderTexture;
+        maskFileId?: string;
+        baseMaskTexture?: PIXI.RenderTexture;
+      };
+      newMaskSprite.anchor.set(0.5);
+      newMaskSprite.eventMode = "none";
+      newMaskSprite.maskFileId = layer.maskFileId;
+      newMaskSprite.baseMaskTexture = renderTexture;
+
+      if (existingMask) {
+        this.app.stage.removeChild(existingMask);
+        existingMask.destroy({ texture: true });
+        if (
+          (existingMask as PIXI.Sprite & { renderTexture?: PIXI.RenderTexture })
+            .renderTexture
+        )
+          (
+            existingMask as PIXI.Sprite & { renderTexture?: PIXI.RenderTexture }
+          ).renderTexture!.destroy(true);
+      }
+
+      this.maskSprites[layer.id] = newMaskSprite;
+      this.app.stage.addChild(newMaskSprite);
+
+      const oldMask = sprite.mask as PIXI.Sprite | null;
+      sprite.mask = newMaskSprite;
+      if (oldMask && oldMask !== newMaskSprite) {
+        setTimeout(() => {
+          if (!oldMask.destroyed) oldMask.destroy({ texture: true });
+        }, 100);
+      }
+    } catch (e) {
+      console.error("Mask creation failed", e);
+    }
+  }
+
   private async syncMaskSprite(layer: ImageLayer, sprite: PIXI.Sprite) {
     if (!layer.maskFileId && !layer.isAiBackgroundRemoved) {
-      if (this.maskSprites[layer.id]) {
-        this.app.stage.removeChild(this.maskSprites[layer.id]);
-        this.maskSprites[layer.id].destroy({ texture: true });
-        if (this.maskSprites[layer.id].renderTexture) {
-          this.maskSprites[layer.id].renderTexture?.destroy(true);
-        }
-        delete this.maskSprites[layer.id];
-      }
-      sprite.mask = null;
+      this.clearMask(layer.id, sprite);
       return undefined;
     }
 
     if (layer.maskFileId) {
       const existingMask = this.maskSprites[layer.id];
-      if (!existingMask || existingMask.maskFileId !== layer.maskFileId) {
-        try {
-          const maskRecord = await db.files.get(layer.maskFileId);
-          if (maskRecord) {
-            const bitmap = await createImageBitmap(maskRecord.blob);
-            const texture = PIXI.Texture.from(bitmap);
-            const renderTexture = PIXI.RenderTexture.create({
-              width: texture.width,
-              height: texture.height,
-            });
-            this.app.renderer.render({
-              container: new PIXI.Sprite(texture),
-              target: renderTexture,
-            });
-
-            const newMaskSprite = new PIXI.Sprite(
-              renderTexture,
-            ) as PIXI.Sprite & {
-              renderTexture?: PIXI.RenderTexture;
-              maskFileId?: string;
-              baseMaskTexture?: PIXI.RenderTexture;
-            };
-            newMaskSprite.anchor.set(0.5);
-            newMaskSprite.eventMode = "none";
-            newMaskSprite.maskFileId = layer.maskFileId;
-            newMaskSprite.baseMaskTexture = renderTexture;
-
-            if (existingMask) {
-              this.app.stage.removeChild(existingMask);
-              existingMask.destroy({ texture: true });
-              if (existingMask.renderTexture)
-                existingMask.renderTexture.destroy(true);
-            }
-
-            this.maskSprites[layer.id] = newMaskSprite;
-            this.app.stage.addChild(newMaskSprite);
-
-            const oldMask = sprite.mask as PIXI.Sprite | null;
-            sprite.mask = newMaskSprite;
-            if (oldMask && oldMask !== newMaskSprite) {
-              setTimeout(() => {
-                if (!oldMask.destroyed) oldMask.destroy({ texture: true });
-              }, 100);
-            }
-          }
-        } catch (e) {
-          console.error("Mask creation failed", e);
-        }
+      if (
+        !existingMask ||
+        (existingMask as PIXI.Sprite & { maskFileId?: string }).maskFileId !==
+          layer.maskFileId
+      ) {
+        await this.loadMaskSprite(layer, sprite, existingMask);
       }
     }
     return this.maskSprites[layer.id];

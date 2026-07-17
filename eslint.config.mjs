@@ -16,11 +16,6 @@ const eslintConfig = defineConfig([
         "error",
         { argsIgnorePattern: "^_" },
       ],
-      "sonarjs/cognitive-complexity": "off",
-      "sonarjs/no-nested-functions": "off",
-      "sonarjs/no-nested-conditional": "off",
-      "sonarjs/pseudo-random": "off",
-      "sonarjs/use-type-alias": "off",
     },
   },
   // Override default ignores of eslint-config-next.

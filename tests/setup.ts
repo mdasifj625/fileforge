@@ -27,12 +27,11 @@ if (!global.crypto) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (global as any).crypto = {};
 }
+let uuidCounter = 0;
 if (!global.crypto.randomUUID) {
   global.crypto.randomUUID = () => {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === "x" ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    }) as `${string}-${string}-${string}-${string}-${string}`;
+    uuidCounter += 1;
+    const str = uuidCounter.toString(16).padStart(12, "0");
+    return `00000000-0000-4000-8000-${str}`;
   };
 }

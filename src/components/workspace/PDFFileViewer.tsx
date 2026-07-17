@@ -19,6 +19,60 @@ interface PDFFileViewerProps {
   layerId: string;
 }
 
+const PDFPageThumbnail = ({
+  pageNum,
+  index,
+  handlePreview,
+  handleRemove,
+}: {
+  pageNum: number;
+  index: number;
+  handlePreview: (e: React.MouseEvent, pageNum: number) => void;
+  handleRemove: (e: React.MouseEvent, index: number) => void;
+}) => (
+  <Draggable draggableId={`page_${pageNum}_${index}`} index={index}>
+    {(provided, snapshot) => (
+      <div
+        ref={provided.innerRef}
+        {...provided.draggableProps}
+        {...provided.dragHandleProps}
+        className={`flex-shrink-0 border border-panel-border shadow-sm bg-background rounded-md overflow-hidden relative group cursor-grab active:cursor-grabbing transition-transform ${snapshot.isDragging ? "z-50 scale-105 shadow-xl rotate-2" : ""}`}
+      >
+        <div className="absolute top-1 left-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded z-30 backdrop-blur-sm pointer-events-none">
+          {index + 1}
+        </div>
+
+        {/* Hover Overlay */}
+        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex flex-col items-center justify-center gap-3 backdrop-blur-[1px]">
+          <button
+            onClick={(e) => handlePreview(e, pageNum)}
+            className="p-2 bg-white/20 hover:bg-white text-white hover:text-black rounded-full transition-all shadow-sm backdrop-blur-sm"
+            title="Preview Page"
+          >
+            <Eye size={18} />
+          </button>
+        </div>
+
+        {/* Top Right Simple Delete */}
+        <button
+          onClick={(e) => handleRemove(e, index)}
+          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 text-white hover:text-red-400 bg-black/40 hover:bg-black/80 rounded z-30 transition-all pointer-events-auto"
+          title="Remove Page"
+        >
+          <Trash2 size={12} />
+        </button>
+
+        <Page
+          pageNumber={pageNum}
+          width={160}
+          renderTextLayer={false}
+          renderAnnotationLayer={false}
+        />
+      </div>
+    )}
+  </Draggable>
+);
+
 export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
   const [numPages, setNumPages] = useState<number>();
   const [fileUrl, setFileUrl] = useState<string | null>(null);
@@ -105,51 +159,13 @@ export function PDFFileViewer({ blob, layerId }: PDFFileViewerProps) {
                   </div>
                 )}
                 {pageOrder.map((pageNum: number, index: number) => (
-                  <Draggable
+                  <PDFPageThumbnail
                     key={`page_${pageNum}_${index}`}
-                    draggableId={`page_${pageNum}_${index}`}
+                    pageNum={pageNum}
                     index={index}
-                  >
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className={`flex-shrink-0 border border-panel-border shadow-sm bg-background rounded-md overflow-hidden relative group cursor-grab active:cursor-grabbing transition-transform ${snapshot.isDragging ? "z-50 scale-105 shadow-xl rotate-2" : ""}`}
-                      >
-                        <div className="absolute top-1 left-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded z-30 backdrop-blur-sm pointer-events-none">
-                          {index + 1}
-                        </div>
-
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex flex-col items-center justify-center gap-3 backdrop-blur-[1px]">
-                          <button
-                            onClick={(e) => handlePreview(e, pageNum)}
-                            className="p-2 bg-white/20 hover:bg-white text-white hover:text-black rounded-full transition-all shadow-sm backdrop-blur-sm"
-                            title="Preview Page"
-                          >
-                            <Eye size={18} />
-                          </button>
-                        </div>
-
-                        {/* Top Right Simple Delete */}
-                        <button
-                          onClick={(e) => handleRemove(e, index)}
-                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 text-white hover:text-red-400 bg-black/40 hover:bg-black/80 rounded z-30 transition-all pointer-events-auto"
-                          title="Remove Page"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-
-                        <Page
-                          pageNumber={pageNum}
-                          width={160}
-                          renderTextLayer={false}
-                          renderAnnotationLayer={false}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
+                    handlePreview={handlePreview}
+                    handleRemove={handleRemove}
+                  />
                 ))}
                 {provided.placeholder}
               </div>
