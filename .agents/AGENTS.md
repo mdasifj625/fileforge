@@ -90,12 +90,12 @@ When adding a new AI tool that processes images, add it to `VALID_TOOLS` in `src
 
 ### 11. `startOver` Reset Contract
 
-The `startOver()` action in `useWorkspaceStore.ts` is the **canonical full-reset**. It MUST always:
+The `startOver()` action in `src/store/index.ts` is the **canonical full-reset**. It MUST always:
 
-1. Clear `sessionStorage` keys `fileforge_layers` and `fileforge_active_layer_id` **synchronously** before calling `set()`.
+1. Clear `sessionStorage` keys `fileforge_layers` and `fileforge_active_layer_id` **synchronously**.
 2. Call `db.files.clear()` AND `db.history.clear()` together via `Promise.all`.
-3. Reset **all** in-memory state fields to their initial values — not just `layers` and `activeLayerId`. This includes: `past`, `future`, `exportTrigger`, `exportImageBlob`, `brushMode`, `brushSize`, `isRemovingBackground`, `aiProgress`, `aiProgressPhase`, `aiProgressBackend`, `bgRemovalDuration`.
+3. Reset **all** in-memory state fields by invoking the `.reset()` method on **every** independent Zustand store slice (`useLayerStore`, `useToolStore`, `useAIStore`, `useExportStore`).
 
-If you add new state fields to the store, you MUST also add their reset to `startOver`.
+If you add a new independent store slice, you MUST also add its reset to `useWorkspaceActions.startOver`.
 
 <!-- END:file-forge-agent-rules -->

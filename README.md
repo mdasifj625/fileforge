@@ -41,6 +41,7 @@ yarn dev
 ## Documentation
 
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md): Detailed overview of the system design, Canvas Engine, and State Management.
+- [CONTRIBUTING.md](./CONTRIBUTING.md): Guidelines for developing, testing, and submitting code to File Forge.
 - [AI Rules](./.agents/AGENTS.md): Core rules and context specifically designed for AI coding agents.
 
 ## Route Structure
