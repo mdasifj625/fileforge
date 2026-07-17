@@ -8,9 +8,9 @@
     "start": "next start",
     "lint": "tsc --noEmit && eslint . --fix",
     "prepare": "node scripts/prepare.mjs",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test": "vitest run -c .config/vitest.config.ts",
+    "test:watch": "vitest -c .config/vitest.config.ts",
+    "test:e2e": "playwright test -c .config/playwright.config.ts"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
