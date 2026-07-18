@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback } from "react";
 import { db } from "@/db";
 import * as Comlink from "comlink";
-import type { AIProcessor } from "@/workers/ben2.worker";
+import type { AIProcessor } from "@/workers/ai/rmbg/rmbg.worker";
 import { Layer } from "@/types/layer";
 import { PerformanceProfiler } from "@/utils/PerformanceProfiler";
 import { useAIStore } from "@/store";
@@ -91,7 +90,7 @@ async function attemptBackend(
   setAiProgressPhase: (phase: "model" | "inference" | null) => void,
 ): Promise<Blob> {
   const worker = new Worker(
-    new URL("@/workers/ben2.worker.entry", import.meta.url),
+    new URL("@/workers/ai/rmbg/rmbg.worker", import.meta.url),
     { type: "module" },
   );
   const api = Comlink.wrap<AIProcessor>(worker);
@@ -162,6 +161,7 @@ export function useBackgroundRemoval(
     setBgRemovalDuration,
   } = useAIStore();
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   const applyAIBackgroundRemoval = useCallback(async () => {
     if (!activeLayer || isFiltering) return;
 
@@ -179,7 +179,7 @@ export function useBackgroundRemoval(
       const profiler = new PerformanceProfiler("AI Background Removal");
       const backends = getPreferredBackends();
       let maskBlob: Blob | null = null;
-      let lastError: any = null;
+      let lastError: unknown = null;
 
       for (let i = 0; i < backends.length; i++) {
         const backend = backends[i];
@@ -205,10 +205,9 @@ export function useBackgroundRemoval(
           cacheSuccessfulBackend(backend);
           profiler.succeed(`Backend ${backend.toUpperCase()}`);
           break;
-        } catch (e: any) {
-          const errMsg = e?.message ?? String(e);
-          const isDeadlock =
-            typeof e?.message === "string" && e.message.includes("stalled");
+        } catch (e: unknown) {
+          const errMsg = e instanceof Error ? e.message : String(e);
+          const isDeadlock = errMsg.includes("stalled");
           if (isDeadlock) {
             blacklistBackend(backend);
             PerformanceProfiler.logInfo(

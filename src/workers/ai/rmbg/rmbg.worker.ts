@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import "../../shared/dom.polyfill";
 import * as Comlink from "comlink";
 import { env, RawImage } from "@huggingface/transformers";
 
-import { PipelinePlugin } from "./plugins/PipelinePlugin";
+import { AIModelPlugin } from "../../shared/interfaces/AIModelPlugin";
+import { NavigatorWithAI } from "../../shared/interfaces/NavigatorWithAI";
 import { Ben2Plugin } from "./plugins/Ben2Plugin";
-import { PerformanceProfiler } from "../utils/PerformanceProfiler";
+import { PerformanceProfiler } from "../../../utils/PerformanceProfiler";
 
 // Phase 6: ONNX Runtime Optimization & Phase 5: Backend Detection
 env.allowLocalModels = false;
@@ -27,14 +28,23 @@ const WEBGPU_MIN_BUFFER_SIZE = 256 * 1024 * 1024; // 256 MB
 let preferredBackends: string[] | null = null;
 
 async function probeWebGPU(backends: string[]): Promise<void> {
-  if (typeof navigator === "undefined" || !(navigator as any).gpu) return;
+  if (
+    typeof navigator === "undefined" ||
+    !(navigator as unknown as NavigatorWithAI).gpu
+  )
+    return;
   try {
-    const adapter = await (navigator as any).gpu.requestAdapter();
+    const adapter = await (
+      navigator as unknown as NavigatorWithAI
+    ).gpu!.requestAdapter();
     if (!adapter) return;
 
     const bufferSize = adapter.limits?.maxBufferSize ?? 0;
     const storageSize = adapter.limits?.maxStorageBufferBindingSize ?? 0;
-    const features: string[] = [...(adapter.features ?? [])];
+    // Use unknown cast first for features array spread to avoid typing issues if features is not iterable
+    const features: string[] = [
+      ...((adapter.features as unknown as Iterable<string>) ?? []),
+    ];
     const hasF16 = features.includes("shader-f16");
 
     PerformanceProfiler.logGPUAdapter({
@@ -62,7 +72,7 @@ async function probeWebGPU(backends: string[]): Promise<void> {
     }
   } catch (e) {
     PerformanceProfiler.logInfo(
-      `WebGPU adapter probe failed: ${(e as any)?.message ?? e}`,
+      `WebGPU adapter probe failed: ${e instanceof Error ? e.message : String(e)}`,
     );
   }
 }
@@ -71,7 +81,10 @@ async function probeBackends(): Promise<string[]> {
   const backends: string[] = [];
   await probeWebGPU(backends);
 
-  if (typeof navigator !== "undefined" && (navigator as any).ml) {
+  if (
+    typeof navigator !== "undefined" &&
+    (navigator as unknown as NavigatorWithAI).ml
+  ) {
     backends.push("webnn-npu", "webnn-gpu", "webnn");
   }
 
@@ -98,7 +111,7 @@ const QualityMap: Record<QualityMode, number> = {
 };
 
 class RMBGProcessor {
-  private activePlugin: PipelinePlugin | null = null;
+  private activePlugin: AIModelPlugin | null = null;
 
   async loadModel(
     onProgress?: (progress: number) => void,
@@ -131,8 +144,11 @@ class RMBGProcessor {
     let dtype: string | undefined = undefined;
     if (backend === "webgpu") {
       const adapter =
-        typeof navigator !== "undefined" && (navigator as any).gpu
-          ? await (navigator as any).gpu.requestAdapter()
+        typeof navigator !== "undefined" &&
+        (navigator as unknown as NavigatorWithAI).gpu
+          ? await (
+              navigator as unknown as NavigatorWithAI
+            ).gpu!.requestAdapter()
           : null;
       const hasF16 = adapter?.features?.has("shader-f16") ?? false;
       dtype = hasF16 ? "fp16" : "fp32";

@@ -51,6 +51,7 @@ yarn test:e2e
 ## Architecture Highlights
 
 File Forge employs a strictly decoupled architecture designed for raw browser performance:
+
 1. **WebGL Canvas Engine:** Powered by PixiJS (`LayerManager`) and completely detached from the React render tree during interactions for 0-lag dragging/scaling.
 2. **Worker Orchestration:** Intense tasks (BEN2 AI, OCR, FFmpeg) are routed via `Comlink` to strictly isolated Web Workers to prevent memory crashes on the main thread.
 3. **Modular Zustand State:** The global store is partitioned into independent slices (`useLayerStore`, `useToolStore`, `useAIStore`, `useExportStore`) to prevent global re-renders.
@@ -58,7 +59,7 @@ File Forge employs a strictly decoupled architecture designed for raw browser pe
 ## Documentation
 
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md): Detailed overview of the system design, Canvas Engine, and State Management.
-- [CONTRIBUTING.md](./CONTRIBUTING.md): Guidelines for developing, testing, and submitting code to File Forge.
+- [CONTRIBUTING.md](./docs/CONTRIBUTING.md): Guidelines for developing, testing, and submitting code to File Forge.
 - [AI Rules](./.agents/AGENTS.md): Core rules and context specifically designed for AI coding agents.
 
 ## Route Structure

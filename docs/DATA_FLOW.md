@@ -58,7 +58,7 @@ This is where the actual pixel manipulation and AI inference occur.
 ### 4B. The AI/Media Web Workers (`src/workers/`)
 
 1. **Comlink RPC**: The feature hook sends the data buffer to a Web Worker via Comlink (e.g., `await ben2Worker.processImage(buffer)`).
-2. **Off-Main-Thread Execution**: The worker (`ben2.worker.ts`) receives the buffer. It loads the ONNX model (using WebGPU or WASM) and performs tensor math.
+2. **Off-Main-Thread Execution**: The worker (`rmbg.worker.ts`) receives the buffer. It loads the ONNX model (using WebGPU or WASM) and performs tensor math.
 3. **Result Dispatch**: The worker returns a new `ArrayBuffer` (the generated mask).
 4. **State Re-entry**: The hook receives the mask, converts it to a `Blob`, stores it in IndexedDB (Dexie), and calls `updateLayer(id, { maskFileId: newId })`.
 5. **Final Render**: The cycle restarts at Step 2 (State Mutation), causing the `LayerManager` to apply the new mask to the WebGL sprite.

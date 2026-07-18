@@ -7,7 +7,7 @@ import { useExportStore } from "@/store/useExportStore";
 
 import { useLayerBlobs } from "@/hooks/useBlobStorage";
 import * as Comlink from "comlink";
-import type { VideoProcessor } from "@/workers/video.worker";
+import type { VideoProcessor } from "@/workers/media/video/ffmpeg-video.worker";
 
 export function VideoWorkspaceArea() {
   const layers = useLayerStore((s) => s.layers);
@@ -30,7 +30,10 @@ export function VideoWorkspaceArea() {
         setProgress(0);
         try {
           const worker = new Worker(
-            new URL("@/workers/video.worker", import.meta.url),
+            new URL(
+              "@/workers/media/video/ffmpeg-video.worker",
+              import.meta.url,
+            ),
             { type: "module" },
           );
           const api = Comlink.wrap<VideoProcessor>(worker);

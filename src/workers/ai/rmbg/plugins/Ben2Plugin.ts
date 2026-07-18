@@ -1,7 +1,7 @@
 import { pipeline, RawImage } from "@huggingface/transformers";
-import { PipelinePlugin } from "./PipelinePlugin";
+import { AIModelPlugin } from "../../../shared/interfaces/AIModelPlugin";
 
-export class Ben2Plugin implements PipelinePlugin {
+export class Ben2Plugin implements AIModelPlugin {
   public readonly id = "ben2";
   public readonly name = "BEN2 Background Erase Network";
 

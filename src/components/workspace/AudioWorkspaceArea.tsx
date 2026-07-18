@@ -6,7 +6,7 @@ import { useLayerStore } from "@/store/useLayerStore";
 import { useExportStore } from "@/store/useExportStore";
 
 import * as Comlink from "comlink";
-import type { AudioProcessor } from "@/workers/audio.worker";
+import type { AudioProcessor } from "@/workers/media/audio/ffmpeg-audio.worker";
 import { useLayerBlobs } from "@/hooks/useBlobStorage";
 
 export function AudioWorkspaceArea() {
@@ -30,7 +30,10 @@ export function AudioWorkspaceArea() {
         setProgress(0);
         try {
           const worker = new Worker(
-            new URL("@/workers/audio.worker", import.meta.url),
+            new URL(
+              "@/workers/media/audio/ffmpeg-audio.worker",
+              import.meta.url,
+            ),
             { type: "module" },
           );
           const api = Comlink.wrap<AudioProcessor>(worker);

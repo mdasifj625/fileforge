@@ -15,7 +15,7 @@ let imageProcessor: {
 function getImageProcessor() {
   if (!cachedImageWorker) {
     cachedImageWorker = new Worker(
-      new URL("@/workers/image.worker.ts", import.meta.url),
+      new URL("@/workers/media/image/canvas-image.worker.ts", import.meta.url),
       { type: "module" },
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

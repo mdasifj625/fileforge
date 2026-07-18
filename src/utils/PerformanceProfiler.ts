@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export class PerformanceProfiler {
   private readonly name: string;
   private readonly timings: Map<
     string,
     { start: number; end?: number; duration?: number }
   > = new Map();
-  private metadata: Record<string, any> = {};
+  private metadata: Record<string, unknown> = {};
   private readonly enabled: boolean = true;
 
   // Attempt-level tracking for cumulative summary
@@ -28,11 +27,11 @@ export class PerformanceProfiler {
   static logEnvironment() {
     const ts = () => new Date().toISOString().split("T")[1].replace("Z", "");
     const gpu =
-      typeof navigator !== "undefined" && (navigator as any).gpu
+      typeof navigator !== "undefined" && "gpu" in navigator && navigator.gpu
         ? "✅ Available"
         : "❌ Not Available";
     const ml =
-      typeof navigator !== "undefined" && (navigator as any).ml
+      typeof navigator !== "undefined" && "ml" in navigator && navigator.ml
         ? "✅ Available"
         : "❌ Not Available";
     const sab = typeof SharedArrayBuffer !== "undefined" ? "✅ Yes" : "❌ No";
@@ -41,7 +40,11 @@ export class PerformanceProfiler {
         ? String(crossOriginIsolated)
         : "false";
     const threads =
-      (globalThis as any).env?.backends?.onnx?.wasm?.numThreads ?? "?";
+      (
+        globalThis as unknown as {
+          env?: { backends?: { onnx?: { wasm?: { numThreads?: number } } } };
+        }
+      ).env?.backends?.onnx?.wasm?.numThreads ?? "?";
 
     console.log(
       `[${ts()}] ════════════════════════════════════════════\n` +
@@ -106,7 +109,7 @@ export class PerformanceProfiler {
     return `${minutes}m ${remSeconds.toFixed(2)}s`;
   }
 
-  private formatValue(key: string, value: any): string {
+  private formatValue(key: string, value: unknown): string {
     if (
       typeof value === "number" &&
       (key.toLowerCase().includes("size") ||
@@ -122,7 +125,7 @@ export class PerformanceProfiler {
 
   // ─── Metadata ────────────────────────────────────────────────────────────
 
-  setMetadata(key: string, value: any) {
+  setMetadata(key: string, value: unknown) {
     if (!this.enabled) return;
     this.metadata[key] = value;
   }
@@ -155,7 +158,7 @@ export class PerformanceProfiler {
   }
 
   /** Mark the current attempt as failed and log a clean one-line reason */
-  fail(label: string, error: any, fallbackLabel?: string) {
+  fail(label: string, error: unknown, fallbackLabel?: string) {
     if (!this.enabled) return;
     if (
       this.currentAttemptIndex >= 0 &&
@@ -164,7 +167,7 @@ export class PerformanceProfiler {
       this.attempts[this.currentAttemptIndex].endMs = Date.now();
       this.attempts[this.currentAttemptIndex].status = "failed";
     }
-    const raw = error?.message ?? String(error);
+    const raw = error instanceof Error ? error.message : String(error);
     const shortReason = raw.split("\n")[0].substring(0, 200);
     const fallback = fallbackLabel
       ? `\n[${this.ts()}]    ⚠️  Falling back to ${fallbackLabel}...`

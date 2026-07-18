@@ -7,7 +7,7 @@ import { useExportStore } from "@/store/useExportStore";
 import { db } from "@/db";
 import { useLayerBlobs } from "@/hooks/useBlobStorage";
 import * as Comlink from "comlink";
-import type { UtilityProcessor } from "@/workers/utility.worker";
+import type { UtilityProcessor } from "@/workers/utility/utility.worker";
 
 export function UtilityWorkspaceArea() {
   const layers = useLayerStore((s) => s.layers);
@@ -27,7 +27,7 @@ export function UtilityWorkspaceArea() {
         setIsProcessing(true);
         try {
           const worker = new Worker(
-            new URL("@/workers/utility.worker", import.meta.url),
+            new URL("@/workers/utility/utility.worker", import.meta.url),
             { type: "module" },
           );
           const api = Comlink.wrap<UtilityProcessor>(worker);

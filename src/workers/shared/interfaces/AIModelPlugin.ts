@@ -1,6 +1,6 @@
 import { RawImage } from "@huggingface/transformers";
 
-export interface PipelinePlugin {
+export interface AIModelPlugin {
   /**
    * Unique identifier for the plugin (e.g. "ben2", "rmbg-1.4")
    */

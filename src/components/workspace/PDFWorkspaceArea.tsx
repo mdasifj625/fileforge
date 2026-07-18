@@ -8,7 +8,7 @@ import { useExportStore } from "@/store/useExportStore";
 import { useLayerBlobs } from "@/hooks/useBlobStorage";
 import dynamic from "next/dynamic";
 import * as Comlink from "comlink";
-import type { PdfProcessor } from "@/workers/pdf.worker";
+import type { PdfProcessor } from "@/workers/media/pdf/pdf-builder.worker";
 
 const PDFFileViewer = dynamic(
   () => import("./PDFFileViewer").then((mod) => mod.PDFFileViewer),
@@ -34,7 +34,7 @@ export function PDFWorkspaceArea() {
         setIsMerging(true);
         try {
           const worker = new Worker(
-            new URL("@/workers/pdf.worker", import.meta.url),
+            new URL("@/workers/media/pdf/pdf-builder.worker", import.meta.url),
             { type: "module" },
           );
           const api = Comlink.wrap<PdfProcessor>(worker);
