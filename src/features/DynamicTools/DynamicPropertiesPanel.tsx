@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ToolDefinition } from "@/lib/toolRegistry";
-import { useDynamicTool } from "./useDynamicTool";
+import { useDynamicTool } from "@/features/DynamicTools/useDynamicTool";
 import { useLayerStore } from "@/store/useLayerStore";
 
 interface DynamicPropertiesPanelProps {

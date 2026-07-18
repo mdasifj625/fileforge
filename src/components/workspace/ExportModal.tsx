@@ -4,9 +4,13 @@ import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import UPNG from "upng-js";
 import { useLayerStore, useToolStore, useExportStore } from "@/store";
-import { Format, FitMode, calculateDrawRect } from "./export/utils";
-import { ExportPreview } from "./export/ExportPreview";
-import { ExportSettings } from "./export/ExportSettings";
+import {
+  Format,
+  FitMode,
+  calculateDrawRect,
+} from "@/components/workspace/export/utils";
+import { ExportPreview } from "@/components/workspace/export/ExportPreview";
+import { ExportSettings } from "@/components/workspace/export/ExportSettings";
 
 export function ExportModal() {
   const activeLayerName = useLayerStore(

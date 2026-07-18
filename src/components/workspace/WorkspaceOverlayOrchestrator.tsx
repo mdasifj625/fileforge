@@ -1,10 +1,10 @@
 import React from "react";
 import { useToolStore } from "@/store/useToolStore";
 import { toolRegistry } from "@/lib/toolRegistry";
-import { PDFWorkspaceArea } from "./PDFWorkspaceArea";
-import { VideoWorkspaceArea } from "./VideoWorkspaceArea";
-import { AudioWorkspaceArea } from "./AudioWorkspaceArea";
-import { UtilityWorkspaceArea } from "./UtilityWorkspaceArea";
+import { PDFWorkspaceArea } from "@/components/workspace/PDFWorkspaceArea";
+import { VideoWorkspaceArea } from "@/components/workspace/VideoWorkspaceArea";
+import { AudioWorkspaceArea } from "@/components/workspace/AudioWorkspaceArea";
+import { UtilityWorkspaceArea } from "@/components/workspace/UtilityWorkspaceArea";
 
 import { FeatureErrorBoundary } from "@/components/FeatureErrorBoundary";
 

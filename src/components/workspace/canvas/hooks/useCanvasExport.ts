@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import * as PIXI from "pixi.js";
 import { useLayerStore } from "@/store";
-import { CanvasRefs } from "../types";
+import { CanvasRefs } from "@/components/workspace/canvas/types";
 import { useToolStore } from "@/store/useToolStore";
 import { useExportStore } from "@/store/useExportStore";
 

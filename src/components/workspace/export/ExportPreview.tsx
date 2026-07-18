@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import React from "react";
 import { ImageIcon } from "lucide-react";
-import { formatSize } from "./utils";
+import { formatSize } from "@/components/workspace/export/utils";
 
 interface ExportPreviewProps {
   isProcessing: boolean;

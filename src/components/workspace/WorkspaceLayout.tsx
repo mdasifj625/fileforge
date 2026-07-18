@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { CanvasArea } from "./CanvasArea";
-import { PropertiesPanel } from "./PropertiesPanel";
-import { ExportModal } from "./ExportModal";
+import { CanvasArea } from "@/components/workspace/CanvasArea";
+import { PropertiesPanel } from "@/components/workspace/PropertiesPanel";
+import { ExportModal } from "@/components/workspace/ExportModal";
 import { Undo2, Redo2 } from "lucide-react";
 import { useToolStore } from "@/store/useToolStore";
 import { useLayerStore } from "@/store/useLayerStore";

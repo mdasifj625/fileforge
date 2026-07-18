@@ -1,6 +1,6 @@
 import React from "react";
 import { Layer } from "@/types/layer";
-import { useOCR } from "./useOCR";
+import { useOCR } from "@/features/OCR/useOCR";
 
 interface Props {
   layer?: Layer;

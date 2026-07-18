@@ -1,6 +1,6 @@
 import React from "react";
 import { Lock, Unlock, Download, X, Settings2, RotateCcw } from "lucide-react";
-import { Format, FitMode } from "./utils";
+import { Format, FitMode } from "@/components/workspace/export/utils";
 
 interface ExportSettingsProps {
   format: Format;

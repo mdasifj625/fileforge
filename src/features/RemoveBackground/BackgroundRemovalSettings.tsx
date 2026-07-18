@@ -1,7 +1,7 @@
 import React from "react";
 import { useToolStore, useAIStore } from "@/store";
 import { useLayerStore } from "@/store/useLayerStore";
-import { useBackgroundRemoval } from "./useBackgroundRemoval";
+import { useBackgroundRemoval } from "@/features/RemoveBackground/useBackgroundRemoval";
 import confetti from "canvas-confetti";
 import { Layer, ImageLayer } from "@/types/layer";
 

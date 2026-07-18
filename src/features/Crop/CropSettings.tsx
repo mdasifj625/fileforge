@@ -1,7 +1,7 @@
 import React from "react";
 import { Layer } from "@/types/layer";
-import { LayerCropSettings } from "./LayerCropSettings";
-import { SmartCropSettings } from "./SmartCropSettings";
+import { LayerCropSettings } from "@/features/Crop/LayerCropSettings";
+import { SmartCropSettings } from "@/features/Crop/SmartCropSettings";
 import { useLayerStore } from "@/store/useLayerStore";
 
 interface Props {

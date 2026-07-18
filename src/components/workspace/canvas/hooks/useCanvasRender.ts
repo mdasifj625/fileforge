@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { CanvasRefs } from "../types";
+import { CanvasRefs } from "@/components/workspace/canvas/types";
 import { useLayerStore, useToolStore } from "@/store";
 
 export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {

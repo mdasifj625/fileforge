@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
-import GoogleAd from "./GoogleAd";
+import GoogleAd from "@/components/ads/GoogleAd";
 
 export default function StickyBottomAd() {
   const [isVisible, setIsVisible] = useState(true);

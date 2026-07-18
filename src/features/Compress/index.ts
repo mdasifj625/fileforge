@@ -1,5 +1,5 @@
 import { ToolDefinition } from "@/lib/toolRegistry";
-import { CompressSettings } from "./CompressSettings";
+import { CompressSettings } from "@/features/Compress/CompressSettings";
 
 export const compressTool: ToolDefinition = {
   id: "compress",

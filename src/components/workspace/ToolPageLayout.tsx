@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { WorkspaceLayout } from "./WorkspaceLayout";
+import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
 import { useToolStore } from "@/store/useToolStore";
 import Link from "next/link";
 import GoogleAd from "@/components/ads/GoogleAd";

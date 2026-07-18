@@ -1,5 +1,5 @@
 import { pipeline, RawImage } from "@huggingface/transformers";
-import { AIModelPlugin } from "../../../shared/interfaces/AIModelPlugin";
+import { AIModelPlugin } from "@/workers/shared/interfaces/AIModelPlugin";
 
 export class Ben2Plugin implements AIModelPlugin {
   public readonly id = "ben2";

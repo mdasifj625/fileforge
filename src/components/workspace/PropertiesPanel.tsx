@@ -5,7 +5,7 @@ import { useToolStore } from "@/store/useToolStore";
 import { useLayerStore } from "@/store/useLayerStore";
 import { useExportStore } from "@/store/useExportStore";
 import { useWorkspaceActions } from "@/store";
-import { LayerTransformSettings } from "./properties/components/LayerTransformSettings";
+import { LayerTransformSettings } from "@/components/workspace/properties/components/LayerTransformSettings";
 import { DynamicPropertiesPanel } from "@/features/DynamicTools/DynamicPropertiesPanel";
 import { toolRegistry } from "@/lib/toolRegistry";
 import { FeatureErrorBoundary } from "@/components/FeatureErrorBoundary";

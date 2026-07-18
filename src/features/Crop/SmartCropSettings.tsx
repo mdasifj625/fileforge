@@ -1,6 +1,6 @@
 import React from "react";
 import { Layer } from "@/types/layer";
-import { useSmartCrop } from "./useSmartCrop";
+import { useSmartCrop } from "@/features/Crop/useSmartCrop";
 
 interface Props {
   layer?: Layer;

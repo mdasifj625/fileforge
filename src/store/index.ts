@@ -1,7 +1,7 @@
-import { useLayerStore } from "./useLayerStore";
-import { useToolStore } from "./useToolStore";
-import { useAIStore } from "./useAIStore";
-import { useExportStore } from "./useExportStore";
+import { useLayerStore } from "@/store/useLayerStore";
+import { useToolStore } from "@/store/useToolStore";
+import { useAIStore } from "@/store/useAIStore";
+import { useExportStore } from "@/store/useExportStore";
 
 export const useWorkspaceActions = () => {
   const startOver = () => {

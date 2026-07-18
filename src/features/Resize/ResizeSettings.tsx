@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Layer, ImageLayer } from "@/types/layer";
 import { useLayerStore } from "@/store/useLayerStore";
 import { Link2, Link2Off } from "lucide-react";
-import { useResizeHandlers } from "./useResizeHandlers";
+import { useResizeHandlers } from "@/features/Resize/useResizeHandlers";
 
 interface Props {
   layer?: Layer;

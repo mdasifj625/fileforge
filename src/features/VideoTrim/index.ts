@@ -1,5 +1,5 @@
 import { ToolDefinition } from "@/lib/toolRegistry";
-import { VideoTrimSettings } from "./VideoTrimSettings";
+import { VideoTrimSettings } from "@/features/VideoTrim/VideoTrimSettings";
 
 export const videoTrimTool: ToolDefinition = {
   id: "video-trim",

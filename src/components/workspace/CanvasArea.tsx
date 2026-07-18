@@ -4,17 +4,17 @@ import React, { useRef } from "react";
 import * as PIXI from "pixi.js";
 import { useLayerStore } from "@/store/useLayerStore";
 
-import { WorkspaceOverlayOrchestrator } from "./WorkspaceOverlayOrchestrator";
+import { WorkspaceOverlayOrchestrator } from "@/components/workspace/WorkspaceOverlayOrchestrator";
 import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
 import { LayerManager } from "@/lib/pixi/LayerManager";
 import { TransformOverlayManager } from "@/lib/pixi/TransformOverlayManager";
 
-import { usePixiApp } from "./canvas/hooks/usePixiApp";
-import { useCanvasRender } from "./canvas/hooks/useCanvasRender";
-import { useCanvasExport } from "./canvas/hooks/useCanvasExport";
-import { useCanvasDrop } from "./canvas/hooks/useCanvasDrop";
-import { useCanvasGestures } from "./canvas/hooks/useCanvasGestures";
-import { CanvasRefs } from "./canvas/types";
+import { usePixiApp } from "@/components/workspace/canvas/hooks/usePixiApp";
+import { useCanvasRender } from "@/components/workspace/canvas/hooks/useCanvasRender";
+import { useCanvasExport } from "@/components/workspace/canvas/hooks/useCanvasExport";
+import { useCanvasDrop } from "@/components/workspace/canvas/hooks/useCanvasDrop";
+import { useCanvasGestures } from "@/components/workspace/canvas/hooks/useCanvasGestures";
+import { CanvasRefs } from "@/components/workspace/canvas/types";
 
 export function CanvasArea() {
   const containerRef = useRef<HTMLDivElement>(null);

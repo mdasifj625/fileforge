@@ -1,5 +1,5 @@
 import { ToolDefinition } from "@/lib/toolRegistry";
-import { AudioSettings } from "./AudioSettings";
+import { AudioSettings } from "@/features/Audio/AudioSettings";
 
 export const audioTrimTool: ToolDefinition = {
   id: "audio-trim",

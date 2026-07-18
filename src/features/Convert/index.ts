@@ -1,5 +1,5 @@
 import { ToolDefinition } from "@/lib/toolRegistry";
-import { ConvertSettings } from "./ConvertSettings";
+import { ConvertSettings } from "@/features/Convert/ConvertSettings";
 
 export const convertTool: ToolDefinition = {
   id: "convert",

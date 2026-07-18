@@ -1,11 +1,11 @@
-import "../../shared/dom.polyfill";
+import "@/workers/shared/dom.polyfill";
 import * as Comlink from "comlink";
 import { env, RawImage } from "@huggingface/transformers";
 
-import { AIModelPlugin } from "../../shared/interfaces/AIModelPlugin";
-import { NavigatorWithAI } from "../../shared/interfaces/NavigatorWithAI";
-import { Ben2Plugin } from "./plugins/Ben2Plugin";
-import { PerformanceProfiler } from "../../../utils/PerformanceProfiler";
+import { AIModelPlugin } from "@/workers/shared/interfaces/AIModelPlugin";
+import { NavigatorWithAI } from "@/workers/shared/interfaces/NavigatorWithAI";
+import { Ben2Plugin } from "@/workers/ai/rmbg/plugins/Ben2Plugin";
+import { PerformanceProfiler } from "@/utils/PerformanceProfiler";
 
 // Phase 6: ONNX Runtime Optimization & Phase 5: Backend Detection
 env.allowLocalModels = false;

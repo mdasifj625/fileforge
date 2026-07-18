@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import * as PIXI from "pixi.js";
-import { CanvasRefs } from "../types";
+import { CanvasRefs } from "@/components/workspace/canvas/types";
 import { MaskBrushController } from "@/lib/pixi/MaskBrushController";
 import { LayerManager } from "@/lib/pixi/LayerManager";
 import { TransformOverlayManager } from "@/lib/pixi/TransformOverlayManager";

@@ -1,4 +1,4 @@
-import "../../shared/dom.polyfill";
+import "@/workers/shared/dom.polyfill";
 import * as Comlink from "comlink";
 import { createWorker } from "tesseract.js";
 
