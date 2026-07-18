@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 import { ToolDefinition } from "@/lib/toolRegistry";
 
 const OCRSettings = dynamic(
-  () => import("./OCRSettings").then((mod) => mod.OCRSettings),
+  () => import("@/features/OCR/OCRSettings").then((mod) => mod.OCRSettings),
   { ssr: false },
 );
 

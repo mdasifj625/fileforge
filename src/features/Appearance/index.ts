@@ -2,7 +2,10 @@ import dynamic from "next/dynamic";
 import { ToolDefinition } from "@/lib/toolRegistry";
 
 const AppearanceSettings = dynamic(
-  () => import("./AppearanceSettings").then((mod) => mod.AppearanceSettings),
+  () =>
+    import("@/features/Appearance/AppearanceSettings").then(
+      (mod) => mod.AppearanceSettings,
+    ),
   { ssr: false },
 );
 

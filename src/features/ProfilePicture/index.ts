@@ -3,7 +3,7 @@ import { ToolDefinition } from "@/lib/toolRegistry";
 
 const ProfilePictureSettings = dynamic(
   () =>
-    import("./ProfilePictureSettings").then(
+    import("@/features/ProfilePicture/ProfilePictureSettings").then(
       (mod) => mod.ProfilePictureSettings,
     ),
   { ssr: false },

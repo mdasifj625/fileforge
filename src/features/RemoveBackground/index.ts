@@ -3,7 +3,7 @@ import { ToolDefinition } from "@/lib/toolRegistry";
 
 const BackgroundRemovalSettings = dynamic(
   () =>
-    import("./BackgroundRemovalSettings").then(
+    import("@/features/RemoveBackground/BackgroundRemovalSettings").then(
       (mod) => mod.BackgroundRemovalSettings,
     ),
   { ssr: false },

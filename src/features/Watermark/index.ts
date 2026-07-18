@@ -2,7 +2,10 @@ import dynamic from "next/dynamic";
 import { ToolDefinition } from "@/lib/toolRegistry";
 
 const WatermarkSettings = dynamic(
-  () => import("./WatermarkSettings").then((mod) => mod.WatermarkSettings),
+  () =>
+    import("@/features/Watermark/WatermarkSettings").then(
+      (mod) => mod.WatermarkSettings,
+    ),
   { ssr: false },
 );
 

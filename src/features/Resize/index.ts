@@ -2,7 +2,10 @@ import dynamic from "next/dynamic";
 import { ToolDefinition } from "@/lib/toolRegistry";
 
 const ResizeSettings = dynamic(
-  () => import("./ResizeSettings").then((mod) => mod.ResizeSettings),
+  () =>
+    import("@/features/Resize/ResizeSettings").then(
+      (mod) => mod.ResizeSettings,
+    ),
   { ssr: false },
 );
 

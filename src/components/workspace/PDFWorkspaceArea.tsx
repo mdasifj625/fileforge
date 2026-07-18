@@ -11,7 +11,10 @@ import * as Comlink from "comlink";
 import type { PdfProcessor } from "@/workers/media/pdf/pdf-builder.worker";
 
 const PDFFileViewer = dynamic(
-  () => import("./PDFFileViewer").then((mod) => mod.PDFFileViewer),
+  () =>
+    import("@/components/workspace/PDFFileViewer").then(
+      (mod) => mod.PDFFileViewer,
+    ),
   { ssr: false },
 );
 

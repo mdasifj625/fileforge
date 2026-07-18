@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 import { ToolDefinition } from "@/lib/toolRegistry";
 
 const CropSettings = dynamic(
-  () => import("./CropSettings").then((mod) => mod.CropSettings),
+  () => import("@/features/Crop/CropSettings").then((mod) => mod.CropSettings),
   { ssr: false },
 );
 
