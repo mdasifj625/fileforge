@@ -1,10 +1,9 @@
 import { useCallback } from "react";
 import { db } from "@/db";
-import * as Comlink from "comlink";
-import type { AIProcessor } from "@/workers/ai/rmbg/rmbg.worker";
 import { Layer } from "@/types/layer";
 import { PerformanceProfiler } from "@/utils/PerformanceProfiler";
 import { useAIStore } from "@/store";
+import { WorkerManager } from "@/workers/WorkerManager";
 
 const BLACKLIST_KEY = "fileforge:ai_backend_blacklist";
 
@@ -89,23 +88,16 @@ async function attemptBackend(
   setAiProgress: (p: number) => void,
   setAiProgressPhase: (phase: "model" | "inference" | null) => void,
 ): Promise<Blob> {
-  const worker = new Worker(
-    new URL("@/workers/ai/rmbg/rmbg.worker", import.meta.url),
-    { type: "module" },
-  );
-  const api = Comlink.wrap<AIProcessor>(worker);
+  // Wait for preload if it's running, or start it
+  await WorkerManager.preloadRMBGModel(backend);
+  const { api, worker } = WorkerManager.getRMBGApi();
+
+  if (!api || !worker) {
+    throw new Error("Worker failed to initialize");
+  }
 
   let activeInterval: NodeJS.Timeout | null = null;
   try {
-    await api.loadModel(
-      Comlink.proxy((progress: number) => {
-        if (progress >= 0) {
-          setAiProgress(Math.round(progress * 0.4));
-        }
-      }),
-      backend,
-    );
-
     setAiProgressPhase("inference");
     setAiProgress(40);
 
@@ -137,11 +129,11 @@ async function attemptBackend(
 
     if (activeInterval) clearInterval(activeInterval);
     setAiProgress(100);
-    worker.terminate();
     return maskBlob;
   } catch (e) {
     if (activeInterval) clearInterval(activeInterval);
-    worker.terminate();
+    // Don't terminate, let the WorkerManager keep it alive for next attempt,
+    // unless it's completely crashed, but we handle blacklisting at a higher level.
     throw e;
   }
 }

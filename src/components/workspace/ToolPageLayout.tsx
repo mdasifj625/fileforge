@@ -32,6 +32,14 @@ export function ToolPageLayout({
 
   useEffect(() => {
     setActiveTool(toolId);
+
+    // AI Tool-Mount Preloading
+    if (toolId === "ai-remove-background") {
+      import("@/workers/WorkerManager").then(({ WorkerManager }) => {
+        // Asynchronously preload the heavy model into VRAM immediately
+        WorkerManager.preloadRMBGModel().catch(() => {});
+      });
+    }
   }, [toolId, setActiveTool]);
 
   return (
