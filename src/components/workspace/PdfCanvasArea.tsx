@@ -76,12 +76,72 @@ export function PdfCanvasArea() {
                   className="overflow-hidden"
                 />
 
-                {/* Future implementation: Map child layers (like Watermarks) where parentId === page.id */}
+                {/* Map child layers (like Watermarks) where parentId === page.id */}
+                <PageOverlays pageId={page.id} />
               </div>
             );
           })}
         </Document>
       )}
+    </div>
+  );
+}
+
+function PageOverlays({ pageId }: { pageId: string }) {
+  const childLayers = useLayerStore(
+    useShallow((s) =>
+      s.layers.filter((l) => l.parentId === pageId && l.type !== "page"),
+    ),
+  );
+
+  const { blobs } = useLayerBlobs(childLayers);
+
+  if (childLayers.length === 0) return null;
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {childLayers.map((layer) => {
+        if (!layer.visible) return null;
+
+        const blob = blobs[layer.fileId];
+        const objUrl = blob ? URL.createObjectURL(blob) : undefined;
+
+        // Clean up object URLs when unmounted would be nice, but browser GC handles small amounts,
+        // or we could use a custom hook. For now, this is okay for MVP native overlays.
+
+        return (
+          <div
+            key={layer.id}
+            className="absolute"
+            style={{
+              left: layer.x,
+              top: layer.y,
+              width: layer.originalWidth * layer.scaleX,
+              height: layer.originalHeight * layer.scaleY,
+              transform: `rotate(${layer.rotation}deg)`,
+              opacity: layer.opacity ?? 1,
+              mixBlendMode:
+                layer.blendMode !== "normal"
+                  ? (layer.blendMode as React.CSSProperties["mixBlendMode"])
+                  : undefined,
+              pointerEvents: "auto",
+            }}
+          >
+            {layer.type === "image" && objUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={objUrl}
+                alt={layer.name}
+                className="w-full h-full object-contain block"
+              />
+            ) : (
+              <div className="w-full h-full bg-primary/20 border border-primary text-primary flex items-center justify-center font-bold text-xs p-1 text-center overflow-hidden">
+                {layer.name}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
