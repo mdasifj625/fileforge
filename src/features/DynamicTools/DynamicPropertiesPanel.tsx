@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { ToolDefinition } from "@/lib/toolRegistry";
 import { useDynamicTool } from "@/features/DynamicTools/useDynamicTool";
 import { useLayerStore } from "@/store/useLayerStore";
+import { useToolStore } from "@/store/useToolStore";
+import { useShallow } from "zustand/react/shallow";
 
 interface DynamicPropertiesPanelProps {
   tool: ToolDefinition;
@@ -13,26 +15,25 @@ export function DynamicPropertiesPanel({ tool }: DynamicPropertiesPanelProps) {
   const activeLayer = layers.find((l) => l.id === activeLayerId);
   const replaceLayer = useLayerStore((s) => s.replaceLayer);
 
+  const toolParams = useToolStore(useShallow((s) => s.toolParams));
+  const setToolParam = useToolStore((s) => s.setToolParam);
+
   const { applyDynamicTool, isProcessing } = useDynamicTool(
     activeLayer,
     replaceLayer,
   );
-  // Initialize state with default values from registry
-  const [paramsState, setParamsState] = useState<Record<string, unknown>>(
-    () => {
-      const defaultState: Record<string, unknown> = {};
-      tool.params.forEach((param) => {
-        defaultState[param.key] = param.defaultValue ?? 0;
-      });
-      return defaultState;
-    },
-  );
+
+  // Initialize defaults if they are missing in the global store
+  useEffect(() => {
+    tool.params.forEach((param) => {
+      if (toolParams[param.key] === undefined) {
+        setToolParam(param.key, param.defaultValue ?? 0);
+      }
+    });
+  }, [tool, toolParams, setToolParam]);
 
   const handleParamChange = (key: string, value: unknown) => {
-    setParamsState((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setToolParam(key, value);
   };
 
   return (
@@ -58,7 +59,7 @@ export function DynamicPropertiesPanel({ tool }: DynamicPropertiesPanelProps) {
                     {param.label}
                   </label>
                   <span className="text-xs font-mono text-foreground">
-                    {String(paramsState[param.key])}
+                    {String(toolParams[param.key] ?? param.defaultValue ?? 0)}
                   </span>
                 </div>
                 <input
@@ -66,7 +67,9 @@ export function DynamicPropertiesPanel({ tool }: DynamicPropertiesPanelProps) {
                   min={param.min || 0}
                   max={param.max || 100}
                   step={param.step || 1}
-                  value={Number(paramsState[param.key])}
+                  value={Number(
+                    toolParams[param.key] ?? param.defaultValue ?? 0,
+                  )}
                   onChange={(e) =>
                     handleParamChange(param.key, parseFloat(e.target.value))
                   }
@@ -83,7 +86,7 @@ export function DynamicPropertiesPanel({ tool }: DynamicPropertiesPanelProps) {
 
       <button
         className="w-full bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold"
-        onClick={() => applyDynamicTool(tool.id, paramsState)}
+        onClick={() => applyDynamicTool(tool.id, toolParams)}
         disabled={isProcessing}
       >
         {isProcessing ? "Processing..." : "Apply " + tool.name}

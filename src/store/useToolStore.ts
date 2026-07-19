@@ -2,12 +2,15 @@ import { create } from "zustand";
 
 interface ToolState {
   activeTool: string | null;
+  toolParams: Record<string, unknown>;
   brushMode: "none" | "restore" | "erase";
   brushSize: number;
   zoom: number;
   theme: "light" | "dark" | "system";
 
   setActiveTool: (tool: string | null) => void;
+  setToolParam: (key: string, value: unknown) => void;
+  resetToolParams: () => void;
   setBrushMode: (mode: "none" | "restore" | "erase") => void;
   setBrushSize: (size: number) => void;
   setZoom: (zoom: number) => void;
@@ -17,12 +20,16 @@ interface ToolState {
 
 export const useToolStore = create<ToolState>((set) => ({
   activeTool: null,
+  toolParams: {},
   brushMode: "none",
   brushSize: 20,
   zoom: 100,
   theme: "system",
 
-  setActiveTool: (tool) => set({ activeTool: tool }),
+  setActiveTool: (tool) => set({ activeTool: tool, toolParams: {} }),
+  setToolParam: (key, value) =>
+    set((state) => ({ toolParams: { ...state.toolParams, [key]: value } })),
+  resetToolParams: () => set({ toolParams: {} }),
   setBrushMode: (mode) => set({ brushMode: mode }),
   setBrushSize: (size) => set({ brushSize: size }),
   setZoom: (zoom) => set({ zoom }),
@@ -33,5 +40,6 @@ export const useToolStore = create<ToolState>((set) => ({
       brushMode: "none",
       brushSize: 20,
       zoom: 100,
+      toolParams: {},
     }),
 }));
