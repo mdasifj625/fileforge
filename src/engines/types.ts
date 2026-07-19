@@ -13,15 +13,7 @@ export interface WorkspaceState {
   // Expand with other necessary state properties
 }
 
-export interface IExportEngine<TOptions = Record<string, unknown>> {
-  id: string; // e.g., 'image' | 'pdf'
-  getOptionsUI: (
-    currentOptions: TOptions,
-    setOptions: (opts: TOptions) => void,
-  ) => React.ReactNode;
-  execute: (
-    state: WorkspaceState,
-    options: TOptions,
-    canvasRef?: unknown,
-  ) => Promise<ExportResult>;
+export interface IExportEngine {
+  id: string;
+  getUI: (onClose: () => void) => React.ReactNode;
 }
