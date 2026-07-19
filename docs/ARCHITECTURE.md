@@ -90,7 +90,7 @@ To future-proof the application against rapid advancements in AI models, models 
 
 - **Hardware Probing**: Before instantiating a model, the orchestrator asynchronously probes `navigator.gpu`.
 - **Graceful Fallbacks**: It attempts `WebGPU` (checking for `shader-f16` capabilities), falls back to `WebNN` (NPU), and finally defaults to multi-threaded `WASM` (`navigator.hardwareConcurrency`).
-- **Tool-Mount Preloading**: Web Workers are spun up and massive AI models are pre-loaded into VRAM the exact moment a user navigates to a tool page, ensuring instant execution when the user clicks "Apply" rather than waiting for on-demand loading.
+- **Tool-Mount Preloading**: A global `WorkerManager` singleton immediately spins up Web Workers and begins pre-loading massive AI models into VRAM the exact moment a user navigates to a tool page (via `ToolPageLayout`), ensuring instant execution when the user clicks "Apply" rather than waiting for on-demand loading.
 
 ---
 
@@ -164,7 +164,8 @@ Exporting is decoupled from specific formats using the **Strategy Pattern**.
 PDFs and multi-page documents require a fundamentally different approach than single-image WebGL layers.
 
 - **State Engine**: The `useLayerStore` utilizes a **Normalized Flat State**. The `layers` array remains a 1D flat array to ensure `O(1)` Zustand updates. Pages are simply layers of type `'page'`, and child elements contain a `parentId` pointing to their respective page. This allows infinite nesting without deep tree mutations.
-- **Rendering Engine**: PixiJS is strictly bypassed for PDFs. The `PdfCanvasArea` uses a bespoke Native DOM/Canvas approach powered by `pdf.js` to ensure text remains crisp and natively selectable.
+- **Rendering Engine**: PixiJS is strictly bypassed for PDFs. The `PdfCanvasArea` uses a bespoke Native DOM/Canvas approach powered by `react-pdf` (a wrapper over `pdf.js`). This ensures text remains crisp and natively selectable.
+- **Page Overlays**: Child elements (watermarks, annotations) whose `parentId` matches a specific page are rendered dynamically inside a `PageOverlays` component. They are absolute-positioned on top of the Native DOM page and utilize GPU-accelerated CSS transforms (`scale`, `rotation`, `mixBlendMode`) to perfectly emulate the visual effects of the PixiJS canvas but in standard DOM.
 
 ---
 

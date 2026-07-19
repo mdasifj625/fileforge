@@ -26,6 +26,7 @@ File Forge is a local-first, privacy-focused file processing workspace. It allow
 - **Styling:** Tailwind CSS + Radix UI
 - **State:** Modular Zustand (independent slices for Layers, Tools, AI, Export) + Dexie.js (for massive Blob storage)
 - **Workers:** Comlink + WASM (FFmpeg, OpenCV, ONNX)
+- **PDF Engine:** react-pdf / pdf.js + pdf-lib
 - **Package Manager:** Yarn
 
 ## Development
