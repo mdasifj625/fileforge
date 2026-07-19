@@ -13,6 +13,7 @@ export const watermarkTool: ToolDefinition = {
   id: "pdf-watermark",
   name: "Watermark PDF",
   category: "pdf",
+  surfaceType: "pdf-canvas",
   description: "Add a custom text watermark to your PDF.",
   params: [],
   PropertiesComponent: WatermarkSettings,

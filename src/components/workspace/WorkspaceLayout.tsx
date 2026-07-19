@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import { CanvasArea } from "@/components/workspace/CanvasArea";
+import { PdfCanvasArea } from "@/components/workspace/PdfCanvasArea";
 import { PropertiesPanel } from "@/components/workspace/PropertiesPanel";
 import { ExportModal } from "@/components/workspace/ExportModal";
 import { Undo2, Redo2 } from "lucide-react";
@@ -109,6 +110,10 @@ export function WorkspaceLayout({
           {activeTool &&
             toolRegistry[activeTool]?.surfaceType === "image-canvas" && (
               <CanvasArea />
+            )}
+          {activeTool &&
+            toolRegistry[activeTool]?.surfaceType === "pdf-canvas" && (
+              <PdfCanvasArea />
             )}
           {children}
         </main>{" "}

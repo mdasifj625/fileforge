@@ -92,7 +92,7 @@ export const useLayerStore = create<LayerState>((set) => ({
   updateLayerTransform: (id, transform, saveToHistory = true) =>
     set((state) => {
       const newLayers = state.layers.map((layer) =>
-        layer.id === id ? { ...layer, ...transform } : layer,
+        layer.id === id ? ({ ...layer, ...transform } as Layer) : layer,
       );
       if (saveToHistory) {
         return saveHistory(state, newLayers);

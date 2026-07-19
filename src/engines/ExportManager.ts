@@ -21,4 +21,7 @@ class ExportManager {
 export const exportManager = new ExportManager();
 
 import { imageExportEngine } from "./image/ImageExportEngine";
+import { pdfExportEngine } from "./pdf/PdfExportEngine";
+
 exportManager.registerEngine("image-canvas", imageExportEngine);
+exportManager.registerEngine("pdf-canvas", pdfExportEngine);

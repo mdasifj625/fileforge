@@ -32,7 +32,8 @@ export interface BaseLayer {
   originalHeight: number;
   opacity?: number;
   blendMode?: BlendMode;
-  type: "image" | "pdf" | "video" | "audio";
+  type: "image" | "pdf" | "video" | "audio" | "page";
+  parentId?: string; // For normalized flat state nesting (e.g. elements inside a page)
 }
 
 export interface ImageLayer extends BaseLayer {
@@ -49,6 +50,11 @@ export interface PDFLayer extends BaseLayer {
   watermarkText?: string | null;
 }
 
+export interface PageLayer extends BaseLayer {
+  type: "page";
+  pageIndex: number; // The physical index of this page in the original PDF
+}
+
 export interface VideoLayer extends BaseLayer {
   type: "video";
   // Add video specific fields here
@@ -59,4 +65,4 @@ export interface AudioLayer extends BaseLayer {
   // Add audio specific fields here
 }
 
-export type Layer = ImageLayer | PDFLayer | VideoLayer | AudioLayer;
+export type Layer = ImageLayer | PDFLayer | PageLayer | VideoLayer | AudioLayer;
