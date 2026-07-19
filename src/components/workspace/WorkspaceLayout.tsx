@@ -9,6 +9,7 @@ import { useToolStore } from "@/store/useToolStore";
 import { useLayerStore } from "@/store/useLayerStore";
 import { useExportStore } from "@/store/useExportStore";
 import { useWorkspaceActions } from "@/store";
+import { toolRegistry } from "@/lib/toolRegistry";
 
 export function WorkspaceLayout({
   children,
@@ -105,7 +106,10 @@ export function WorkspaceLayout({
           </div>
         </header>
         <main className="flex-1 relative overflow-hidden">
-          <CanvasArea />
+          {activeTool &&
+            toolRegistry[activeTool]?.surfaceType === "image-canvas" && (
+              <CanvasArea />
+            )}
           {children}
         </main>{" "}
       </div>

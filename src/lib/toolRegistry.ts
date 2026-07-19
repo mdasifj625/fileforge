@@ -31,10 +31,13 @@ export interface UIParam {
   description?: string;
 }
 
+export type SurfaceType = "image-canvas" | "pdf-canvas" | "form";
+
 export interface ToolDefinition {
   id: string;
   name: string;
   category: "image" | "pdf" | "video" | "audio" | "utility" | "ai" | "convert";
+  surfaceType?: SurfaceType;
   description: string;
   workerAction?: string;
   params: UIParam[];
@@ -47,6 +50,7 @@ export const toolRegistry: Record<string, ToolDefinition> = {
     id: "vintage",
     name: "Vintage Filter",
     category: "image",
+    surfaceType: "image-canvas",
     description: "Apply a vintage effect to your image.",
     workerAction: "processImage",
     params: [
@@ -64,6 +68,7 @@ export const toolRegistry: Record<string, ToolDefinition> = {
     id: "grayscale",
     name: "Grayscale Filter",
     category: "image",
+    surfaceType: "image-canvas",
     description: "Convert your image to black and white.",
     workerAction: "processImage",
     params: [
@@ -81,6 +86,7 @@ export const toolRegistry: Record<string, ToolDefinition> = {
     id: "sepia",
     name: "Sepia Filter",
     category: "image",
+    surfaceType: "image-canvas",
     description: "Apply a sepia tone to your image.",
     workerAction: "processImage",
     params: [
@@ -98,6 +104,7 @@ export const toolRegistry: Record<string, ToolDefinition> = {
     id: "invert",
     name: "Invert Colors",
     category: "image",
+    surfaceType: "image-canvas",
     description: "Invert all colors in your image.",
     workerAction: "processImage",
     params: [
@@ -115,6 +122,7 @@ export const toolRegistry: Record<string, ToolDefinition> = {
     id: "solarize",
     name: "Solarize Filter",
     category: "image",
+    surfaceType: "image-canvas",
     description: "Apply a solarize effect to your image.",
     workerAction: "processImage",
     params: [
