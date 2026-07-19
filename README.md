@@ -55,6 +55,8 @@ File Forge employs a strictly decoupled architecture designed for raw browser pe
 1. **WebGL Canvas Engine:** Powered by PixiJS (`LayerManager`) and completely detached from the React render tree during interactions for 0-lag dragging/scaling.
 2. **Worker Orchestration:** Intense tasks (BEN2 AI, OCR, FFmpeg) are routed via `Comlink` to strictly isolated Web Workers to prevent memory crashes on the main thread.
 3. **Modular Zustand State:** The global store is partitioned into independent slices (`useLayerStore`, `useToolStore`, `useAIStore`, `useExportStore`) to prevent global re-renders.
+4. **Decoupled Canvas Surfaces:** Surface routing allows hot-swapping between `ImageCanvas` (PixiJS) and `PdfCanvas` (Native DOM) based on the active tool, ensuring text remains selectable for documents while keeping pixel operations blazingly fast.
+5. **Smart Export Engine:** A strategy-pattern export engine handles dynamic UI injection and format-specific execution (PNG vs PDF vs Audio) while keeping the root `<ExportModal>` a pure shell.
 
 ## Documentation
 

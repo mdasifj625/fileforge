@@ -90,6 +90,7 @@ To future-proof the application against rapid advancements in AI models, models 
 
 - **Hardware Probing**: Before instantiating a model, the orchestrator asynchronously probes `navigator.gpu`.
 - **Graceful Fallbacks**: It attempts `WebGPU` (checking for `shader-f16` capabilities), falls back to `WebNN` (NPU), and finally defaults to multi-threaded `WASM` (`navigator.hardwareConcurrency`).
+- **Tool-Mount Preloading**: Web Workers are spun up and massive AI models are pre-loaded into VRAM the exact moment a user navigates to a tool page, ensuring instant execution when the user clicks "Apply" rather than waiting for on-demand loading.
 
 ---
 
@@ -126,7 +127,8 @@ Writing redundant React components (sliders, toggles) for every new filter (Sepi
 
 - **JSON Definition**: You define a tool, its expected parameters (Min, Max, Default), and its target Web Worker logic in JSON.
 - **Dynamic Mounting**: The `DynamicPropertiesPanel` iterates over the registry definition and automatically generates a premium, themed UI.
-- **Automatic Routing**: `useDynamicTool` intercepts the slider values and passes them directly to the designated worker thread.
+- **Global Tool State**: Live slider/toggle values are persisted globally in `useToolStore.toolParams`, allowing Canvas overlays and Background Workers to sync natively.
+- **Automatic Routing**: `useDynamicTool` intercepts the global state and passes the parameters directly to the designated worker thread.
 
 ---
 
@@ -147,7 +149,26 @@ Holding massive `File` objects or ArrayBuffers in Redux/Zustand RAM will quickly
 
 ---
 
-## 8. Complete Project Directory Structure
+## 8. Smart Export Engine
+
+Exporting is decoupled from specific formats using the **Strategy Pattern**.
+
+- **Unified Interface**: All formats (PNG, WebP, PDF) implement `IExportEngine`.
+- **Dumb Modal Shell**: The `<ExportModal>` is a lightweight generic wrapper. It defers entirely to the active engine to provide the UI (`getUI`) and the execution logic.
+- **Dynamic Routing**: `ExportManager` automatically resolves which engine to invoke based on the current tool's `surfaceType` (e.g., `image-canvas` vs `pdf-canvas`).
+
+---
+
+## 9. PDF & Document Architecture (Normalized Flat State)
+
+PDFs and multi-page documents require a fundamentally different approach than single-image WebGL layers.
+
+- **State Engine**: The `useLayerStore` utilizes a **Normalized Flat State**. The `layers` array remains a 1D flat array to ensure `O(1)` Zustand updates. Pages are simply layers of type `'page'`, and child elements contain a `parentId` pointing to their respective page. This allows infinite nesting without deep tree mutations.
+- **Rendering Engine**: PixiJS is strictly bypassed for PDFs. The `PdfCanvasArea` uses a bespoke Native DOM/Canvas approach powered by `pdf.js` to ensure text remains crisp and natively selectable.
+
+---
+
+## 10. Complete Project Directory Structure
 
 ```text
 src/
