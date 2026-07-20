@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js";
 import { Layer, ImageLayer } from "@/types/layer";
 import { db } from "@/db";
 import { useLayerStore, useToolStore } from "@/store";
+import { toolRegistry } from "@/lib/toolRegistry";
 
 export function getBrushCursor(size: number) {
   const svg = `<svg width="${size * 2}" height="${size * 2}" xmlns="http://www.w3.org/2000/svg"><circle cx="${size}" cy="${size}" r="${size - 1}" fill="none" stroke="black" stroke-width="1.5"/><circle cx="${size}" cy="${size}" r="${size - 1}" fill="none" stroke="white" stroke-width="1" stroke-dasharray="3,3"/></svg>`;
@@ -275,13 +276,51 @@ export class LayerManager {
     }
   }
 
+  private applyCropOverlayShift(sprite: PIXI.Sprite, layer: ImageLayer) {
+    const cx = layer.cropRect!.x;
+    const cy = layer.cropRect!.y;
+    const cw = layer.cropRect!.width;
+    const ch = layer.cropRect!.height;
+
+    const offsetX = layer.originalWidth / 2 - (cx + cw / 2);
+    const offsetY = layer.originalHeight / 2 - (cy + ch / 2);
+
+    const angle = layer.rotation || 0;
+    const globalOffsetX =
+      offsetX * layer.scaleX * Math.cos(angle) -
+      offsetY * layer.scaleY * Math.sin(angle);
+    const globalOffsetY =
+      offsetX * layer.scaleX * Math.sin(angle) +
+      offsetY * layer.scaleY * Math.cos(angle);
+
+    sprite.x = layer.x + globalOffsetX;
+    sprite.y = layer.y + globalOffsetY;
+
+    // Ensure full texture frame
+    if (sprite.texture.frame.width !== layer.originalWidth) {
+      sprite.texture = new PIXI.Texture({
+        source: sprite.texture.source,
+        frame: new PIXI.Rectangle(
+          0,
+          0,
+          layer.originalWidth,
+          layer.originalHeight,
+        ),
+      });
+    }
+  }
+
   private updateSpriteTextureAndPosition(
     sprite: PIXI.Sprite,
     layer: ImageLayer,
     activeTool: string,
   ) {
     if (layer.cropRect && layer.originalWidth > 0) {
-      if (activeTool !== "crop") {
+      const toolDef = activeTool ? toolRegistry[activeTool] : null;
+      const isCropMode =
+        activeTool === "crop" || !!toolDef?.enableCropOverlay?.(layer);
+
+      if (!isCropMode) {
         const cx = Math.max(0, layer.cropRect.x);
         const cy = Math.max(0, layer.cropRect.y);
         const cw = Math.min(layer.originalWidth - cx, layer.cropRect.width);
@@ -294,38 +333,7 @@ export class LayerManager {
           });
         }
       } else {
-        // Draw the full image, but shifted so the crop area remains centered at layer.x
-        const cx = layer.cropRect.x;
-        const cy = layer.cropRect.y;
-        const cw = layer.cropRect.width;
-        const ch = layer.cropRect.height;
-
-        const offsetX = layer.originalWidth / 2 - (cx + cw / 2);
-        const offsetY = layer.originalHeight / 2 - (cy + ch / 2);
-
-        const angle = layer.rotation || 0;
-        const globalOffsetX =
-          offsetX * layer.scaleX * Math.cos(angle) -
-          offsetY * layer.scaleY * Math.sin(angle);
-        const globalOffsetY =
-          offsetX * layer.scaleX * Math.sin(angle) +
-          offsetY * layer.scaleY * Math.cos(angle);
-
-        sprite.x = layer.x + globalOffsetX;
-        sprite.y = layer.y + globalOffsetY;
-
-        // Ensure full texture frame
-        if (sprite.texture.frame.width !== layer.originalWidth) {
-          sprite.texture = new PIXI.Texture({
-            source: sprite.texture.source,
-            frame: new PIXI.Rectangle(
-              0,
-              0,
-              layer.originalWidth,
-              layer.originalHeight,
-            ),
-          });
-        }
+        this.applyCropOverlayShift(sprite, layer);
       }
     } else if (
       layer.originalWidth > 0 &&
