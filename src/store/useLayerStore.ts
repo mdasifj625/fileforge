@@ -1,9 +1,14 @@
 import { create } from "zustand";
 import { Layer } from "@/types/layer";
 
+interface HistoryState {
+  layers: Layer[];
+  activeLayerId: string | null;
+}
+
 interface LayerState {
-  past: Layer[][];
-  future: Layer[][];
+  past: HistoryState[];
+  future: HistoryState[];
   layers: Layer[];
   activeLayerId: string | null;
   isHydrated: boolean;
@@ -23,11 +28,20 @@ interface LayerState {
   reset: () => void;
 }
 
-const saveHistory = (state: LayerState, newLayers: Layer[]) => {
+const saveHistory = (
+  state: LayerState,
+  newLayers: Layer[],
+  newActiveId?: string | null,
+) => {
   return {
-    past: [...state.past, state.layers],
+    past: [
+      ...state.past,
+      { layers: state.layers, activeLayerId: state.activeLayerId },
+    ],
     future: [],
     layers: newLayers,
+    activeLayerId:
+      newActiveId !== undefined ? newActiveId : state.activeLayerId,
   };
 };
 
@@ -65,29 +79,25 @@ export const useLayerStore = create<LayerState>((set) => ({
   },
 
   addLayer: (layer) =>
-    set((state) => ({
-      ...saveHistory(state, [layer, ...state.layers]),
-      activeLayerId: layer.id,
-    })),
+    set((state) => saveHistory(state, [layer, ...state.layers], layer.id)),
 
   removeLayer: (id) =>
-    set((state) => ({
-      ...saveHistory(
+    set((state) =>
+      saveHistory(
         state,
         state.layers.filter((l) => l.id !== id),
+        state.activeLayerId === id ? null : state.activeLayerId,
       ),
-      activeLayerId: state.activeLayerId === id ? null : state.activeLayerId,
-    })),
+    ),
 
   replaceLayer: (id, newLayer) =>
-    set((state) => ({
-      ...saveHistory(
+    set((state) =>
+      saveHistory(
         state,
         state.layers.map((l) => (l.id === id ? newLayer : l)),
-      ),
-      activeLayerId:
         state.activeLayerId === id ? newLayer.id : state.activeLayerId,
-    })),
+      ),
+    ),
 
   updateLayerTransform: (id, transform, saveToHistory = true) =>
     set((state) => {
@@ -109,8 +119,12 @@ export const useLayerStore = create<LayerState>((set) => ({
       const newPast = state.past.slice(0, state.past.length - 1);
       return {
         past: newPast,
-        future: [state.layers, ...state.future],
-        layers: previous,
+        future: [
+          { layers: state.layers, activeLayerId: state.activeLayerId },
+          ...state.future,
+        ],
+        layers: previous.layers,
+        activeLayerId: previous.activeLayerId,
       };
     }),
 
@@ -120,9 +134,13 @@ export const useLayerStore = create<LayerState>((set) => ({
       const next = state.future[0];
       const newFuture = state.future.slice(1);
       return {
-        past: [...state.past, state.layers],
+        past: [
+          ...state.past,
+          { layers: state.layers, activeLayerId: state.activeLayerId },
+        ],
         future: newFuture,
-        layers: next,
+        layers: next.layers,
+        activeLayerId: next.activeLayerId,
       };
     }),
 
