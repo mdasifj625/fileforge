@@ -266,13 +266,14 @@ export class LayerManager {
       sprite.alpha = layer.opacity ?? 1;
       sprite.blendMode = (layer.blendMode || "normal") as PIXI.BLEND_MODES;
 
+      this.updateSpriteTextureAndPosition(sprite, layer, activeTool);
+
       if (maskSprite) {
         maskSprite.x = sprite.x;
         maskSprite.y = sprite.y;
         maskSprite.scale.set(sprite.scale.x, sprite.scale.y);
         maskSprite.rotation = sprite.rotation;
       }
-      this.updateSpriteTextureAndPosition(sprite, layer, activeTool);
     }
   }
 
