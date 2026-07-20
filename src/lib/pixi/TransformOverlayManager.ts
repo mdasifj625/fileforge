@@ -417,7 +417,9 @@ export class TransformOverlayManager {
   }
 
   private readonly onPointerUp = () => {
-    this.activeHandle = null;
+    if (this.activeHandle) {
+      this.activeHandle = null;
+    }
     this.hasDragged = false;
   };
 
@@ -429,7 +431,9 @@ export class TransformOverlayManager {
       this.hasDragged = false;
       this.dragStartPoint = { x: e.global.x, y: e.global.y };
       const state = useLayerStore.getState();
-      const layer = state.layers.find((l) => l.id === this.activeLayerId);
+      const layer = state.layers.find(
+        (l) => l.id === this.activeLayerId,
+      ) as ImageLayer;
       if (layer) {
         this.initialLayerTransform = {
           x: layer.x,
