@@ -42,5 +42,6 @@ export const useAIStore = create<AIState>((set) => ({
       aiProgressPhase: null,
       aiProgressBackend: null,
       bgRemovalDuration: null,
+      bgRemovalSuccessTrigger: 0,
     }),
 }));
