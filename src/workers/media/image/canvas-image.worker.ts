@@ -228,6 +228,32 @@ const imageProcessor = {
 
     return { minX, minY, maxX, maxY };
   },
+
+  async applyCrop(
+    fileBlob: Blob,
+    cropRect: { x: number; y: number; width: number; height: number },
+  ): Promise<Blob> {
+    const bitmap = await createImageBitmap(fileBlob);
+    const canvas = new OffscreenCanvas(cropRect.width, cropRect.height);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Failed to get 2D context");
+
+    ctx.drawImage(
+      bitmap,
+      cropRect.x,
+      cropRect.y,
+      cropRect.width,
+      cropRect.height,
+      0,
+      0,
+      cropRect.width,
+      cropRect.height,
+    );
+
+    return await canvas.convertToBlob({
+      type: fileBlob.type || "image/png",
+    });
+  },
 };
 
 export type ImageProcessor = typeof imageProcessor;
