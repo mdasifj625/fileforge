@@ -24,6 +24,7 @@ interface LayerState {
   setActiveLayerId: (id: string | null) => void;
   undo: () => void;
   redo: () => void;
+  saveHistorySnapshot: () => void;
   hydrateLayers: () => void;
   reset: () => void;
 }
@@ -111,6 +112,15 @@ export const useLayerStore = create<LayerState>((set) => ({
     }),
 
   setActiveLayerId: (id) => set({ activeLayerId: id }),
+
+  saveHistorySnapshot: () =>
+    set((state) => ({
+      past: [
+        ...state.past,
+        { layers: state.layers, activeLayerId: state.activeLayerId },
+      ],
+      future: [],
+    })),
 
   undo: () =>
     set((state) => {

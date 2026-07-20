@@ -190,6 +190,7 @@ export class TransformOverlayManager {
   private activeTool: string = "";
   private allowRotation: boolean = false;
   private zoomValue: number = 1;
+  private hasDragged: boolean = false;
 
   constructor(app: PIXI.Application) {
     this.app = app;
@@ -218,6 +219,11 @@ export class TransformOverlayManager {
     const state = useLayerStore.getState();
     const layer = state.layers.find((l) => l.id === this.activeLayerId);
     if (layer?.type !== "image") return;
+
+    if (!this.hasDragged) {
+      state.saveHistorySnapshot();
+      this.hasDragged = true;
+    }
 
     if (this.activeHandle === "rotate") {
       this.handleRotatePointerMove(e, state);
@@ -409,24 +415,8 @@ export class TransformOverlayManager {
   }
 
   private readonly onPointerUp = () => {
-    if (this.activeHandle && this.activeLayerId) {
-      const state = useLayerStore.getState();
-      const layer = state.layers.find((l) => l.id === this.activeLayerId);
-      if (layer) {
-        state.updateLayerTransform(
-          this.activeLayerId,
-          {
-            scaleX: layer.scaleX,
-            scaleY: layer.scaleY,
-            rotation: layer.rotation,
-            x: layer.x,
-            y: layer.y,
-          },
-          true,
-        );
-      }
-    }
     this.activeHandle = null;
+    this.hasDragged = false;
   };
 
   private setupHandleInteraction(handle: PIXI.Graphics, id: string) {
@@ -434,6 +424,7 @@ export class TransformOverlayManager {
     handle.removeAllListeners("pointerdown");
     handle.on("pointerdown", (e: PIXI.FederatedPointerEvent) => {
       this.activeHandle = id;
+      this.hasDragged = false;
       this.dragStartPoint = { x: e.global.x, y: e.global.y };
       const state = useLayerStore.getState();
       const layer = state.layers.find((l) => l.id === this.activeLayerId);
