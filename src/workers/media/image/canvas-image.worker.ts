@@ -204,10 +204,8 @@ const imageProcessor = {
     });
   },
 
-  async smartCrop(fileBlob: Blob): Promise<Blob> {
-    console.log(
-      "Worker: Applying Smart Crop (trimming transparent borders)...",
-    );
+  async smartCrop(fileBlob: Blob) {
+    console.log("Worker: Applying Smart Crop (scanning for bounds)...");
 
     const bitmap = await createImageBitmap(fileBlob);
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
@@ -223,34 +221,12 @@ const imageProcessor = {
       canvas.height,
     );
 
-    // If completely transparent, return original
+    // If completely transparent, return null
     if (minX > maxX || minY > maxY) {
-      return fileBlob;
+      return null;
     }
 
-    const cropWidth = maxX - minX + 1;
-    const cropHeight = maxY - minY + 1;
-
-    // Create cropped canvas
-    const croppedCanvas = new OffscreenCanvas(cropWidth, cropHeight);
-    const croppedCtx = croppedCanvas.getContext("2d");
-    if (!croppedCtx) throw new Error("Failed to get 2D context");
-
-    croppedCtx.drawImage(
-      canvas,
-      minX,
-      minY,
-      cropWidth,
-      cropHeight,
-      0,
-      0,
-      cropWidth,
-      cropHeight,
-    );
-
-    return await croppedCanvas.convertToBlob({
-      type: fileBlob.type || "image/png",
-    });
+    return { minX, minY, maxX, maxY };
   },
 };
 

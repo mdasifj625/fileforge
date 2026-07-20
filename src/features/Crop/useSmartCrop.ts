@@ -22,33 +22,47 @@ export function useSmartCrop(activeLayer: Layer | undefined) {
       );
       const api = Comlink.wrap<ImageProcessor>(worker);
 
-      const newBlob = await api.smartCrop(fileRecord.blob);
-
-      const newFileId = crypto.randomUUID();
-      await db.files.put({
-        id: newFileId,
-        blob: newBlob,
-        name: `smartcrop-${fileRecord.name}`,
-        type: fileRecord.type,
-        size: newBlob.size,
-        createdAt: Date.now(),
-      });
-
-      const bitmap = await createImageBitmap(newBlob);
-      const newLayerId = crypto.randomUUID();
+      const bounds = await api.smartCrop(fileRecord.blob);
+      if (!bounds) {
+        worker.terminate();
+        setIsFiltering(false);
+        return;
+      }
 
       const activeImgLayer = activeLayer as ImageLayer;
+
+      const cropX = bounds.minX;
+      const cropY = bounds.minY;
+      const cropW = bounds.maxX - bounds.minX + 1;
+      const cropH = bounds.maxY - bounds.minY + 1;
+
+      // Calculate shift of center
+      const oldCx = activeImgLayer.cropRect
+        ? activeImgLayer.cropRect.x + activeImgLayer.cropRect.width / 2
+        : activeImgLayer.originalWidth / 2;
+      const oldCy = activeImgLayer.cropRect
+        ? activeImgLayer.cropRect.y + activeImgLayer.cropRect.height / 2
+        : activeImgLayer.originalHeight / 2;
+
+      const newCx = cropX + cropW / 2;
+      const newCy = cropY + cropH / 2;
+
+      const diffCx = (newCx - oldCx) * Math.abs(activeImgLayer.scaleX);
+      const diffCy = (newCy - oldCy) * Math.abs(activeImgLayer.scaleY);
+
+      const angle = activeImgLayer.rotation || 0;
+      const globalShiftX = diffCx * Math.cos(angle) - diffCy * Math.sin(angle);
+      const globalShiftY = diffCx * Math.sin(angle) + diffCy * Math.cos(angle);
+
       replaceLayer(activeImgLayer.id, {
         ...activeImgLayer,
-        id: newLayerId,
-        fileId: newFileId,
-        originalWidth: bitmap.width,
-        originalHeight: bitmap.height,
+        x: activeImgLayer.x + globalShiftX,
+        y: activeImgLayer.y + globalShiftY,
         cropRect: {
-          x: 0,
-          y: 0,
-          width: bitmap.width,
-          height: bitmap.height,
+          x: cropX,
+          y: cropY,
+          width: cropW,
+          height: cropH,
         },
       } as ImageLayer);
 

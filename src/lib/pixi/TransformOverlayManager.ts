@@ -86,8 +86,40 @@ function updateCropGrid(
   height: number,
   isDark: boolean,
   _overlayColor: number,
+  layer: ImageLayer,
+  zoom: number,
 ) {
   boundsBox.clear();
+
+  if (layer.cropRect && layer.originalWidth > 0) {
+    const scaleX = Math.abs(layer.scaleX);
+    const scaleY = Math.abs(layer.scaleY);
+
+    const cropLocalX = -width / 2;
+    const cropLocalY = -height / 2;
+
+    const oX = -(layer.cropRect.x + layer.cropRect.width / 2) * scaleX * zoom;
+    const oY = -(layer.cropRect.y + layer.cropRect.height / 2) * scaleY * zoom;
+    const oW = layer.originalWidth * scaleX * zoom;
+    const oH = layer.originalHeight * scaleY * zoom;
+
+    boundsBox.rect(oX, oY, oW, cropLocalY - oY); // Top
+    boundsBox.rect(
+      oX,
+      cropLocalY + height,
+      oW,
+      oY + oH - (cropLocalY + height),
+    ); // Bottom
+    boundsBox.rect(oX, cropLocalY, cropLocalX - oX, height); // Left
+    boundsBox.rect(
+      cropLocalX + width,
+      cropLocalY,
+      oX + oW - (cropLocalX + width),
+      height,
+    ); // Right
+
+    boundsBox.fill({ color: 0x000000, alpha: 0.6 });
+  }
 
   boundsBox.rect(-width / 2, -height / 2, width, height);
   boundsBox.stroke({
@@ -137,11 +169,11 @@ function updateCropGrid(
 }
 
 export class TransformOverlayManager {
-  private app: PIXI.Application;
-  private container: PIXI.Container;
-  private border: PIXI.Graphics;
-  private cropGrid: PIXI.Graphics;
-  private rotationHandle: PIXI.Graphics;
+  private readonly app: PIXI.Application;
+  private readonly container: PIXI.Container;
+  private readonly border: PIXI.Graphics;
+  private readonly cropGrid: PIXI.Graphics;
+  private readonly rotationHandle: PIXI.Graphics;
   private handles: Record<string, PIXI.Graphics> = {};
   private activeHandle: string | null = null;
   private dragStartPoint = { x: 0, y: 0 };
@@ -151,8 +183,11 @@ export class TransformOverlayManager {
     scaleX: 1,
     scaleY: 1,
     rotation: 0,
+    cropRect: undefined as
+      { x: number; y: number; width: number; height: number } | undefined,
   };
   private activeLayerId: string | null = null;
+  private activeTool: string = "";
   private allowRotation: boolean = false;
   private zoomValue: number = 1;
 
@@ -177,35 +212,141 @@ export class TransformOverlayManager {
     this.app.stage.on("pointerupoutside", this.onPointerUp);
   }
 
-  private onPointerMove = (e: PIXI.FederatedPointerEvent) => {
+  private readonly onPointerMove = (e: PIXI.FederatedPointerEvent) => {
     if (!this.activeHandle || !this.activeLayerId) return;
-
-    const dx = e.global.x - this.dragStartPoint.x;
-    const dy = e.global.y - this.dragStartPoint.y;
 
     const state = useLayerStore.getState();
     const layer = state.layers.find((l) => l.id === this.activeLayerId);
-    if (!layer || layer.type !== "image") return;
-
-    const angle = this.initialLayerTransform.rotation;
-    const zoom = this.zoomValue;
+    if (layer?.type !== "image") return;
 
     if (this.activeHandle === "rotate") {
-      const centerX = this.initialLayerTransform.x;
-      const centerY = this.initialLayerTransform.y;
-      // Calculate angle from center to pointer
-      // Subtract Math.PI/2 because the handle is at the top (which is -90deg in atan2)
-      const newAngle =
-        Math.atan2(e.global.y - centerY, e.global.x - centerX) + Math.PI / 2;
-      state.updateLayerTransform(
-        this.activeLayerId,
-        { rotation: newAngle },
-        false,
-      );
+      this.handleRotatePointerMove(e, state);
       return;
     }
 
-    // For resize handles
+    if (this.activeTool === "crop") {
+      this.handleCropPointerMove(e, state, layer, this.activeHandle);
+      return;
+    }
+
+    this.handleScalePointerMove(e, state, layer, this.activeHandle);
+  };
+
+  private handleRotatePointerMove(
+    e: PIXI.FederatedPointerEvent,
+    state: ReturnType<typeof useLayerStore.getState>,
+  ) {
+    const centerX = this.initialLayerTransform.x;
+    const centerY = this.initialLayerTransform.y;
+    // Calculate angle from center to pointer
+    // Subtract Math.PI/2 because the handle is at the top (which is -90deg in atan2)
+    const newAngle =
+      Math.atan2(e.global.y - centerY, e.global.x - centerX) + Math.PI / 2;
+    state.updateLayerTransform(
+      this.activeLayerId!,
+      { rotation: newAngle },
+      false,
+    );
+  }
+
+  private handleCropPointerMove(
+    e: PIXI.FederatedPointerEvent,
+    state: ReturnType<typeof useLayerStore.getState>,
+    layer: ImageLayer,
+    activeHandle: string,
+  ) {
+    const dx = e.global.x - this.dragStartPoint.x;
+    const dy = e.global.y - this.dragStartPoint.y;
+    const angle = this.initialLayerTransform.rotation;
+    const zoom = this.zoomValue;
+    const localDx = dx * Math.cos(-angle) - dy * Math.sin(-angle);
+    const localDy = dx * Math.sin(-angle) + dy * Math.cos(-angle);
+
+    const scaleX = this.initialLayerTransform.scaleX;
+    const scaleY = this.initialLayerTransform.scaleY;
+
+    const imageDx = localDx / (Math.abs(scaleX) * zoom);
+    const imageDy = localDy / (Math.abs(scaleY) * zoom);
+
+    let cropX = 0,
+      cropY = 0,
+      cropW = layer.originalWidth,
+      cropH = layer.originalHeight;
+    if (this.initialLayerTransform.cropRect) {
+      cropX = this.initialLayerTransform.cropRect.x;
+      cropY = this.initialLayerTransform.cropRect.y;
+      cropW = this.initialLayerTransform.cropRect.width;
+      cropH = this.initialLayerTransform.cropRect.height;
+    }
+
+    if (activeHandle.includes("r")) cropW += imageDx;
+    if (activeHandle.includes("l")) {
+      cropX += imageDx;
+      cropW -= imageDx;
+    }
+    if (activeHandle.includes("b")) cropH += imageDy;
+    if (activeHandle.includes("t")) {
+      cropY += imageDy;
+      cropH -= imageDy;
+    }
+
+    // Constrain
+    if (cropX < 0) {
+      cropW += cropX;
+      cropX = 0;
+    }
+    if (cropY < 0) {
+      cropH += cropY;
+      cropY = 0;
+    }
+    if (cropX + cropW > layer.originalWidth)
+      cropW = layer.originalWidth - cropX;
+    if (cropY + cropH > layer.originalHeight)
+      cropH = layer.originalHeight - cropY;
+
+    if (cropW < 10) cropW = 10;
+    if (cropH < 10) cropH = 10;
+
+    // Calculate shift of center
+    const oldCx = this.initialLayerTransform.cropRect
+      ? this.initialLayerTransform.cropRect.x +
+        this.initialLayerTransform.cropRect.width / 2
+      : layer.originalWidth / 2;
+    const oldCy = this.initialLayerTransform.cropRect
+      ? this.initialLayerTransform.cropRect.y +
+        this.initialLayerTransform.cropRect.height / 2
+      : layer.originalHeight / 2;
+
+    const newCx = cropX + cropW / 2;
+    const newCy = cropY + cropH / 2;
+
+    const diffCx = (newCx - oldCx) * Math.abs(scaleX);
+    const diffCy = (newCy - oldCy) * Math.abs(scaleY);
+
+    const globalShiftX = diffCx * Math.cos(angle) - diffCy * Math.sin(angle);
+    const globalShiftY = diffCx * Math.sin(angle) + diffCy * Math.cos(angle);
+
+    state.updateLayerTransform(
+      this.activeLayerId!,
+      {
+        x: this.initialLayerTransform.x + globalShiftX,
+        y: this.initialLayerTransform.y + globalShiftY,
+        cropRect: { x: cropX, y: cropY, width: cropW, height: cropH },
+      },
+      false,
+    );
+  }
+
+  private handleScalePointerMove(
+    e: PIXI.FederatedPointerEvent,
+    state: ReturnType<typeof useLayerStore.getState>,
+    layer: ImageLayer,
+    activeHandle: string,
+  ) {
+    const dx = e.global.x - this.dragStartPoint.x;
+    const dy = e.global.y - this.dragStartPoint.y;
+    const angle = this.initialLayerTransform.rotation;
+    const zoom = this.zoomValue;
     const localDx = dx * Math.cos(-angle) - dy * Math.sin(-angle);
     const localDy = dx * Math.sin(-angle) + dy * Math.cos(-angle);
 
@@ -217,33 +358,33 @@ export class TransformOverlayManager {
     const baseW = layer.originalWidth * zoom;
     const baseH = layer.originalHeight * zoom;
 
-    if (this.activeHandle.includes("r")) {
+    if (activeHandle.includes("r")) {
       dScaleX = localDx / baseW;
       shiftX += localDx / 2;
     }
-    if (this.activeHandle.includes("l")) {
+    if (activeHandle.includes("l")) {
       dScaleX = -localDx / baseW;
       shiftX += localDx / 2;
     }
-    if (this.activeHandle.includes("b")) {
+    if (activeHandle.includes("b")) {
       dScaleY = localDy / baseH;
       shiftY += localDy / 2;
     }
-    if (this.activeHandle.includes("t")) {
+    if (activeHandle.includes("t")) {
       dScaleY = -localDy / baseH;
       shiftY += localDy / 2;
     }
 
     // If corner handle, preserve aspect ratio by applying uniform scale to both
-    if (this.activeHandle.length === 2) {
+    if (activeHandle.length === 2) {
       const scaleDelta = (dScaleX + dScaleY) / 2;
       dScaleX = scaleDelta;
       dScaleY = scaleDelta;
       // We recalculate shift to match the proportional scale
-      shiftX = this.activeHandle.includes("r")
+      shiftX = activeHandle.includes("r")
         ? (scaleDelta * baseW) / 2
         : -(scaleDelta * baseW) / 2;
-      shiftY = this.activeHandle.includes("b")
+      shiftY = activeHandle.includes("b")
         ? (scaleDelta * baseH) / 2
         : -(scaleDelta * baseH) / 2;
     }
@@ -256,7 +397,7 @@ export class TransformOverlayManager {
     const globalShiftY = shiftX * Math.sin(angle) + shiftY * Math.cos(angle);
 
     state.updateLayerTransform(
-      this.activeLayerId,
+      this.activeLayerId!,
       {
         scaleX: newScaleX,
         scaleY: newScaleY,
@@ -265,9 +406,9 @@ export class TransformOverlayManager {
       },
       false,
     );
-  };
+  }
 
-  private onPointerUp = () => {
+  private readonly onPointerUp = () => {
     if (this.activeHandle && this.activeLayerId) {
       const state = useLayerStore.getState();
       const layer = state.layers.find((l) => l.id === this.activeLayerId);
@@ -303,6 +444,10 @@ export class TransformOverlayManager {
           scaleX: layer.scaleX,
           scaleY: layer.scaleY,
           rotation: layer.rotation || 0,
+          cropRect:
+            layer.type === "image" && layer.cropRect
+              ? { ...layer.cropRect }
+              : undefined,
         };
       }
       e.stopPropagation(); // Prevent canvas pan
@@ -321,23 +466,17 @@ export class TransformOverlayManager {
     this.app.stage.off("pointerupoutside", this.onPointerUp);
   }
 
-  private calculateDimensions(layer: ImageLayer, isCropMode: boolean) {
+  private calculateDimensions(layer: ImageLayer) {
     let activeWidth = layer.originalWidth * Math.abs(layer.scaleX);
     let activeHeight = layer.originalHeight * Math.abs(layer.scaleY);
-    let offsetX = 0;
-    let offsetY = 0;
 
-    if (isCropMode && layer.cropRect && layer.originalWidth > 0) {
+    if (layer.cropRect && layer.originalWidth > 0) {
       activeWidth = layer.cropRect.width * Math.abs(layer.scaleX);
       activeHeight = layer.cropRect.height * Math.abs(layer.scaleY);
-      offsetX =
-        (layer.cropRect.x - (layer.originalWidth - layer.cropRect.width) / 2) *
-        Math.abs(layer.scaleX);
-      offsetY =
-        (layer.cropRect.y -
-          (layer.originalHeight - layer.cropRect.height) / 2) *
-        Math.abs(layer.scaleY);
     }
+    // layer.x and layer.y are always the center of the cropped image (or full image if uncropped)
+    const offsetX = 0;
+    const offsetY = 0;
 
     return { activeWidth, activeHeight, offsetX, offsetY };
   }
@@ -359,7 +498,7 @@ export class TransformOverlayManager {
     const state = useLayerStore.getState();
     const layer = state.layers.find((l) => l.id === activeLayerId) as
       ImageLayer | undefined;
-    if (!layer || layer.type !== "image") {
+    if (layer?.type !== "image") {
       this.container.visible = false;
       this.activeLayerId = null;
       return;
@@ -367,6 +506,7 @@ export class TransformOverlayManager {
 
     this.container.visible = true;
     this.activeLayerId = activeLayerId;
+    this.activeTool = activeTool;
     this.zoomValue = zoom / 100;
     this.allowRotation = toolDef.allowRotation !== false;
 
@@ -379,7 +519,7 @@ export class TransformOverlayManager {
     const isDark = theme === "dark";
 
     const { activeWidth, activeHeight, offsetX, offsetY } =
-      this.calculateDimensions(layer, isCropMode);
+      this.calculateDimensions(layer);
 
     const stagePos = { x: layer.x + offsetX, y: layer.y + offsetY };
     const scaledWidth = activeWidth * (zoom / 100);
@@ -410,6 +550,8 @@ export class TransformOverlayManager {
         scaledHeight,
         isDark,
         _overlayColor,
+        layer,
+        this.zoomValue,
       );
       this.cropGrid.x = stagePos.x;
       this.cropGrid.y = stagePos.y;
@@ -471,7 +613,7 @@ export class TransformOverlayManager {
 
     // Remove unused handles
     for (const id in this.handles) {
-      if (!expectedHandles.find((h) => h.id === id)) {
+      if (!expectedHandles.some((h) => h.id === id)) {
         this.container.removeChild(this.handles[id]);
         this.handles[id].destroy();
         delete this.handles[id];

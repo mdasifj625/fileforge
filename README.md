@@ -1,5 +1,9 @@
 # File Forge
 
+- 🖼️ **Client-Side PixiJS Canvas**: 60fps WebGL architecture. Never limits drag/scale gestures with sluggish React re-renders.
+- 📐 **Dynamic Bounds & Cropping**: Fully non-destructive coordinate-based cropping that integrates tightly with AI endpoints, utilizing zero-lag trigonometric overlay bounds syncing.
+- 📂 **Dexie.js Offline Persistence**: Images are persisted directly inside the browser using IndexedDB Blob storage. Never lose your work on refresh. Files never leave your device.
+
 File Forge is a local-first, privacy-focused file processing workspace. It allows you to process images, PDFs, video, and audio directly in your browser using WebAssembly and Web Workers. Files never leave your device.
 
 ## Core Features

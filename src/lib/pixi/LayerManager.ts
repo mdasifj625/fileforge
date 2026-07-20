@@ -271,8 +271,17 @@ export class LayerManager {
         maskSprite.scale.set(sprite.scale.x, sprite.scale.y);
         maskSprite.rotation = sprite.rotation;
       }
+      this.updateSpriteTextureAndPosition(sprite, layer, activeTool);
+    }
+  }
 
-      if (layer.cropRect && layer.originalWidth > 0) {
+  private updateSpriteTextureAndPosition(
+    sprite: PIXI.Sprite,
+    layer: ImageLayer,
+    activeTool: string,
+  ) {
+    if (layer.cropRect && layer.originalWidth > 0) {
+      if (activeTool !== "crop") {
         const cx = Math.max(0, layer.cropRect.x);
         const cy = Math.max(0, layer.cropRect.y);
         const cw = Math.min(layer.originalWidth - cx, layer.cropRect.width);
@@ -284,20 +293,53 @@ export class LayerManager {
             frame: new PIXI.Rectangle(cx, cy, cw, ch),
           });
         }
-      } else if (
-        layer.originalWidth > 0 &&
-        sprite.texture.frame.width !== layer.originalWidth
-      ) {
-        sprite.texture = new PIXI.Texture({
-          source: sprite.texture.source,
-          frame: new PIXI.Rectangle(
-            0,
-            0,
-            layer.originalWidth,
-            layer.originalHeight,
-          ),
-        });
+      } else {
+        // Draw the full image, but shifted so the crop area remains centered at layer.x
+        const cx = layer.cropRect.x;
+        const cy = layer.cropRect.y;
+        const cw = layer.cropRect.width;
+        const ch = layer.cropRect.height;
+
+        const offsetX = layer.originalWidth / 2 - (cx + cw / 2);
+        const offsetY = layer.originalHeight / 2 - (cy + ch / 2);
+
+        const angle = layer.rotation || 0;
+        const globalOffsetX =
+          offsetX * layer.scaleX * Math.cos(angle) -
+          offsetY * layer.scaleY * Math.sin(angle);
+        const globalOffsetY =
+          offsetX * layer.scaleX * Math.sin(angle) +
+          offsetY * layer.scaleY * Math.cos(angle);
+
+        sprite.x = layer.x + globalOffsetX;
+        sprite.y = layer.y + globalOffsetY;
+
+        // Ensure full texture frame
+        if (sprite.texture.frame.width !== layer.originalWidth) {
+          sprite.texture = new PIXI.Texture({
+            source: sprite.texture.source,
+            frame: new PIXI.Rectangle(
+              0,
+              0,
+              layer.originalWidth,
+              layer.originalHeight,
+            ),
+          });
+        }
       }
+    } else if (
+      layer.originalWidth > 0 &&
+      sprite.texture.frame.width !== layer.originalWidth
+    ) {
+      sprite.texture = new PIXI.Texture({
+        source: sprite.texture.source,
+        frame: new PIXI.Rectangle(
+          0,
+          0,
+          layer.originalWidth,
+          layer.originalHeight,
+        ),
+      });
     }
   }
 

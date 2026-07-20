@@ -67,8 +67,9 @@ Instead of using declarative libraries like `@pixi/react`, File Forge uses an ob
 This class manages the UI overlays (bounding boxes, anchor handles, crop grids) that sit on top of the PixiJS stage.
 
 - **Local-to-Global Projection**: It listens to the active layer's matrix and projects a responsive bounding box on the screen.
+- **Dynamic Crop Frame Integration**: The crop tool utilizes the exact same native 60fps bounding box handles. Instead of modifying the layer scale, the `TransformOverlayManager` intercepts the dragging geometry, calculates the coordinate diffs via `Math.cos/sin` trigonometry based on rotation, and updates the `cropRect` boundaries and layer center point seamlessly without replacing files.
 - **Rule of Thirds**: Dynamically draws high-fidelity grid lines when crop mode is active.
-- **Dynamic Interaction**: Handles bounding box dragging (scaling) and rotation natively on the PixiJS stage via `globalpointermove`. This bypasses React completely. Interaction visibility is controlled dynamically via `showTransformOverlay` and `allowRotation` flags in the tool's registry definition.
+- **Dynamic Interaction**: Handles bounding box dragging (scaling, cropping) and rotation natively on the PixiJS stage via `globalpointermove`. This bypasses React completely. Interaction visibility is controlled dynamically via `showTransformOverlay` and `allowRotation` flags in the tool's registry definition.
 
 ---
 
