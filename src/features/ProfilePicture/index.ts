@@ -13,6 +13,7 @@ export const profilePictureTool: ToolDefinition = {
   id: "profile-picture",
   name: "Profile Picture Maker",
   category: "image",
+  surfaceType: "image-canvas",
   description: "Remove background and add a solid color.",
   params: [],
   PropertiesComponent: ProfilePictureSettings,

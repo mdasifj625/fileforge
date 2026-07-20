@@ -13,6 +13,7 @@ export const resizeTool: ToolDefinition = {
   id: "resize",
   name: "Resize Image",
   category: "image",
+  surfaceType: "image-canvas",
   description: "Resize your image by scaling its dimensions.",
   params: [],
   PropertiesComponent: ResizeSettings,

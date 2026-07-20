@@ -10,6 +10,7 @@ export const cropTool: ToolDefinition = {
   id: "crop",
   name: "Crop Image",
   category: "image",
+  surfaceType: "image-canvas",
   description: "Crop and resize the image canvas with Smart Crop support.",
   params: [],
   PropertiesComponent: CropSettings,

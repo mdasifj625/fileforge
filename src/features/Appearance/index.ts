@@ -13,6 +13,7 @@ export const appearanceTool: ToolDefinition = {
   id: "appearance",
   name: "Layer Appearance",
   category: "image",
+  surfaceType: "image-canvas",
   description: "Adjust opacity and blend modes.",
   params: [],
   PropertiesComponent: AppearanceSettings,

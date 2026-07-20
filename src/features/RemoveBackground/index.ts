@@ -13,6 +13,7 @@ export const removeBackgroundTool: ToolDefinition = {
   id: "ai-remove-background",
   name: "Remove Background",
   category: "image",
+  surfaceType: "image-canvas",
   description: "Automatically remove the background from an image using AI.",
   params: [],
   PropertiesComponent: BackgroundRemovalSettings,

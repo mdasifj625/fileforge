@@ -10,6 +10,7 @@ export const ocrTool: ToolDefinition = {
   id: "ai-ocr",
   name: "Extract Text",
   category: "ai",
+  surfaceType: "image-canvas",
   description: "Extract text from an image using AI (OCR).",
   params: [],
   PropertiesComponent: OCRSettings,
