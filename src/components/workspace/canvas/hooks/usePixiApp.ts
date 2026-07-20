@@ -18,6 +18,7 @@ export function usePixiApp({
   useEffect(() => {
     if (!containerRef.current) return;
 
+    let isMounted = true;
     const app = new PIXI.Application();
 
     let resizeHandler: (() => void) | null = null;
@@ -29,6 +30,11 @@ export function usePixiApp({
         resolution: window.devicePixelRatio || 1,
         autoDensity: true,
       });
+
+      if (!isMounted) {
+        app.destroy(true, { children: true, texture: true });
+        return;
+      }
 
       if (containerRef.current) {
         containerRef.current.appendChild(app.canvas);
@@ -78,6 +84,7 @@ export function usePixiApp({
     initPixi();
 
     return () => {
+      isMounted = false;
       if (resizeHandler && appRef.current) {
         appRef.current.renderer.off("resize", resizeHandler);
       }

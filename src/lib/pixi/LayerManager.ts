@@ -122,14 +122,30 @@ export class LayerManager {
       this.app.stage.addChild(sprite);
 
       if (layer.originalWidth === 0) {
+        let initialScale = 1;
+        const padding = 0.9;
+        if (source.width > 0 && source.height > 0) {
+          const scaleX = (this.app.screen.width * padding) / source.width;
+          const scaleY = (this.app.screen.height * padding) / source.height;
+          initialScale = Math.min(1, scaleX, scaleY);
+        }
+
         useLayerStore.getState().updateLayerTransform(
           layer.id,
           {
             originalWidth: source.width,
             originalHeight: source.height,
+            scaleX: initialScale,
+            scaleY: initialScale,
           },
           false,
         );
+
+        // Mutate locally so the rest of this sync cycle uses the new values instantly
+        layer.originalWidth = source.width;
+        layer.originalHeight = source.height;
+        layer.scaleX = initialScale;
+        layer.scaleY = initialScale;
       }
       return sprite;
     } catch (e) {
