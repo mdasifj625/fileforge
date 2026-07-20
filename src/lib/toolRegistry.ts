@@ -40,6 +40,7 @@ export interface ToolDefinition {
   surfaceType?: SurfaceType;
   description: string;
   showTransformOverlay?: boolean;
+  enableCropOverlay?: (layer: Layer) => boolean;
   allowRotation?: boolean;
   workerAction?: string;
   params: UIParam[];

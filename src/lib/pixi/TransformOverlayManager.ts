@@ -230,7 +230,9 @@ export class TransformOverlayManager {
       return;
     }
 
-    if (this.activeTool === "crop") {
+    const toolDef = this.activeTool ? toolRegistry[this.activeTool] : null;
+
+    if (this.activeTool === "crop" || toolDef?.enableCropOverlay?.(layer)) {
       this.handleCropPointerMove(e, state, layer, this.activeHandle);
       return;
     }
@@ -506,7 +508,8 @@ export class TransformOverlayManager {
     const handleFillColor = theme === "dark" ? 0x000000 : 0xffffff;
     const handleStrokeColor = theme === "dark" ? 0x333333 : 0xffffff;
     const handleStrokeAlpha = theme === "dark" ? 0.8 : 0.9;
-    const isCropMode = activeTool === "crop";
+    const isCropMode =
+      activeTool === "crop" || !!toolDef?.enableCropOverlay?.(layer);
     const isDark = theme === "dark";
 
     const { activeWidth, activeHeight, offsetX, offsetY } =

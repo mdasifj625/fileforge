@@ -1,6 +1,8 @@
 import dynamic from "next/dynamic";
 import { ToolDefinition } from "@/lib/toolRegistry";
 
+import { ImageLayer } from "@/types/layer";
+
 const BackgroundRemovalSettings = dynamic(
   () =>
     import("@/features/RemoveBackground/BackgroundRemovalSettings").then(
@@ -15,6 +17,9 @@ export const removeBackgroundTool: ToolDefinition = {
   category: "image",
   surfaceType: "image-canvas",
   showTransformOverlay: true,
+  enableCropOverlay: (layer) => {
+    return !!(layer as ImageLayer).isAiBackgroundRemoved;
+  },
   allowRotation: false,
   description: "Automatically remove the background from an image using AI.",
   params: [],

@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { ImageLayer } from "@/types/layer";
-import { Link, Unlock, RotateCcw, Check } from "lucide-react";
-import { db } from "@/db";
-import * as Comlink from "comlink";
-import { ImageProcessor } from "@/workers/media/image/canvas-image.worker";
-import { useLayerStore } from "@/store/useLayerStore";
+import { Check, RotateCcw, Link, Unlock } from "lucide-react";
+import { useApplyCrop } from "@/features/Crop/useApplyCrop";
 
 interface Props {
   layer: ImageLayer;
@@ -16,8 +13,7 @@ export function LayerCropSettings({
   updateLayerTransform,
 }: Readonly<Props>) {
   const [lockAspect, setLockAspect] = useState(false);
-  const [isApplying, setIsApplying] = useState(false);
-  const replaceLayer = useLayerStore((s) => s.replaceLayer);
+  const { applyCrop, isApplying } = useApplyCrop(layer);
 
   const currentRect = layer.cropRect || {
     x: 0,
@@ -36,52 +32,6 @@ export function LayerCropSettings({
         height: layer.originalHeight,
       },
     });
-  };
-
-  const handleApplyCrop = async () => {
-    if (!layer.cropRect || isApplying) return;
-    setIsApplying(true);
-    try {
-      const fileRecord = await db.files.get(layer.fileId);
-      if (!fileRecord) throw new Error("File not found in DB");
-
-      const worker = new Worker(
-        new URL("@/workers/media/image/canvas-image.worker", import.meta.url),
-        { type: "module" },
-      );
-      const api = Comlink.wrap<ImageProcessor>(worker);
-
-      const newBlob = await api.applyCrop(fileRecord.blob, layer.cropRect);
-
-      const newFileId = crypto.randomUUID();
-      await db.files.put({
-        id: newFileId,
-        blob: newBlob,
-        name: `cropped-${fileRecord.name}`,
-        type: fileRecord.type,
-        size: newBlob.size,
-        createdAt: Date.now(),
-      });
-
-      const bitmap = await createImageBitmap(newBlob);
-      const newLayerId = crypto.randomUUID();
-
-      replaceLayer(layer.id, {
-        ...layer,
-        id: newLayerId,
-        fileId: newFileId,
-        originalWidth: bitmap.width,
-        originalHeight: bitmap.height,
-        cropRect: undefined,
-      });
-
-      worker.terminate();
-    } catch (e) {
-      console.error(e);
-      alert("Failed to apply crop.");
-    } finally {
-      setIsApplying(false);
-    }
   };
 
   const handleWidthChange = (val: number) => {
@@ -179,7 +129,7 @@ export function LayerCropSettings({
         </div>
 
         <button
-          onClick={handleApplyCrop}
+          onClick={applyCrop}
           disabled={isApplying || !layer.cropRect}
           className="w-full bg-primary hover:bg-primary-hover text-primary-foreground text-xs py-3 rounded-lg transition-all disabled:opacity-50 font-bold mb-6 flex items-center justify-center gap-2"
         >
