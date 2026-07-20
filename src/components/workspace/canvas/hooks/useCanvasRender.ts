@@ -13,6 +13,20 @@ export function useCanvasRender(refs: CanvasRefs, isPixiReady: boolean) {
     )
       return;
 
+    // Trigger initial render immediately
+    const initialState = useLayerStore.getState();
+    refs.layerManagerRef.current
+      .syncLayers(initialState.layers, initialState.activeLayerId)
+      .then(() => {
+        const toolState = useToolStore.getState();
+        refs.transformOverlayManagerRef.current?.update(
+          initialState.activeLayerId,
+          toolState.theme,
+          toolState.zoom,
+          toolState.activeTool || "",
+        );
+      });
+
     // We subscribe to the store manually to avoid triggering React re-renders 60fps during dragging!
     const unsubLayerStore = useLayerStore.subscribe(async (state) => {
       if (

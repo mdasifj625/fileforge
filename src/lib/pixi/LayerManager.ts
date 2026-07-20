@@ -111,7 +111,8 @@ export class LayerManager {
       if (!fileRecord) return null;
 
       const bitmap = await createImageBitmap(fileRecord.blob);
-      const texture = PIXI.Texture.from(bitmap);
+      const source = new PIXI.ImageSource({ resource: bitmap });
+      const texture = new PIXI.Texture({ source });
       const sprite = new PIXI.Sprite(texture);
 
       sprite.anchor.set(0.5);
@@ -121,10 +122,14 @@ export class LayerManager {
       this.app.stage.addChild(sprite);
 
       if (layer.originalWidth === 0) {
-        useLayerStore.getState().updateLayerTransform(layer.id, {
-          originalWidth: texture.width,
-          originalHeight: texture.height,
-        });
+        useLayerStore.getState().updateLayerTransform(
+          layer.id,
+          {
+            originalWidth: source.width,
+            originalHeight: source.height,
+          },
+          false,
+        );
       }
       return sprite;
     } catch (e) {
@@ -154,7 +159,8 @@ export class LayerManager {
       const maskRecord = await db.files.get(layer.maskFileId!);
       if (!maskRecord) return;
       const bitmap = await createImageBitmap(maskRecord.blob);
-      const texture = PIXI.Texture.from(bitmap);
+      const source = new PIXI.ImageSource({ resource: bitmap });
+      const texture = new PIXI.Texture({ source });
       const renderTexture = PIXI.RenderTexture.create({
         width: texture.width,
         height: texture.height,
