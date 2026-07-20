@@ -68,6 +68,7 @@ This class manages the UI overlays (bounding boxes, anchor handles, crop grids) 
 
 - **Local-to-Global Projection**: It listens to the active layer's matrix and projects a responsive bounding box on the screen.
 - **Rule of Thirds**: Dynamically draws high-fidelity grid lines when crop mode is active.
+- **Dynamic Interaction**: Handles bounding box dragging (scaling) and rotation natively on the PixiJS stage via `globalpointermove`. This bypasses React completely. Interaction visibility is controlled dynamically via `showTransformOverlay` and `allowRotation` flags in the tool's registry definition.
 
 ---
 

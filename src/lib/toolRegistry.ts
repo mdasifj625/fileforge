@@ -39,6 +39,8 @@ export interface ToolDefinition {
   category: "image" | "pdf" | "video" | "audio" | "utility" | "ai" | "convert";
   surfaceType?: SurfaceType;
   description: string;
+  showTransformOverlay?: boolean;
+  allowRotation?: boolean;
   workerAction?: string;
   params: UIParam[];
   PropertiesComponent?: React.ComponentType<{ layer?: Layer }>;

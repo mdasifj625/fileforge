@@ -38,8 +38,15 @@ export function CanvasArea() {
   const { isPixiReady } = usePixiApp(canvasRefs);
   useCanvasExport(canvasRefs);
   const { getRootProps, getInputProps, isDragActive, open } = useCanvasDrop();
-  const { handleTouchStart, handleTouchMove, handleTouchEnd } =
-    useCanvasGestures(containerRef);
+
+  const {
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = useCanvasGestures(containerRef);
 
   useCanvasRender(canvasRefs, isPixiReady);
 
@@ -48,6 +55,10 @@ export function CanvasArea() {
       {...getRootProps()}
       className="absolute inset-0 overflow-hidden"
       style={{ touchAction: "none" }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}

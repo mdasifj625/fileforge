@@ -1,6 +1,7 @@
 import * as PIXI from "pixi.js";
 import { ImageLayer } from "@/types/layer";
 import { useLayerStore } from "@/store";
+import { toolRegistry } from "@/lib/toolRegistry";
 
 function getHandlesConfig(isCropMode: boolean) {
   return isCropMode
@@ -142,6 +143,18 @@ export class TransformOverlayManager {
   private cropGrid: PIXI.Graphics;
   private rotationHandle: PIXI.Graphics;
   private handles: Record<string, PIXI.Graphics> = {};
+  private activeHandle: string | null = null;
+  private dragStartPoint = { x: 0, y: 0 };
+  private initialLayerTransform = {
+    x: 0,
+    y: 0,
+    scaleX: 1,
+    scaleY: 1,
+    rotation: 0,
+  };
+  private activeLayerId: string | null = null;
+  private allowRotation: boolean = false;
+  private zoomValue: number = 1;
 
   constructor(app: PIXI.Application) {
     this.app = app;
@@ -157,6 +170,143 @@ export class TransformOverlayManager {
     this.container.addChild(this.rotationHandle);
 
     this.app.stage.addChild(this.container);
+
+    this.app.stage.eventMode = "static";
+    this.app.stage.on("globalpointermove", this.onPointerMove);
+    this.app.stage.on("pointerup", this.onPointerUp);
+    this.app.stage.on("pointerupoutside", this.onPointerUp);
+  }
+
+  private onPointerMove = (e: PIXI.FederatedPointerEvent) => {
+    if (!this.activeHandle || !this.activeLayerId) return;
+
+    const dx = e.global.x - this.dragStartPoint.x;
+    const dy = e.global.y - this.dragStartPoint.y;
+
+    const state = useLayerStore.getState();
+    const layer = state.layers.find((l) => l.id === this.activeLayerId);
+    if (!layer || layer.type !== "image") return;
+
+    const angle = this.initialLayerTransform.rotation;
+    const zoom = this.zoomValue;
+
+    if (this.activeHandle === "rotate") {
+      const centerX = this.initialLayerTransform.x;
+      const centerY = this.initialLayerTransform.y;
+      // Calculate angle from center to pointer
+      // Subtract Math.PI/2 because the handle is at the top (which is -90deg in atan2)
+      const newAngle =
+        Math.atan2(e.global.y - centerY, e.global.x - centerX) + Math.PI / 2;
+      state.updateLayerTransform(
+        this.activeLayerId,
+        { rotation: newAngle },
+        false,
+      );
+      return;
+    }
+
+    // For resize handles
+    const localDx = dx * Math.cos(-angle) - dy * Math.sin(-angle);
+    const localDy = dx * Math.sin(-angle) + dy * Math.cos(-angle);
+
+    let dScaleX = 0;
+    let dScaleY = 0;
+    let shiftX = 0;
+    let shiftY = 0;
+
+    const baseW = layer.originalWidth * zoom;
+    const baseH = layer.originalHeight * zoom;
+
+    if (this.activeHandle.includes("r")) {
+      dScaleX = localDx / baseW;
+      shiftX += localDx / 2;
+    }
+    if (this.activeHandle.includes("l")) {
+      dScaleX = -localDx / baseW;
+      shiftX += localDx / 2;
+    }
+    if (this.activeHandle.includes("b")) {
+      dScaleY = localDy / baseH;
+      shiftY += localDy / 2;
+    }
+    if (this.activeHandle.includes("t")) {
+      dScaleY = -localDy / baseH;
+      shiftY += localDy / 2;
+    }
+
+    // If corner handle, preserve aspect ratio by applying uniform scale to both
+    if (this.activeHandle.length === 2) {
+      const scaleDelta = (dScaleX + dScaleY) / 2;
+      dScaleX = scaleDelta;
+      dScaleY = scaleDelta;
+      // We recalculate shift to match the proportional scale
+      shiftX = this.activeHandle.includes("r")
+        ? (scaleDelta * baseW) / 2
+        : -(scaleDelta * baseW) / 2;
+      shiftY = this.activeHandle.includes("b")
+        ? (scaleDelta * baseH) / 2
+        : -(scaleDelta * baseH) / 2;
+    }
+
+    const newScaleX = this.initialLayerTransform.scaleX + dScaleX;
+    const newScaleY = this.initialLayerTransform.scaleY + dScaleY;
+
+    // Rotate the shift back to global space to update x,y
+    const globalShiftX = shiftX * Math.cos(angle) - shiftY * Math.sin(angle);
+    const globalShiftY = shiftX * Math.sin(angle) + shiftY * Math.cos(angle);
+
+    state.updateLayerTransform(
+      this.activeLayerId,
+      {
+        scaleX: newScaleX,
+        scaleY: newScaleY,
+        x: this.initialLayerTransform.x + globalShiftX,
+        y: this.initialLayerTransform.y + globalShiftY,
+      },
+      false,
+    );
+  };
+
+  private onPointerUp = () => {
+    if (this.activeHandle && this.activeLayerId) {
+      const state = useLayerStore.getState();
+      const layer = state.layers.find((l) => l.id === this.activeLayerId);
+      if (layer) {
+        state.updateLayerTransform(
+          this.activeLayerId,
+          {
+            scaleX: layer.scaleX,
+            scaleY: layer.scaleY,
+            rotation: layer.rotation,
+            x: layer.x,
+            y: layer.y,
+          },
+          true,
+        );
+      }
+    }
+    this.activeHandle = null;
+  };
+
+  private setupHandleInteraction(handle: PIXI.Graphics, id: string) {
+    handle.eventMode = "static";
+    handle.removeAllListeners("pointerdown");
+    handle.on("pointerdown", (e: PIXI.FederatedPointerEvent) => {
+      this.activeHandle = id;
+      this.dragStartPoint = { x: e.global.x, y: e.global.y };
+      const state = useLayerStore.getState();
+      const layer = state.layers.find((l) => l.id === this.activeLayerId);
+      if (layer) {
+        this.initialLayerTransform = {
+          x: layer.x,
+          y: layer.y,
+          scaleX: layer.scaleX,
+          scaleY: layer.scaleY,
+          rotation: layer.rotation || 0,
+        };
+      }
+      e.stopPropagation(); // Prevent canvas pan
+    });
   }
 
   public getContainer() {
@@ -166,6 +316,9 @@ export class TransformOverlayManager {
   public destroy() {
     this.app.stage.removeChild(this.container);
     this.container.destroy({ children: true });
+    this.app.stage.off("globalpointermove", this.onPointerMove);
+    this.app.stage.off("pointerup", this.onPointerUp);
+    this.app.stage.off("pointerupoutside", this.onPointerUp);
   }
 
   private calculateDimensions(layer: ImageLayer, isCropMode: boolean) {
@@ -195,8 +348,11 @@ export class TransformOverlayManager {
     zoom: number,
     activeTool: string,
   ) {
-    if (!activeLayerId || (activeTool !== "select" && activeTool !== "crop")) {
+    const toolDef = activeTool ? toolRegistry[activeTool] : null;
+
+    if (!activeLayerId || !toolDef?.showTransformOverlay) {
       this.container.visible = false;
+      this.activeLayerId = null;
       return;
     }
 
@@ -205,10 +361,14 @@ export class TransformOverlayManager {
       ImageLayer | undefined;
     if (!layer || layer.type !== "image") {
       this.container.visible = false;
+      this.activeLayerId = null;
       return;
     }
 
     this.container.visible = true;
+    this.activeLayerId = activeLayerId;
+    this.zoomValue = zoom / 100;
+    this.allowRotation = toolDef.allowRotation !== false;
 
     const _overlayColor = theme === "dark" ? 0xffffff : 0x0ea5e9;
     const overlayAlpha = theme === "dark" ? 0.3 : 0.8;
@@ -259,24 +419,28 @@ export class TransformOverlayManager {
     } else {
       this.cropGrid.visible = false;
 
-      const rotY = -scaledHeight / 2 - 24;
-      this.rotationHandle.clear();
-      this.rotationHandle.moveTo(0, -scaledHeight / 2);
-      this.rotationHandle.lineTo(0, rotY);
-      this.rotationHandle.stroke({
-        width: 1,
-        color: _overlayColor,
-        alpha: 0.5,
-      });
-      this.rotationHandle.circle(0, rotY, 5);
-      this.rotationHandle.fill({ color: handleFillColor });
-      this.rotationHandle.stroke({ width: 1.5, color: _overlayColor });
-      this.rotationHandle.x = stagePos.x;
-      this.rotationHandle.y = stagePos.y;
-      this.rotationHandle.rotation = layer.rotation || 0;
-      this.rotationHandle.visible = true;
-      this.rotationHandle.eventMode = "static";
-      this.rotationHandle.cursor = "crosshair";
+      if (this.allowRotation) {
+        const rotY = -scaledHeight / 2 - 24;
+        this.rotationHandle.clear();
+        this.rotationHandle.moveTo(0, -scaledHeight / 2);
+        this.rotationHandle.lineTo(0, rotY);
+        this.rotationHandle.stroke({
+          width: 1,
+          color: _overlayColor,
+          alpha: 0.5,
+        });
+        this.rotationHandle.circle(0, rotY, 5);
+        this.rotationHandle.fill({ color: handleFillColor });
+        this.rotationHandle.stroke({ width: 1.5, color: _overlayColor });
+        this.rotationHandle.x = stagePos.x;
+        this.rotationHandle.y = stagePos.y;
+        this.rotationHandle.rotation = layer.rotation || 0;
+        this.rotationHandle.visible = true;
+        this.rotationHandle.cursor = "crosshair";
+        this.setupHandleInteraction(this.rotationHandle, "rotate");
+      } else {
+        this.rotationHandle.visible = false;
+      }
     }
 
     this.updateHandles(
@@ -329,6 +493,7 @@ export class TransformOverlayManager {
         );
         this.handles[pos.id] = handle;
         this.container.addChild(handle);
+        this.setupHandleInteraction(handle, pos.id);
       } else {
         this.handles[pos.id].clear();
         drawHandle(
