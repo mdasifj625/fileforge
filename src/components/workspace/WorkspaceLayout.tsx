@@ -1,8 +1,19 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { CanvasArea } from "@/components/workspace/CanvasArea";
-import { PdfCanvasArea } from "@/components/workspace/PdfCanvasArea";
+import dynamic from "next/dynamic";
+const CanvasArea = dynamic(
+  () =>
+    import("@/components/workspace/CanvasArea").then((mod) => mod.CanvasArea),
+  { ssr: false },
+);
+const PdfCanvasArea = dynamic(
+  () =>
+    import("@/components/workspace/PdfCanvasArea").then(
+      (mod) => mod.PdfCanvasArea,
+    ),
+  { ssr: false },
+);
 import { PropertiesPanel } from "@/components/workspace/PropertiesPanel";
 import { ExportModal } from "@/components/workspace/ExportModal";
 import { Undo2, Redo2 } from "lucide-react";
