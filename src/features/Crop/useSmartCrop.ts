@@ -13,7 +13,9 @@ export function useSmartCrop(activeLayer: Layer | undefined) {
     if (!activeLayer || isFiltering) return;
     setIsFiltering(true);
     try {
-      const fileRecord = await db.files.get(activeLayer.fileId);
+      const activeImgLayer = activeLayer as ImageLayer;
+      const targetFileId = activeImgLayer.maskFileId || activeImgLayer.fileId;
+      const fileRecord = await db.files.get(targetFileId);
       if (!fileRecord) throw new Error("File not found in DB");
 
       const worker = new Worker(
@@ -28,8 +30,6 @@ export function useSmartCrop(activeLayer: Layer | undefined) {
         setIsFiltering(false);
         return;
       }
-
-      const activeImgLayer = activeLayer as ImageLayer;
 
       const cropX = bounds.minX;
       const cropY = bounds.minY;
